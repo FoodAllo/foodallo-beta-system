@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b5e3b">
+  <meta name="description" content="FoodAllo: Gutschein der Musterstadt für Lebensmittel, Hygieneartikel und bei Bedarf Trinkwasser. Beta-Version.">
+  <title>FoodAllo – Musterstadt</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" href="icons/favicon.ico" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+  <a class="skip-link" href="#inhalt">Zum Inhalt</a>
+  <div id="online-banner" hidden role="status"></div>
+  <p class="demo-banner">Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde</p>
+
+  <header class="app-header">
+    <img class="logo-header" src="icons/logo-header.png" width="156" height="48" alt="FoodAllo">
+    <div class="header-text">
+      <h1>FoodAllo</h1>
+      <p>Musterstadt</p>
+    </div>
+    <div class="header-actions">
+      <span id="who" hidden></span>
+      <button type="button" class="btn ghost" id="btn-help">Hilfe</button>
+      <button type="button" class="btn ghost" id="btn-logout" hidden>Abmelden</button>
+    </div>
+  </header>
+
+  <main id="inhalt">
+    <section data-view="login">
+      <div class="card login-card">
+        <img class="logo-login" src="icons/logo-login.png" width="156" height="48" alt="FoodAllo">
+        <h2>Anmelden</h2>
+        <p class="lede">Melden Sie sich mit Ihrer Anmeldenummer und Ihrer Geheimzahl an. Danach sehen Sie den Gutschein für Ihren Haushalt.</p>
+        <form id="login-form" autocomplete="on">
+          <label for="person-id">Anmeldenummer</label>
+          <input id="person-id" name="username" autocomplete="username" spellcheck="false" required>
+          <label for="pin">Geheimzahl</label>
+          <input id="pin" name="password" type="password" autocomplete="current-password" required>
+          <button type="submit" class="btn primary">Anmelden</button>
+        </form>
+        <p id="login-error" class="error" hidden role="alert"></p>
+        <button type="button" class="btn linkish" id="btn-eid">Mit Online-Ausweis anmelden</button>
+        <button type="button" class="btn linkish" id="btn-melde">Anmeldung über die Meldebehörde</button>
+        <button type="button" class="btn linkish" id="btn-register">Andere Anmeldung</button>
+        <div class="besucher-zugang">
+          <p class="besucher-label">Zum Ausprobieren dieser Demonstration</p>
+          <button type="button" class="btn" id="btn-besucher-meier">Als Familie Meier ausprobieren</button>
+          <button type="button" class="btn" id="btn-besucher-mueller">Als Familie Müller ausprobieren</button>
+        </div>
+      </div>
+    </section>
+
+    <section data-view="eid" hidden>
+      <div class="card">
+        <h2>Anmeldung mit Online-Ausweis</h2>
+        <p class="lede" id="eid-standin"></p>
+        <form id="eid-form">
+          <label for="eid-nachname">Nachname</label>
+          <input id="eid-nachname" name="nachname" autocomplete="family-name" required>
+          <label for="eid-ausweis">Ausweisnummer</label>
+          <input id="eid-ausweis" name="ausweis" autocomplete="off" spellcheck="false" required>
+          <button type="submit" class="btn primary">Ausweisdaten prüfen (Übung)</button>
+        </form>
+        <p id="eid-error" class="error" hidden role="alert"></p>
+        <button type="button" class="btn linkish" id="btn-back-eid">Zurück zur Anmeldung</button>
+      </div>
+    </section>
+
+    <section data-view="melde" hidden>
+      <div class="card">
+        <h2>Anmeldung über die Meldebehörde</h2>
+        <p class="lede">Melden Sie sich hier an, wenn Ihr Ausweis keine Online-Ausweisfunktion hat. Danach prüfen Sie Ihre Identität vor Ort in der Meldebehörde der Musterstadt.</p>
+        <form id="melde-form">
+          <label for="melde-nachname">Nachname</label>
+          <input id="melde-nachname" name="nachname" autocomplete="family-name" required>
+          <label for="melde-ausweis">Ausweisnummer</label>
+          <input id="melde-ausweis" name="ausweis" autocomplete="off" spellcheck="false" required>
+          <button type="submit" class="btn primary">Anmeldung speichern</button>
+        </form>
+        <p id="melde-error" class="error" hidden role="alert"></p>
+        <button type="button" class="btn linkish" id="btn-back-melde">Zurück zur Anmeldung</button>
+      </div>
+    </section>
+
+    <section data-view="register" hidden>
+      <div class="card">
+        <h2>Neu anmelden</h2>
+        <p class="lede">Melden Sie sich hier an, wenn Sie die App zum ersten Mal nutzen. Die Meldebehörde der Musterstadt prüft danach Ihre Identität. Erst dann erscheint Ihr Gutschein.</p>
+        <form id="register-form">
+          <label for="reg-alter">Zu welcher Altersgruppe gehören Sie?</label>
+          <select id="reg-alter" required>
+            <option value="adult" selected>Erwachsene</option>
+            <option value="elderly">Ältere Menschen</option>
+            <option value="child">Kinder</option>
+            <option value="infant">Säuglinge</option>
+          </select>
+          <label for="reg-kanal">Wie möchten Sie den Gutschein nutzen?</label>
+          <select id="reg-kanal" required>
+            <option value="app" selected>Mit dieser App</option>
+            <option value="papier">Mit einer Papierkarte</option>
+          </select>
+          <button type="submit" class="btn primary">Anmeldung absenden</button>
+        </form>
+        <p id="reg-error" class="error" hidden role="alert"></p>
+        <div id="reg-result" hidden></div>
+        <button type="button" class="btn linkish" id="btn-back-login">Zurück zur Anmeldung</button>
+      </div>
+    </section>
+
+    <section data-view="help" hidden>
+      <div id="help-root"></div>
+      <button type="button" class="btn linkish" id="btn-back-help">Zurück</button>
+    </section>
+
+    <section data-view="app" hidden>
+      <div id="voucher-root"></div>
+    </section>
+  </main>
+
+  <footer class="app-foot">
+    <p class="beta">Beta-Version</p>
+    <p class="demo-hinweis">Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde</p>
+    <p class="osm">Kartendaten: © <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap-Mitwirkende</a>, <a href="https://opendatacommons.org/licenses/odbl/" rel="noopener noreferrer" target="_blank">Open Database License</a></p>
+  </footer>
+
+  <noscript>
+    <p class="noscript">Diese App benötigt JavaScript in Ihrem Browser.</p>
+  </noscript>
+
+  <script src="./kern/foodallo_kern.js"></script>
+  <script src="./data/ereignislog.js"></script>
+  <script src="js/voucher.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="./desktop/assets/melderegister.js"></script>
+  <script src="js/melderegister.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

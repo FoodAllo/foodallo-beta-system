@@ -1,0 +1,1 @@
+Fiktiver Demonstrations-Ereignislog, erzeugt aus den Stammdaten. Nicht der gemeinsame Betriebs-Log. Gültig gegen Schema v1.2. Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde.

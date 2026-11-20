@@ -1,0 +1,14 @@
+[
+  {
+    "rezept_id": "FA-RX-20261116-000002",
+    "person_id": "FA-P-14729140-000002",
+    "artikel_id": "insulin",
+    "menge": 1000,
+    "einheit": "IE",
+    "gueltig_von": "2026-11-16T00:00:00+01:00",
+    "gueltig_bis": "2026-12-15T23:59:59+01:00",
+    "status": "gueltig",
+    "verfahren": "synthetisch",
+    "_demo_hinweis": "person_id ist die verbindliche Bindung. Insulin ist keine Gutscheinposition"
+  }
+]

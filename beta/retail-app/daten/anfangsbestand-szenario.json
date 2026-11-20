@@ -1,0 +1,40 @@
+{
+  "hinweis": "Szenario-Anfangsbestände (keine reale Inventur). Werden als STOCK_ADJUSTED mit anlass=anfangsbestand gebucht (tools/retail_cli.py anfangsbestand).",
+  "stand": "2026-11-16T08:00:00+01:00",
+  "ausgabestellen": [
+    {
+      "ausgabestelle_id": "FA-R-14729140-0003",
+      "bestaende": [
+        {
+          "artikel_id": "wheat_flour",
+          "menge": 30
+        },
+        {
+          "artikel_id": "rice",
+          "menge": 3
+        },
+        {
+          "artikel_id": "oil",
+          "menge": 10
+        },
+        {
+          "artikel_id": "water",
+          "menge": 120
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "menge": 48
+        }
+      ]
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0007",
+      "bestaende": [
+        {
+          "artikel_id": "insulin",
+          "menge": 3000
+        }
+      ]
+    }
+  ]
+}

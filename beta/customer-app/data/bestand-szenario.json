@@ -1,0 +1,302 @@
+{
+  "hinweis": "Szenariowerte, keine reale Inventur. Reale Ladenbestände sind unbekannt und bleiben offen (Grundlagen §10.6, §12).",
+  "bestaende": [
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0001-wheat_flour",
+      "ausgabestelle_id": "FA-R-14729140-0001",
+      "artikel_id": "wheat_flour",
+      "menge": 800,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0001-rice",
+      "ausgabestelle_id": "FA-R-14729140-0001",
+      "artikel_id": "rice",
+      "menge": 500,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0001-oil",
+      "ausgabestelle_id": "FA-R-14729140-0001",
+      "artikel_id": "oil",
+      "menge": 200,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0001-water",
+      "ausgabestelle_id": "FA-R-14729140-0001",
+      "artikel_id": "water",
+      "menge": 2000,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0001-toilet_paper",
+      "ausgabestelle_id": "FA-R-14729140-0001",
+      "artikel_id": "toilet_paper",
+      "menge": 400,
+      "einheit": "rolle",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0002-wheat_flour",
+      "ausgabestelle_id": "FA-R-14729140-0002",
+      "artikel_id": "wheat_flour",
+      "menge": 800,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0002-rice",
+      "ausgabestelle_id": "FA-R-14729140-0002",
+      "artikel_id": "rice",
+      "menge": 500,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0002-oil",
+      "ausgabestelle_id": "FA-R-14729140-0002",
+      "artikel_id": "oil",
+      "menge": 200,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0002-water",
+      "ausgabestelle_id": "FA-R-14729140-0002",
+      "artikel_id": "water",
+      "menge": 2000,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0002-toilet_paper",
+      "ausgabestelle_id": "FA-R-14729140-0002",
+      "artikel_id": "toilet_paper",
+      "menge": 400,
+      "einheit": "rolle",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0003-wheat_flour",
+      "ausgabestelle_id": "FA-R-14729140-0003",
+      "artikel_id": "wheat_flour",
+      "menge": 800,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0003-rice",
+      "ausgabestelle_id": "FA-R-14729140-0003",
+      "artikel_id": "rice",
+      "menge": 500,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0003-oil",
+      "ausgabestelle_id": "FA-R-14729140-0003",
+      "artikel_id": "oil",
+      "menge": 200,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0003-water",
+      "ausgabestelle_id": "FA-R-14729140-0003",
+      "artikel_id": "water",
+      "menge": 2000,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0003-toilet_paper",
+      "ausgabestelle_id": "FA-R-14729140-0003",
+      "artikel_id": "toilet_paper",
+      "menge": 400,
+      "einheit": "rolle",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0004-wheat_flour",
+      "ausgabestelle_id": "FA-R-14729140-0004",
+      "artikel_id": "wheat_flour",
+      "menge": 800,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0004-rice",
+      "ausgabestelle_id": "FA-R-14729140-0004",
+      "artikel_id": "rice",
+      "menge": 500,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0004-oil",
+      "ausgabestelle_id": "FA-R-14729140-0004",
+      "artikel_id": "oil",
+      "menge": 200,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0004-water",
+      "ausgabestelle_id": "FA-R-14729140-0004",
+      "artikel_id": "water",
+      "menge": 2000,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0004-toilet_paper",
+      "ausgabestelle_id": "FA-R-14729140-0004",
+      "artikel_id": "toilet_paper",
+      "menge": 400,
+      "einheit": "rolle",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0005-wheat_flour",
+      "ausgabestelle_id": "FA-R-14729140-0005",
+      "artikel_id": "wheat_flour",
+      "menge": 800,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0005-rice",
+      "ausgabestelle_id": "FA-R-14729140-0005",
+      "artikel_id": "rice",
+      "menge": 500,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0005-oil",
+      "ausgabestelle_id": "FA-R-14729140-0005",
+      "artikel_id": "oil",
+      "menge": 200,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0005-water",
+      "ausgabestelle_id": "FA-R-14729140-0005",
+      "artikel_id": "water",
+      "menge": 2000,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0005-toilet_paper",
+      "ausgabestelle_id": "FA-R-14729140-0005",
+      "artikel_id": "toilet_paper",
+      "menge": 400,
+      "einheit": "rolle",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0006-wheat_flour",
+      "ausgabestelle_id": "FA-R-14729140-0006",
+      "artikel_id": "wheat_flour",
+      "menge": 800,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0006-rice",
+      "ausgabestelle_id": "FA-R-14729140-0006",
+      "artikel_id": "rice",
+      "menge": 500,
+      "einheit": "kg",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0006-oil",
+      "ausgabestelle_id": "FA-R-14729140-0006",
+      "artikel_id": "oil",
+      "menge": 200,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0006-water",
+      "ausgabestelle_id": "FA-R-14729140-0006",
+      "artikel_id": "water",
+      "menge": 2000,
+      "einheit": "L",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0006-toilet_paper",
+      "ausgabestelle_id": "FA-R-14729140-0006",
+      "artikel_id": "toilet_paper",
+      "menge": 400,
+      "einheit": "rolle",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0007-insulin",
+      "ausgabestelle_id": "FA-R-14729140-0007",
+      "artikel_id": "insulin",
+      "menge": 20000,
+      "einheit": "IE",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0008-insulin",
+      "ausgabestelle_id": "FA-R-14729140-0008",
+      "artikel_id": "insulin",
+      "menge": 20000,
+      "einheit": "IE",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    },
+    {
+      "bestand_id": "FA-S-FA-R-14729140-0009-insulin",
+      "ausgabestelle_id": "FA-R-14729140-0009",
+      "artikel_id": "insulin",
+      "menge": 20000,
+      "einheit": "IE",
+      "stand": "2026-11-16T09:00:00+01:00",
+      "_demo_szenario": true
+    }
+  ]
+}

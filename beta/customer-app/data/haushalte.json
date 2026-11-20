@@ -1,0 +1,75 @@
+[
+  {
+    "haushalt_id": "FA-HH-14729140-000001",
+    "ags": "14729140",
+    "groesse": 2,
+    "person_ids": [
+      "FA-P-14729140-000001",
+      "FA-P-14729140-000005"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000002",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000003"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000003",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000002"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000004",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000004"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000006",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000006"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000007",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000007"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000008",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000008"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000009",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000009"
+    ]
+  },
+  {
+    "haushalt_id": "FA-HH-14729140-000010",
+    "ags": "14729140",
+    "groesse": 1,
+    "person_ids": [
+      "FA-P-14729140-000010"
+    ]
+  }
+]

@@ -1,0 +1,156 @@
+[
+  {
+    "person_id": "FA-P-14729140-000001",
+    "haushalt_id": "FA-HH-14729140-000001",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000001"
+  },
+  {
+    "person_id": "FA-P-14729140-000005",
+    "haushalt_id": "FA-HH-14729140-000001",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000005"
+  },
+  {
+    "person_id": "FA-P-14729140-000003",
+    "haushalt_id": "FA-HH-14729140-000002",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [
+      "no_digital"
+    ],
+    "kanal": "papier",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000003"
+  },
+  {
+    "person_id": "FA-P-14729140-000002",
+    "haushalt_id": "FA-HH-14729140-000003",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000002"
+  },
+  {
+    "person_id": "FA-P-14729140-000004",
+    "haushalt_id": "FA-HH-14729140-000004",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "elderly",
+    "flags": [
+      "elderly"
+    ],
+    "kanal": "app",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000004"
+  },
+  {
+    "person_id": "FA-P-14729140-000006",
+    "haushalt_id": "FA-HH-14729140-000006",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000006"
+  },
+  {
+    "person_id": "FA-P-14729140-000007",
+    "haushalt_id": "FA-HH-14729140-000007",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "offen",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-17T08:30:00+01:00"
+    },
+    "anzeigename_demo": "Person 000007"
+  },
+  {
+    "person_id": "FA-P-14729140-000008",
+    "haushalt_id": "FA-HH-14729140-000008",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000008"
+  },
+  {
+    "person_id": "FA-P-14729140-000009",
+    "haushalt_id": "FA-HH-14729140-000009",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "bestaetigt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000009"
+  },
+  {
+    "person_id": "FA-P-14729140-000010",
+    "haushalt_id": "FA-HH-14729140-000010",
+    "ags_wohnsitz": "14729140",
+    "altersgruppe": "adult",
+    "flags": [],
+    "kanal": "app",
+    "verifikation": {
+      "status": "abgelehnt",
+      "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      "verfahren": "synthetisch",
+      "zeit": "2026-11-16T09:00:00+01:00"
+    },
+    "anzeigename_demo": "Person 000010"
+  }
+]

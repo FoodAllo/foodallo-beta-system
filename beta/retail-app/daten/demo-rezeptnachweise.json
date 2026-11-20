@@ -1,0 +1,20 @@
+{
+  "hinweis": "Synthetische Rezeptnachweise für die Apotheken-Demo (Apotheke \"Am Markt\", Markt 16, 12345 Musterstadt). Datenminimal: Rezept-ID, Rezeptinhaber (synthetische person_id), Insulin, verordnete Menge in IE, Gültigkeit, Demo-Prüfsumme. Keine Diagnosen, keine verordnende Person, keine Medikationshistorie. Das gültige Rezept entspricht customer-app/data/rezepte.json. Die Prüfsumme ist keine Sicherheit; produktiv wäre ein amtliches E-Rezept-Verfahren nötig (offen). Die Abgabe bucht die Ausgabebuchung mit rezept_id statt gutschein_id (gemeinsamer Vorschlag v1.1). Realbetrieb: E-Rezept – offener Punkt, nicht gebaut.",
+  "nachweise": [
+    {
+      "bezeichnung": "gültig · Person 000002 · 1000 IE · 16.11.–15.12.2026",
+      "person_id": "FA-P-14729140-000002",
+      "token": "FA-RXN1~FA-RX-20261116-000002~FA-P-14729140-000002~1000~IE~2026-11-16T00:00:00+01:00~2026-12-15T23:59:59+01:00~60f4bf9d"
+    },
+    {
+      "bezeichnung": "abgelaufen · bis 10.11.2026",
+      "person_id": "FA-P-14729140-000002",
+      "token": "FA-RXN1~FA-RX-20261001-000004~FA-P-14729140-000002~1000~IE~2026-10-01T00:00:00+02:00~2026-11-10T23:59:59+01:00~ec45089c"
+    },
+    {
+      "bezeichnung": "manipuliert · Menge geändert, Prüfsumme passt nicht",
+      "person_id": "FA-P-14729140-000002",
+      "token": "FA-RXN1~FA-RX-20261116-000002~FA-P-14729140-000002~9000~IE~2026-11-16T00:00:00+01:00~2026-12-15T23:59:59+01:00~60f4bf9d"
+    }
+  ]
+}

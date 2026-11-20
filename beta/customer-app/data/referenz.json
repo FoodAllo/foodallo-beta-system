@@ -1,0 +1,89 @@
+{
+  "ags_wohnsitz": "14729140",
+  "ags_kreis": "14729",
+  "gebiet_kommune": "Musterstadt",
+  "gebiet_kreis": "Landkreis Leipzig",
+  "einwohner_amtlich_2025_12_31": {
+    "frohburg": 11975,
+    "landkreis_leipzig": 259516,
+    "quelle": "Statistisches Landesamt des Freistaates Sachsen, Einwohnerzahlen 31.12.2025; Grundlagen §7.1"
+  },
+  "planungsannahme_organigramm_keine_statistik": {
+    "annahme": true,
+    "unabhaengig": true,
+    "anteil_vulnerabel": 0.1,
+    "anteil_ohne_smartphone": 0.1,
+    "ueberschneidung_anteil": 0.0,
+    "frohburg_einwohner": 11975,
+    "frohburg_vulnerabel_gerundet": 1198,
+    "frohburg_ohne_smartphone_gerundet": 1198,
+    "frohburg_beides_gerundet": 0,
+    "frohburg_nur_vulnerabel": 1198,
+    "frohburg_nur_ohne_smartphone": 1198,
+    "frohburg_union": 2396,
+    "demo_register": {
+      "personen": 10,
+      "vulnerabel": [
+        "FA-P-14729140-000004"
+      ],
+      "ohne_smartphone": [
+        "FA-P-14729140-000003"
+      ],
+      "beides": [],
+      "hinweis": "10 Personen, 10 % je Gruppe, Überschneidung 0 gemäß ueberschneidung_anteil. Unabhängig: eine Person kann beide Flags tragen, wenn der Anteil erhöht wird."
+    },
+    "hinweis": "Keine amtliche Statistik. Überschneidung ist konfigurierbar (0 … min der beiden Anteile)."
+  },
+  "stelle_mock": {
+    "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+    "behoerde_amtlich": "Stadtverwaltung Musterstadt, Pass- und Meldebehörde",
+    "rolle_id": "ROLE_STADT_FROHBURG",
+    "anschrift": "Markt 13–15, 12345 Musterstadt",
+    "verfahren": "synthetisch",
+    "hinweis": "Kein echtes Melderegister, keine Behördenanbindung (§3, §12). IDENTITY_VERIFIED schreibt die Desktopversion in der Rolle Meldebehörde; diese App liest das Ereignis nur."
+  },
+  "kern_ausgabestellen_demo": [
+    "FA-R-14729140-0001",
+    "FA-R-14729140-0002",
+    "FA-R-14729140-0003",
+    "FA-R-14729140-0004",
+    "FA-R-14729140-0005",
+    "FA-R-14729140-0006",
+    "FA-R-14729140-0007",
+    "FA-R-14729140-0008",
+    "FA-R-14729140-0009"
+  ],
+  "geteilte_gutscheine": [
+    "FA-V-20261116-000001",
+    "FA-V-20261116-000002",
+    "FA-V-20261116-000003",
+    "FA-V-20261116-000004",
+    "FA-V-20261116-000005",
+    "FA-V-20261116-000006",
+    "FA-V-20261116-000007"
+  ],
+  "trinkwasser": {
+    "annahme": true,
+    "nur_bei_stoerung": true,
+    "stoerung_art": "trinkwasser",
+    "je_person_tag_l": 2,
+    "je_person_periode_l": 14,
+    "periode_tage": 7,
+    "quelle": "BBK-Empfehlung, Planungsannahme",
+    "ereignisse": [
+      "SUPPLY_DISRUPTION_DECLARED",
+      "SUPPLY_DISRUPTION_ENDED"
+    ],
+    "hinweis": "Kein lokales Störungsflag. Trinkwasser nur, solange im gemeinsamen Ereignislog eine SUPPLY_DISRUPTION art=trinkwasser für die AGS aktiv ist. Ereignisse schreibt nur die Desktopversion."
+  },
+  "toilettenpapier": {
+    "annahme": true,
+    "je_person_periode_rollen": 1,
+    "quelle": "Planungsannahme"
+  },
+  "bezug": "haushalt",
+  "hinweis_gutschein": "Bezug immer haushalt. Basiskontingent = Summe je Person im Haushalt. Jedes bestätigte Haushaltsmitglied darf einlösen. gutschein_id vergibt nur die Desktopversion (VOUCHER_ISSUED). IDENTITY_VERIFIED schreibt nur die Desktopversion (Meldebehörde); die Customer App schreibt PERSON_REGISTERED (nur lokale Demo-Kopie, nicht system/data/ereignislog.jsonl).",
+  "optionen": {
+    "v12": true
+  }
+}

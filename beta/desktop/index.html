@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FoodAllo · Fachverfahren Lebensmittelversorgung (Beta)</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logos/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/logos/favicon-64.png">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<a class="skip" href="#inhalt">Zum Inhalt springen</a>
+
+<!-- Anmeldung (Arbeitsplatzauswahl) -->
+<section id="anmeldung" class="anmeldung" hidden>
+  <div class="anmeldung-box">
+    <img class="anmeldung-logo" src="assets/logos/white_logo_transparent_background.png" alt="FoodAllo">
+    <h1>Fachverfahren Lebensmittelversorgung <span class="beta">Beta</span></h1>
+    <form id="anmeldeform" autocomplete="off">
+      <label for="dienststelle">Dienststelle</label>
+      <select id="dienststelle" required></select>
+      <label for="arbeitsplatz">Arbeitsplatz</label>
+      <select id="arbeitsplatz" required></select>
+      <label for="kennung">Benutzerkennung</label>
+      <input id="kennung" type="text" placeholder="z. B. sachbearbeitung1" maxlength="40">
+      <button type="submit" class="primaer" id="btn-anmelden">Anmelden</button>
+    </form>
+    <p class="demo-hinweis" id="demo-hinweis-anmeldung" role="note">Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde</p>
+    <p class="anmeldung-fuss">Beta-Version · fiktive Daten</p>
+  </div>
+</section>
+
+<!-- Arbeitsoberfläche -->
+<div id="oberflaeche" hidden>
+<header class="kopf">
+  <div class="kopf-links">
+    <img class="kopf-logo" src="assets/logos/logo-header.png" alt="FoodAllo" width="156" height="48">
+    <div>
+      <div class="titel">Fachverfahren Lebensmittelversorgung <span class="beta">Beta</span></div>
+      <div class="untertitel" id="kopf-dienststelle"></div>
+    </div>
+  </div>
+  <div class="kopf-rechts">
+    <div class="kopf-nutzer" id="kopf-nutzer"></div>
+    <div class="kopf-stand" id="kopf-stand"></div>
+    <button type="button" id="btn-abmelden">Abmelden</button>
+  </div>
+</header>
+<div class="demo-hinweis demo-band no-print" id="demo-hinweis" role="note">Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde</div>
+<nav class="reiter" aria-label="Bereiche"><ul id="nav-liste"></ul></nav>
+<main id="inhalt"></main>
+<footer class="fuss">
+  <span>Beta-Version · fiktive Daten</span>
+  <span id="fuss-zusatz"></span>
+</footer>
+</div>
+
+<script src="assets/amtlich.js"></script>
+<script src="assets/daten.js"></script>
+<script src="assets/stammdaten_ausgabestellen.js"></script>
+<script src="assets/ereignislog.js"></script>
+<script src="assets/melderegister.js"></script>
+<script src="assets/zugriff.js"></script>
+<script src="assets/karten.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

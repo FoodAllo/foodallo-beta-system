@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>FoodAllo – Beta System: Customer App, Retail App, Desktopversion</title>
+<meta name="description" content="FoodAllo – Beta System: eine Regel für die faire Zuteilung in einer Mangellage – Customer App, Retail App und Desktopversion mit gemeinsamem Datenformat und Papier als Rückfallebene." />
+<link rel="canonical" href="https://foodallo.github.io/foodallo-beta-system/" />
+<meta property="og:site_name" content="FoodAllo – Beta System" />
+<meta property="og:title" content="FoodAllo – Beta System: Customer App, Retail App, Desktopversion" />
+<meta property="og:description" content="FoodAllo – Beta System: eine Regel für die faire Zuteilung in einer Mangellage – Customer App, Retail App und Desktopversion mit gemeinsamem Datenformat und Papier als Rückfallebene." />
+<link rel="icon" type="image/png" href="img/logo/favicon-32.png" />
+<link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+<div class="banner"><span data-i18n="banner">FoodAllo – Beta System · Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde</span></div>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="index.html"><img src="img/logo/logo-header.png" alt="FoodAllo" width="156" height="48" /></a>
+    <nav class="main" aria-label="Hauptnavigation">
+      <a href="index.html" aria-current="page"><span data-i18n="nav_home">Das System</span></a>
+      <a href="customer-app.html"><span data-i18n="nav_cust">Customer App</span></a>
+      <a href="retail-app.html"><span data-i18n="nav_ret">Retail App</span></a>
+      <a href="desktop.html"><span data-i18n="nav_desk">Desktopversion</span></a>
+      <a href="https://foodallo.github.io/foodallo-open-concept/"><span data-i18n="nav_open">Regel und Konzept</span></a>
+      <div class="lang" role="group" aria-label="Sprache / Language">
+        <button type="button" data-lang-btn="de" aria-pressed="true">DE</button>
+        <button type="button" data-lang-btn="en" aria-pressed="false">EN</button>
+      </div>
+    </nav>
+  </header>
+</div>
+
+<main class="wrap">
+  <section class="hero" aria-labelledby="h1">
+    <p class="kicker"><span data-i18n="kicker">FoodAllo – Beta System</span></p>
+    <h1 id="h1"><span data-i18n="h1">Eine Regel – auf dem Handy, an der Ladenkasse und auf Papier.</span></h1>
+    <p class="lead"><span data-i18n="lead">FoodAllo ist eine öffentliche Regel dafür, wer in einer Mangellage wie viel bekommt. Drei Anwendungen setzen sie um: die Customer App für Bürgerinnen und Bürger, die Retail App für Geschäfte und Apotheken und die Desktopversion für Kommune, Kreis, Land und Bund.</span></p>
+    <p class="status"><span data-i18n="status">Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde</span></p>
+    <p class="rule"><strong data-i18n="rule_h">Die Grundregel</strong><span class="formula"><span data-i18n="rule">Zugeteilt wird das Kleinste aus Bedarf, Grundquote und Restbestand.</span></span></p>
+  </section>
+
+  <section id="ablauf" aria-labelledby="flow-h">
+    <h2 id="flow-h"><span data-i18n="flow_h">So läuft es ab</span></h2>
+    <div class="flow">
+  <svg viewBox="0 0 1000 250" role="img" aria-labelledby="flow-title">
+    <title id="flow-title">So läuft es ab</title>
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#3a342c"/></marker></defs>
+    <style>
+      .t1{font:700 17px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:#1c1a16}
+      .t2{font:15px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:#3a342c}
+      .t3{font:600 12.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:#5c6b3a}
+      .num{font:700 13px system-ui,sans-serif;fill:#fff}
+      .bar{font:600 16px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:#f4f7ec}
+    </style>
+    <g>
+      <rect x="10" y="30" width="180" height="104" rx="14" fill="#fffdf8" stroke="#1b5e3b" stroke-width="2.5"/>
+      <circle cx="100" cy="30" r="13" fill="#1b5e3b"/><text x="100" y="35" text-anchor="middle" class="num">1</text>
+      <text x="100" y="70" class="t1" text-anchor="middle" data-i18n="f1a">Bürgerin / Bürger</text>
+      <text x="100" y="95" class="t2" text-anchor="middle" data-i18n="f1b">meldet sich an:</text>
+      <text x="100" y="119" class="t3" text-anchor="middle" data-i18n="f1c">Customer App oder Schalter</text>
+      <line x1="100" y1="134" x2="100" y2="186" stroke="#c9bea9" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <g>
+      <rect x="210" y="30" width="180" height="104" rx="14" fill="#fffdf8" stroke="#5c6b3a" stroke-width="2.5"/>
+      <circle cx="300" cy="30" r="13" fill="#5c6b3a"/><text x="300" y="35" text-anchor="middle" class="num">2</text>
+      <text x="300" y="70" class="t1" text-anchor="middle" data-i18n="f2a">Meldebehörde</text>
+      <text x="300" y="95" class="t2" text-anchor="middle" data-i18n="f2b">bestätigt die Person</text>
+      <text x="300" y="119" class="t3" text-anchor="middle" data-i18n="f2c">Desktopversion</text>
+      <line x1="300" y1="134" x2="300" y2="186" stroke="#c9bea9" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <g>
+      <rect x="410" y="30" width="180" height="104" rx="14" fill="#fffdf8" stroke="#e8943a" stroke-width="2.5"/>
+      <circle cx="500" cy="30" r="13" fill="#e8943a"/><text x="500" y="35" text-anchor="middle" class="num">3</text>
+      <text x="500" y="70" class="t1" text-anchor="middle" data-i18n="f3a">Gutschein</text>
+      <text x="500" y="95" class="t2" text-anchor="middle" data-i18n="f3b">oder Papierkarte</text>
+      <text x="500" y="119" class="t3" text-anchor="middle" data-i18n="f3c">für den Haushalt</text>
+      <line x1="500" y1="134" x2="500" y2="186" stroke="#c9bea9" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <g>
+      <rect x="610" y="30" width="180" height="104" rx="14" fill="#fffdf8" stroke="#45522c" stroke-width="2.5"/>
+      <circle cx="700" cy="30" r="13" fill="#45522c"/><text x="700" y="35" text-anchor="middle" class="num">4</text>
+      <text x="700" y="70" class="t1" text-anchor="middle" data-i18n="f4a">Geschäft / Apotheke</text>
+      <text x="700" y="95" class="t2" text-anchor="middle" data-i18n="f4b">gibt Ware aus,</text>
+      <text x="700" y="119" class="t3" text-anchor="middle" data-i18n="f4c">meldet Bestand · Retail App</text>
+      <line x1="700" y1="134" x2="700" y2="186" stroke="#c9bea9" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <g>
+      <rect x="810" y="30" width="180" height="104" rx="14" fill="#fffdf8" stroke="#5c6b3a" stroke-width="2.5"/>
+      <circle cx="900" cy="30" r="13" fill="#5c6b3a"/><text x="900" y="35" text-anchor="middle" class="num">5</text>
+      <text x="900" y="70" class="t1" text-anchor="middle" data-i18n="f5a">Übersicht</text>
+      <text x="900" y="95" class="t2" text-anchor="middle" data-i18n="f5b">Bestand und Ausgaben</text>
+      <text x="900" y="119" class="t3" text-anchor="middle" data-i18n="f5c">Desktopversion</text>
+      <line x1="900" y1="134" x2="900" y2="186" stroke="#c9bea9" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <path d="M193 82 L215 82" stroke="#3a342c" stroke-width="2.5" marker-end="url(#ar)"/><path d="M393 82 L415 82" stroke="#3a342c" stroke-width="2.5" marker-end="url(#ar)"/><path d="M593 82 L615 82" stroke="#3a342c" stroke-width="2.5" marker-end="url(#ar)"/><path d="M793 82 L815 82" stroke="#3a342c" stroke-width="2.5" marker-end="url(#ar)"/>
+    <rect x="10" y="186" width="980" height="52" rx="12" fill="#45522c"/>
+    <text x="500" y="218" class="bar" text-anchor="middle" data-i18n="fbar">Ein gemeinsames Datenformat: jede Anmeldung, Ausgabe und Lieferung wird gleich gebucht</text>
+  </svg>
+      <ol class="flow-steps"><li><strong data-i18n="s1t">Anmelden</strong><span data-i18n="s1b">In der Customer App oder am Schalter der Meldebehörde.</span></li><li><strong data-i18n="s2t">Bestätigen</strong><span data-i18n="s2b">Die Meldebehörde prüft die Person und stellt einen Haushaltsgutschein oder eine Papierkarte aus.</span></li><li><strong data-i18n="s3t">Ausgeben</strong><span data-i18n="s3b">Das Geschäft prüft, wer abholt, und gibt höchstens die freie Menge aus.</span></li><li><strong data-i18n="s4t">Bestand melden</strong><span data-i18n="s4b">Lieferungen und Korrekturen bucht das Geschäft in der Retail App.</span></li><li><strong data-i18n="s5t">Überblick</strong><span data-i18n="s5b">Die Desktopversion zeigt die Bestands- und Ausgabeübersicht – ab dem Kreis nur Summen.</span></li></ol>
+      <p class="fine" style="margin:.9rem 0 0"><span data-i18n="fpaper">Papier als Rückfallebene: ohne Handy, Strom oder Netz gilt dieselbe Regel auf der gedruckten Karte.</span></p>
+    </div>
+  </section>
+
+  <section id="apps" aria-labelledby="tiles-h">
+    <h2 id="tiles-h"><span data-i18n="tiles_h">Die drei Anwendungen</span></h2>
+    <div class="tiles">
+      <a class="tile" href="customer-app.html">
+        <div class="shot phone"><img src="img/customer/02-gutschein.png" alt="Customer App: Gutschein für den Haushalt" width="390" height="844" /></div>
+        <div class="body"><span class="who"><span data-i18n="t1w">Für Bürgerinnen und Bürger</span></span><h3>Customer App</h3><p><span data-i18n="t1p">Anmelden, Gutschein für den Haushalt sehen, wissen, was noch abgeholt werden kann und wo.</span></p><span class="more"><span data-i18n="t1m">Zur Customer App →</span></span></div>
+      </a>
+      <a class="tile" href="retail-app.html">
+        <div class="shot phone"><img src="img/retail/03-ausgabe.png" alt="Retail App: Ausgabe an der Kasse" width="390" height="1123" /></div>
+        <div class="body"><span class="who"><span data-i18n="t2w">Für Geschäfte und Apotheken</span></span><h3>Retail App</h3><p><span data-i18n="t2p">Gutschein oder Papierkarte prüfen, Ware ausgeben, Beleg drucken, Lieferungen und Bestand buchen.</span></p><span class="more"><span data-i18n="t2m">Zur Retail App →</span></span></div>
+      </a>
+      <a class="tile" href="desktop.html">
+        <div class="shot wide"><img src="img/desktop/03-lebensmittelkarte.png" alt="Desktopversion: Lebensmittelkarte drucken" width="1440" height="1072" /></div>
+        <div class="body"><span class="who"><span data-i18n="t3w">Für Kommune, Kreis, Land und Bund</span></span><h3 data-i18n="nav_desk">Desktopversion</h3><p><span data-i18n="t3p">Anmeldungen bestätigen, Papierkarten drucken und die Bestands- und Ausgabeübersicht je Ebene sehen.</span></p><span class="more"><span data-i18n="t3m">Zur Desktopversion →</span></span></div>
+      </a>
+    </div>
+  </section>
+
+  <section aria-labelledby="paper-h">
+    <div class="cols">
+      <div class="card">
+        <h3 id="paper-h"><span data-i18n="paper_h">Ohne Smartphone</span></h3>
+        <p><span data-i18n="paper_p">Wer kein Smartphone hat, meldet sich am Schalter an. Die Meldebehörde druckt eine Lebensmittelkarte für den Haushalt. Im Geschäft wird die Kartennummer erfasst und genauso gebucht wie ein Gutschein aus der App – mit denselben Mengen.</span></p>
+      </div>
+      <div class="card">
+        <h3><span data-i18n="see_h">Wer sieht was</span></h3>
+        <ul><li><span data-i18n="see_p1">Einzelne Personen sieht nur die zuständige Kommune.</span></li><li><span data-i18n="see_p2">Kreis, Land und Bund sehen nur Summen; kleine Zahlen unter 5 werden nicht ausgewiesen.</span></li><li><span data-i18n="see_p3">Öffentlich bleiben nur Bestandsmengen – nie Lagerorte und nie, wer was bekommen hat.</span></li></ul>
+        <ul class="levels"><li><span data-i18n="lv1">Kommune</span></li><li><span data-i18n="lv2">Kreis</span></li><li><span data-i18n="lv3">Land</span></li><li><span data-i18n="lv4">Bund</span></li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="more-h">
+    <h2 id="more-h"><span data-i18n="more_h">Die Regel selbst ausprobieren</span></h2>
+    <p class="lead" style="font-size:1rem"><span data-i18n="more_p">Wie die Regel im Vergleich zu „wer zuerst kommt“ wirkt, zeigt die bestehende FoodAllo-Seite.</span></p>
+    <div class="btns">
+      <a class="btn primary" href="https://foodallo.github.io/foodallo-open-concept/demo.html?preset=markt"><span data-i18n="more_btn">Regel ausprobieren</span></a>
+      <a class="btn secondary" href="https://foodallo.github.io/foodallo-open-concept/analog.html"><span data-i18n="more_btn2">Ohne Smartphone</span></a>
+    </div>
+  </section>
+</main>
+<footer>
+  <div class="wrap">
+    <div class="line">
+      <span><span data-i18n="foot_l">FoodAllo · Faire Zuteilung von Lebensmitteln und Bedarfsgütern · Gemeinwohl</span></span>
+      <span><a href="index.html" data-i18n="nav_home">Das System</a> · <a href="customer-app.html">Customer App</a> · <a href="retail-app.html">Retail App</a> · <a href="desktop.html" data-i18n="nav_desk">Desktopversion</a> · <a href="https://foodallo.github.io/foodallo-open-concept/" data-i18n="nav_open">Regel und Konzept</a> · <a href="https://x.com/food_allo" rel="noopener">@food_allo</a></span>
+    </div>
+    <p class="fine" style="margin-top:.9rem;max-width:52rem"><span data-i18n="foot_data">Alle Personen, Haushalte, Gutscheine und Bestände in den Beta-Ansichten sind fiktiv. Keine Partnerschaft mit den gezeigten Geschäften. Filialnamen und Adressen: © OpenStreetMap-Mitwirkende, Daten verfügbar unter der Open Database License (ODbL), openstreetmap.org/copyright. Ortsname und Postleitzahl für die Demonstration durch Musterstadt/Musterdorf und 12345 ersetzt.</span></p>
+  </div>
+</footer>
+<script>
+(function () {
+  var I18N = {
+ "de": {
+  "banner": "FoodAllo – Beta System · Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde",
+  "nav_home": "Das System",
+  "nav_cust": "Customer App",
+  "nav_ret": "Retail App",
+  "nav_desk": "Desktopversion",
+  "nav_open": "Regel und Konzept",
+  "kicker": "FoodAllo – Beta System",
+  "h1": "Eine Regel – auf dem Handy, an der Ladenkasse und auf Papier.",
+  "lead": "FoodAllo ist eine öffentliche Regel dafür, wer in einer Mangellage wie viel bekommt. Drei Anwendungen setzen sie um: die Customer App für Bürgerinnen und Bürger, die Retail App für Geschäfte und Apotheken und die Desktopversion für Kommune, Kreis, Land und Bund.",
+  "status": "Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde",
+  "rule_h": "Die Grundregel",
+  "rule": "Zugeteilt wird das Kleinste aus Bedarf, Grundquote und Restbestand.",
+  "flow_h": "So läuft es ab",
+  "f1a": "Bürgerin / Bürger",
+  "f1b": "meldet sich an:",
+  "f1c": "Customer App oder Schalter",
+  "f2a": "Meldebehörde",
+  "f2b": "bestätigt die Person",
+  "f2c": "Desktopversion",
+  "f3a": "Gutschein",
+  "f3b": "oder Papierkarte",
+  "f3c": "für den Haushalt",
+  "f4a": "Geschäft / Apotheke",
+  "f4b": "gibt Ware aus,",
+  "f4c": "meldet Bestand · Retail App",
+  "f5a": "Übersicht",
+  "f5b": "Bestand und Ausgaben",
+  "f5c": "Desktopversion",
+  "fbar": "Ein gemeinsames Datenformat: jede Anmeldung, Ausgabe und Lieferung wird gleich gebucht",
+  "fpaper": "Papier als Rückfallebene: ohne Handy, Strom oder Netz gilt dieselbe Regel auf der gedruckten Karte.",
+  "s1t": "Anmelden",
+  "s1b": "In der Customer App oder am Schalter der Meldebehörde.",
+  "s2t": "Bestätigen",
+  "s2b": "Die Meldebehörde prüft die Person und stellt einen Haushaltsgutschein oder eine Papierkarte aus.",
+  "s3t": "Ausgeben",
+  "s3b": "Das Geschäft prüft, wer abholt, und gibt höchstens die freie Menge aus.",
+  "s4t": "Bestand melden",
+  "s4b": "Lieferungen und Korrekturen bucht das Geschäft in der Retail App.",
+  "s5t": "Überblick",
+  "s5b": "Die Desktopversion zeigt die Bestands- und Ausgabeübersicht – ab dem Kreis nur Summen.",
+  "tiles_h": "Die drei Anwendungen",
+  "t1w": "Für Bürgerinnen und Bürger",
+  "t1p": "Anmelden, Gutschein für den Haushalt sehen, wissen, was noch abgeholt werden kann und wo.",
+  "t1m": "Zur Customer App →",
+  "t2w": "Für Geschäfte und Apotheken",
+  "t2p": "Gutschein oder Papierkarte prüfen, Ware ausgeben, Beleg drucken, Lieferungen und Bestand buchen.",
+  "t2m": "Zur Retail App →",
+  "t3w": "Für Kommune, Kreis, Land und Bund",
+  "t3p": "Anmeldungen bestätigen, Papierkarten drucken und die Bestands- und Ausgabeübersicht je Ebene sehen.",
+  "t3m": "Zur Desktopversion →",
+  "paper_h": "Ohne Smartphone",
+  "paper_p": "Wer kein Smartphone hat, meldet sich am Schalter an. Die Meldebehörde druckt eine Lebensmittelkarte für den Haushalt. Im Geschäft wird die Kartennummer erfasst und genauso gebucht wie ein Gutschein aus der App – mit denselben Mengen.",
+  "see_h": "Wer sieht was",
+  "see_p1": "Einzelne Personen sieht nur die zuständige Kommune.",
+  "see_p2": "Kreis, Land und Bund sehen nur Summen; kleine Zahlen unter 5 werden nicht ausgewiesen.",
+  "see_p3": "Öffentlich bleiben nur Bestandsmengen – nie Lagerorte und nie, wer was bekommen hat.",
+  "lv1": "Kommune",
+  "lv2": "Kreis",
+  "lv3": "Land",
+  "lv4": "Bund",
+  "more_h": "Die Regel selbst ausprobieren",
+  "more_p": "Wie die Regel im Vergleich zu „wer zuerst kommt“ wirkt, zeigt die bestehende FoodAllo-Seite.",
+  "more_btn": "Regel ausprobieren",
+  "more_btn2": "Ohne Smartphone",
+  "foot_l": "FoodAllo · Faire Zuteilung von Lebensmitteln und Bedarfsgütern · Gemeinwohl",
+  "foot_data": "Alle Personen, Haushalte, Gutscheine und Bestände in den Beta-Ansichten sind fiktiv. Keine Partnerschaft mit den gezeigten Geschäften. Filialnamen und Adressen: © OpenStreetMap-Mitwirkende, Daten verfügbar unter der Open Database License (ODbL), openstreetmap.org/copyright. Ortsname und Postleitzahl für die Demonstration durch Musterstadt/Musterdorf und 12345 ersetzt.",
+  "title": "FoodAllo – Beta System: Customer App, Retail App, Desktopversion",
+  "desc": "FoodAllo – Beta System: eine Regel für die faire Zuteilung in einer Mangellage – Customer App, Retail App und Desktopversion mit gemeinsamem Datenformat und Papier als Rückfallebene."
+ },
+ "en": {
+  "banner": "FoodAllo – Beta System · Demonstration with fictional data, not in use by any authority",
+  "nav_home": "The system",
+  "nav_cust": "Customer App",
+  "nav_ret": "Retail App",
+  "nav_desk": "Desktop version",
+  "nav_open": "Rule and concept",
+  "kicker": "FoodAllo – Beta System",
+  "h1": "One rule – on the phone, at the shop counter and on paper.",
+  "lead": "FoodAllo is a public rule for who gets how much in a shortage. Three applications put it into practice: the Customer App for residents, the Retail App for shops and pharmacies, and the Desktop version for the municipality, district, state and federal level.",
+  "status": "Demonstration with fictional data, not in use by any authority",
+  "rule_h": "The core rule",
+  "rule": "Allocated = the smallest of need, base quota and remaining stock.",
+  "flow_h": "How it works",
+  "f1a": "Resident",
+  "f1b": "registers:",
+  "f1c": "Customer App or counter",
+  "f2a": "Registration office",
+  "f2b": "confirms the person",
+  "f2c": "Desktop version",
+  "f3a": "Voucher",
+  "f3b": "or paper card",
+  "f3c": "for the household",
+  "f4a": "Shop / pharmacy",
+  "f4b": "hands out goods,",
+  "f4c": "reports stock · Retail App",
+  "f5a": "Overview",
+  "f5b": "stock and distribution",
+  "f5c": "Desktop version",
+  "fbar": "One shared data format: every registration, hand-out and delivery is recorded the same way",
+  "fpaper": "Paper as fallback: without a phone, power or network, the same rule applies on the printed card.",
+  "s1t": "Register",
+  "s1b": "In the Customer App or at the counter of the registration office.",
+  "s2t": "Confirm",
+  "s2b": "The registration office checks the person and issues a household voucher or a paper card.",
+  "s3t": "Hand out",
+  "s3b": "The shop checks who is collecting and hands out no more than the remaining amount.",
+  "s4t": "Report stock",
+  "s4b": "The shop records deliveries and corrections in the Retail App.",
+  "s5t": "Overview",
+  "s5b": "The Desktop version shows the stock and distribution overview – totals only from district level up.",
+  "tiles_h": "The three applications",
+  "t1w": "For residents",
+  "t1p": "Register, see the household voucher, know what can still be collected and where.",
+  "t1m": "Customer App (German) →",
+  "t2w": "For shops and pharmacies",
+  "t2p": "Check a voucher or paper card, hand out goods, print a receipt, record deliveries and stock.",
+  "t2m": "Retail App (German) →",
+  "t3w": "For municipality, district, state and federal level",
+  "t3p": "Confirm registrations, print paper cards and see the stock and distribution overview for each level.",
+  "t3m": "Desktop version (German) →",
+  "paper_h": "No smartphone",
+  "paper_p": "People without a smartphone register at the counter. The registration office prints a food card for the household. At the shop the card number is entered and recorded exactly like a voucher from the app – with the same amounts.",
+  "see_h": "Who sees what",
+  "see_p1": "Only the responsible municipality sees individual people.",
+  "see_p2": "District, state and federal level see totals only; small numbers below 5 are not shown.",
+  "see_p3": "Only stock levels are public – never storage locations and never who received what.",
+  "lv1": "Municipality",
+  "lv2": "District",
+  "lv3": "State",
+  "lv4": "Federal",
+  "more_h": "Try the rule yourself",
+  "more_p": "The existing FoodAllo site shows how the rule compares with “first come, first served”.",
+  "more_btn": "Try the rule",
+  "more_btn2": "No smartphone",
+  "foot_l": "FoodAllo · Fair allocation of food and essentials · Public interest",
+  "foot_data": "All people, households, vouchers and stock in the beta views are fictional. No partnership with the shops shown. Shop names and addresses: © OpenStreetMap contributors, data available under the Open Database License (ODbL), openstreetmap.org/copyright. Town name and postcode replaced by Musterstadt/Musterdorf and 12345 for the demonstration.",
+  "title": "FoodAllo – Beta System: Customer App, Retail App, Desktop version",
+  "desc": "FoodAllo – Beta System: one rule for fair allocation in a shortage – Customer App, Retail App and Desktop version with one shared data format and paper as fallback."
+ }
+};
+  var cur = "de";
+  var q = new URLSearchParams(location.search).get("lang");
+  if (q && I18N[q]) cur = q;
+  function t(k) { return (I18N[cur] && I18N[cur][k] != null) ? I18N[cur][k] : (I18N.de[k] || k); }
+  function apply() {
+    try { var u = new URL(location.href); u.searchParams.set("lang", cur); history.replaceState(null, "", u); } catch (e) {}
+    document.documentElement.lang = cur;
+    document.title = t("title");
+    var md = document.querySelector('meta[name="description"]'); if (md) md.setAttribute("content", t("desc"));
+    document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = t(el.getAttribute("data-i18n")); });
+    document.querySelectorAll("[data-lang-btn]").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-lang-btn") === cur ? "true" : "false"); });
+  }
+  document.querySelectorAll("[data-lang-btn]").forEach(function (b) { b.addEventListener("click", function () { cur = b.getAttribute("data-lang-btn"); apply(); }); });
+  apply();
+})();
+</script>
+</body>
+</html>

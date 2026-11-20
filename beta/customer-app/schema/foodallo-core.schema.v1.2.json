@@ -1,0 +1,2022 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "foodallo-core.schema.v1.2.json",
+  "title": "FoodAllo Kernschema v1.2",
+  "description": "FoodAllo Kernschema v1.2, verbindlich.11.2026. Inhaltlich gleich mit proposals/foodallo-core.schema.v1.2-proposal.json (sha256 69e79bd0193abc8bf454f1fc3eb25bd09b0a37418ceef26ecd0cbeebe91376af; bestätigt von Customer App und Desktopversion, V1–V15). Zusatzgutschein bei Störung (anlass, stoerung_id, ags), Registrierungskanal (PERSON_REGISTERED.kanal). Ereignisfeld schema_version bleibt 1; jedes gültige v1.1-Ereignis bleibt gültig. Änderungsnotiz: proposals/v1.2-CHANGES.md. Texte „v1.2-Vorschlag“ in $defs sind die übernommene Herleitung und gelten jetzt verbindlich",
+  "x-status": "verbindlich.11.2026",
+  "x-schema_version": "1.2",
+  "x-angelegt_am": "2026-11-17",
+  "x-hinweise": [
+    "Alle Personen- und Haushaltsdaten sind synthetisch; kein Melderegister, keine Klarnamen.",
+    "Keine Lagerorte von Reserven in Bestand oder Ereignissen.",
+    "schema_version im Ereignis bleibt 1; Minor 1.1 ist abwärtskompatibel.",
+    "VOUCHER_ISSUED schreibt nur die Desktopversion. Die Customer App prägt keine gutschein_id.",
+    "Gutschein-Bezug in v1.1 ist haushalt. Basiskontingent = Summe der Personenquoten. Jedes bestätigte Mitglied darf einlösen.",
+    "Toilettenpapier und Trinkwasser-Mengen sind Planungsannahmen (keine amtliche Festsetzung).",
+    "10 % vulnerabel und 10 % ohne Smartphone sind unabhängig; Überschneidung konfigurierbar (Annahme).",
+    "Rezept ist über synthetische person_id gebunden. Insulin ist keine Gutscheinposition.",
+    "papierkarte_id: FA-PK-<kommune/AGS>-<lfd>. ausstellungsort: FA-R-… oder FA-AUTH-…",
+    "Periode: 7 Tage, Montag bis Sonntag, Europe/Berlin.",
+    "Anfangsbestände schreibt die Retail App als STOCK_ADJUSTED mit anlass=anfangsbestand; VOUCHER_ISSUED nur Desktop.",
+    "Planungsannahmen sind im Schema mit dem Feld annahme gekennzeichnet.",
+    "ereignis_id: FA-E-<uuid>, UUID nur Kleinbuchstaben",
+    "Authentifizierung: IDENTITY_VERIFIED schreibt nur die Desktopversion in der Rolle Meldebehörde (verifikation.stelle FA-AUTH-…). PERSON_VERIFIED ist nur noch Lese-Alias.",
+    "PERSON_REGISTERED schreibt nur die Customer App.",
+    "Trinkwasser ist freigegeben, solange für die AGS der Ausgabestelle eine SUPPLY_DISRUPTION (art trinkwasser) aktiv ist. Ereignisse nur von der Desktopversion.",
+    "REDEMPTION_POSTED (nur retail_app): Ausgabebuchung trägt entweder gutschein_id (Gutscheinposition) oder rezept_id (Insulin).",
+    "Ausgabestellen-Stammdaten: einzige Quelle system/kern/stammdaten-ausgabestellen.json (OSM, ODbL).",
+    "Offen für den Realbetrieb: E-Rezept (gematik/TI) statt synthetischem Rezeptnachweis; wird in v1.1 nicht gebaut.",
+    "Darstellungsregel (DT7): Jede angezeigte Zahl trägt ihre Herkunft amtlich / synthetisch / szenario / annahme. Bestände sind Szenario, keine Inventur; Aggregate sind keine amtliche Statistik. Filialnamen aus OSM, keine Vertragspartnerschaft.",
+    "Sichtrechte und Kleinzahlregel (DT8): pruefeSichtrecht (Rolle, Objekttyp, AGS, Aggregationsebene) und die Unterdrückung von Fallzahlen n < 5 ab Kreisebene bleiben außerhalb des Austauschschemas. Das Kernschema enthält keine Klarnamen und keine fallbezogene Ausleitung an Landes- und Bundesrollen.",
+    "Betriebsvereinbarung Ereignislog (DT9): JSONL-Datei system/data/ereignislog.jsonl, nur anhängen (exklusive Dateisperre, vorhandene ereignis_id nicht erneut schreiben, vorher Sicherung ereignislog.jsonl.bak-<JJJJMMTT-HHMMSS>). Kein System überschreibt die Datei. Die Desktopversion exportiert für file:// zusätzlich ereignislog.js (window.EREIGNISLOG) – abgeleitete Kopie, nicht maßgeblich.",
+    "Annahmen (DT11): $defs/annahmen gilt unverändert für alle drei Systeme.",
+    "Quellenregel: ALLOCATION_RUN_COMPLETED, PAPER_CARD_RENDERED, PAPER_CARD_PRINTED und PERIOD_CLOSED schreibt ausschließlich die Desktopversion",
+    "PAPER_CARD_* bezeichnet ausschließlich die vorhandenen Typen PAPER_CARD_RENDERED und PAPER_CARD_PRINTED. Einen Typ PAPER_CARD_CREATED gibt es nicht.",
+    "REDEMPTION_POSTED schreibt ausschließlich die Retail App (quelle_system retail_app), auch für Papierkarten (kanal papier_abgleich): Papierkarten werden im Handel gebucht",
+    "v1.2-Vorschlag: Zusatzgutschein bei Störung = eigenes VOUCHER_ISSUED mit anlass=stoerung, stoerung_id und ags; reguläre Gutscheine bleiben unverändert.",
+    "v1.2-Vorschlag: Solange die Störung aktiv ist, bekommt jeder betroffene Haushalt je Periode einen eigenen Störungsgutschein. Wasser kommt nicht in den regulären Gutschein; die reguläre Quote bleibt unberührt",
+    "v1.2-Vorschlag: Artikel mit nur_bei_stoerung (heute: water; aus retail-app/daten/artikel.json abgeleitet) nur über Störungsgutscheine.",
+    "v1.2-Vorschlag (V9): Der Rest eines Störungsgutscheins verfällt mit dem Ende der Störung (SUPPLY_DISRUPTION_ENDED bzw. ende); kein eigenes Ereignis.",
+    "Validatoren: boolesches Teilschema false (Feld verboten) und verschachteltes if/then/else werden benötigt; der Kern-Validator (kern/foodallo_kern.py pruefe_schema, nur Standardbibliothek) kann das ab 1.5.0."
+  ],
+  "$ref": "#/$defs/Ereignis",
+  "$defs": {
+    "schema_version": {
+      "const": 1,
+      "description": "Hauptversion im Ereigniskopf. Minor-Versionen (1.1, …) ändern dieses Feld nicht."
+    },
+    "zeitstempel": {
+      "type": "string",
+      "description": "ISO 8601 mit Offset, intern Europe/Berlin",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?([+-]\\d{2}:\\d{2}|Z)$"
+    },
+    "ags": {
+      "type": "string",
+      "pattern": "^\\d{8}$"
+    },
+    "einheit": {
+      "enum": [
+        "kg",
+        "L",
+        "rolle",
+        "IE",
+        "pack"
+      ]
+    },
+    "artikel_id": {
+      "enum": [
+        "wheat_flour",
+        "rice",
+        "oil",
+        "water",
+        "toilet_paper",
+        "insulin"
+      ]
+    },
+    "menge_positiv": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "menge_nichtnegativ": {
+      "type": "number",
+      "minimum": 0
+    },
+    "quelle_system": {
+      "enum": [
+        "customer_app",
+        "retail_app",
+        "desktop",
+        "meldebehoerde_mock",
+        "allokation"
+      ],
+      "description": "meldebehoerde_mock nur noch für das Lesen älterer Ereignisse; neue IDENTITY_VERIFIED kommen von desktop."
+    },
+    "id_person": {
+      "type": "string",
+      "pattern": "^FA-P-\\d{8}-\\d{6}$"
+    },
+    "id_haushalt": {
+      "type": "string",
+      "pattern": "^FA-HH-\\d{8}-\\d{6}$"
+    },
+    "id_gutschein": {
+      "type": "string",
+      "pattern": "^FA-V-\\d{8}-\\d{6}$",
+      "description": "Form FA-V-YYYYMMDD-NNNNNN, ein Nummernkreis für reguläre und Störungsgutscheine (v1.2-Vorschlag V12: kein eigener Präfix)."
+    },
+    "id_periode": {
+      "type": "string",
+      "pattern": "^FA-PER-\\d{8}$"
+    },
+    "id_ausgabestelle": {
+      "type": "string",
+      "pattern": "^FA-R-\\d{8}-\\d{4}$"
+    },
+    "id_bestand": {
+      "type": "string",
+      "pattern": "^FA-S-FA-R-\\d{8}-\\d{4}-[a-z_]+$"
+    },
+    "id_buchung": {
+      "type": "string",
+      "pattern": "^FA-X-\\S+$"
+    },
+    "id_wareneingang": {
+      "type": "string",
+      "pattern": "^FA-W-\\S+$"
+    },
+    "id_ereignis": {
+      "type": "string",
+      "pattern": "^FA-E-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "FA-E-<uuid> nach RFC 4122, ausschließlich Kleinbuchstaben"
+    },
+    "Verifikation": {
+      "type": "object",
+      "required": [
+        "status",
+        "stelle",
+        "verfahren",
+        "zeit"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "offen",
+            "bestaetigt",
+            "abgelehnt"
+          ]
+        },
+        "stelle": {
+          "type": "string"
+        },
+        "verfahren": {
+          "const": "synthetisch"
+        },
+        "zeit": {
+          "$ref": "#/$defs/zeitstempel"
+        }
+      }
+    },
+    "Person": {
+      "type": "object",
+      "description": "Nur synthetisch.",
+      "required": [
+        "person_id",
+        "haushalt_id",
+        "ags_wohnsitz",
+        "altersgruppe",
+        "kanal",
+        "verifikation",
+        "anzeigename_demo"
+      ],
+      "properties": {
+        "person_id": {
+          "$ref": "#/$defs/id_person"
+        },
+        "haushalt_id": {
+          "$ref": "#/$defs/id_haushalt"
+        },
+        "ags_wohnsitz": {
+          "$ref": "#/$defs/ags"
+        },
+        "altersgruppe": {
+          "enum": [
+            "infant",
+            "child",
+            "adult",
+            "elderly"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "infant",
+              "child",
+              "elderly",
+              "immobile",
+              "displaced",
+              "no_digital"
+            ]
+          }
+        },
+        "kanal": {
+          "enum": [
+            "app",
+            "papier",
+            "proxy",
+            "schalter"
+          ]
+        },
+        "verifikation": {
+          "$ref": "#/$defs/Verifikation"
+        },
+        "anzeigename_demo": {
+          "type": "string",
+          "pattern": "^Person \\d{6}$"
+        }
+      }
+    },
+    "Haushalt": {
+      "type": "object",
+      "description": "Nur synthetisch.",
+      "required": [
+        "haushalt_id",
+        "ags",
+        "groesse",
+        "person_ids"
+      ],
+      "properties": {
+        "haushalt_id": {
+          "$ref": "#/$defs/id_haushalt"
+        },
+        "ags": {
+          "$ref": "#/$defs/ags"
+        },
+        "groesse": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "person_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id_person"
+          }
+        }
+      }
+    },
+    "Artikel": {
+      "type": "object",
+      "required": [
+        "artikel_id",
+        "bezeichnung_de",
+        "einheit",
+        "gruppe",
+        "abgabekanal",
+        "rezeptpflicht"
+      ],
+      "properties": {
+        "artikel_id": {
+          "$ref": "#/$defs/artikel_id"
+        },
+        "bezeichnung_de": {
+          "type": "string"
+        },
+        "einheit": {
+          "$ref": "#/$defs/einheit"
+        },
+        "gruppe": {
+          "enum": [
+            "staple",
+            "nonfood_hygiene",
+            "nonfood_pharma"
+          ]
+        },
+        "abgabekanal": {
+          "enum": [
+            "einzelhandel",
+            "apotheke",
+            "beide"
+          ]
+        },
+        "rezeptpflicht": {
+          "type": "boolean"
+        },
+        "periode_basis_vorschlag": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "annahme": {
+          "type": "boolean",
+          "description": "Pflichtkennzeichen im Sinne der Retail-Ergänzung v1.1: true, wenn periode_basis_vorschlag eine Planungsannahme ist (Feldname genau 'annahme'). Gilt insbesondere für toilet_paper und water."
+        },
+        "nur_bei_stoerung": {
+          "$ref": "#/$defs/stoerung_art",
+          "description": "Artikel ist nur einlösbar, solange für die AGS der Ausgabestelle eine Störung dieser Art aktiv ist"
+        }
+      }
+    },
+    "GutscheinPosition": {
+      "type": "object",
+      "description": "Basiskontingent = Summe der Grundquoten je Person im Haushalt. rest = zugeteilt_max − eingeloest. Rezeptpflichtige Artikel (Insulin) stehen nicht als Position im Gutschein.",
+      "required": [
+        "artikel_id",
+        "bedarf",
+        "basiskontingent",
+        "zugeteilt_max",
+        "eingeloest",
+        "rest"
+      ],
+      "properties": {
+        "artikel_id": {
+          "$ref": "#/$defs/artikel_id"
+        },
+        "bedarf": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "basiskontingent": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "zugeteilt_max": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "eingeloest": {
+          "$ref": "#/$defs/menge_nichtnegativ"
+        },
+        "rest": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "personen_anzahl": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Zahl der Haushaltsmitglieder, aus der basiskontingent abgeleitet ist."
+        }
+      }
+    },
+    "Gutschein": {
+      "type": "object",
+      "required": [
+        "gutschein_id",
+        "periode_id",
+        "bezug",
+        "haushalt_id",
+        "kanal",
+        "positionen",
+        "status",
+        "ausstellungsort"
+      ],
+      "properties": {
+        "gutschein_id": {
+          "$ref": "#/$defs/id_gutschein"
+        },
+        "periode_id": {
+          "$ref": "#/$defs/id_periode"
+        },
+        "bezug": {
+          "const": "haushalt",
+          "description": "v1.1: nur noch haushalt. Der v1-Wert person entfällt."
+        },
+        "person_id": {
+          "type": "null",
+          "description": "am Haushaltsgutschein immer null"
+        },
+        "haushalt_id": {
+          "$ref": "#/$defs/id_haushalt"
+        },
+        "kanal": {
+          "enum": [
+            "app",
+            "papier"
+          ]
+        },
+        "positionen": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/GutscheinPosition"
+          }
+        },
+        "status": {
+          "enum": [
+            "ausgestellt",
+            "teilweise_eingeloest",
+            "ausgeschoepft",
+            "storniert",
+            "abgelaufen"
+          ]
+        },
+        "papierkarte_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id_papierkarte"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "nur Papierpfad; Form FA-PK-<kommune>-<lfd>"
+        },
+        "ausstellungsort": {
+          "$ref": "#/$defs/id_ausstellungsort"
+        },
+        "anlass": {
+          "enum": [
+            "regulaer",
+            "stoerung"
+          ],
+          "default": "regulaer",
+          "description": "regulaer = Periodengutschein (wie v1.1; fehlendes Feld = regulaer). stoerung = Zusatzgutschein wegen einer Versorgungsstörung, zusätzlich zum regulären Gutschein; solange die Störung aktiv ist, je Periode ein eigener"
+        },
+        "stoerung_id": {
+          "$ref": "#/$defs/id_stoerung",
+          "description": "Verweis auf SUPPLY_DISRUPTION_DECLARED. Pflicht bei anlass=stoerung, verboten bei regulaer/fehlendem anlass (V2)."
+        },
+        "ags": {
+          "$ref": "#/$defs/ags",
+          "description": "AGS des Haushalts, 8 Stellen. Pflicht bei anlass=stoerung, sonst optional; wenn vorhanden, muss sie der AGS aus haushalt_id (FA-HH-<AGS>-<lfd>) entsprechen (prüft der Kern)"
+        }
+      },
+      "description": "Periodengutschein, in v1.1 immer haushaltsbezogen. gutschein_id vergibt ausschließlich die Desktopversion (VOUCHER_ISSUED). Jedes bestätigte Mitglied des Haushalts darf einlösen. v1.2-Vorschlag: Je Haushalt und Periode höchstens ein regulärer Gutschein und höchstens ein Störungsgutschein je stoerung_id (V3, prüft der Kern). Eingelöst wird immer gegen den Rest der angegebenen gutschein_id. Ein Störungsgutschein ist nur einlösbar, solange die verwiesene Störung für die AGS der Ausgabestelle zum Buchungszeitpunkt aktiv ist (V4); mit ENDED verfällt sein Rest ohne eigenes Ereignis (V9). Reguläre Gutscheine enthalten keine Artikel mit nur_bei_stoerung; aus v1.1 bleibt nur die Platzhalterposition mit zugeteilt_max 0 und rest 0 zulässig (V7). Störungsgutscheine nutzen den normalen Nummernkreis FA-V-YYYYMMDD-NNNNNN ohne eigenen Präfix (V12); unterschieden wird nur über anlass und stoerung_id.",
+      "allOf": [
+        {
+          "x-regel": "V2 stoerung_id genau bei anlass=stoerung; V6 Störungsgutschein nur nur_bei_stoerung-Artikel; V7 regulärer Gutschein keine nur_bei_stoerung-Menge; V10 ags Pflicht bei stoerung; V11 eigene Papierkarte",
+          "if": {
+            "properties": {
+              "anlass": {
+                "const": "stoerung"
+              }
+            },
+            "required": [
+              "anlass"
+            ]
+          },
+          "then": {
+            "required": [
+              "stoerung_id",
+              "ags"
+            ],
+            "properties": {
+              "positionen": {
+                "items": {
+                  "properties": {
+                    "artikel_id": {
+                      "enum": [
+                        "water"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kanal": {
+                      "const": "papier"
+                    }
+                  },
+                  "required": [
+                    "kanal"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "papierkarte_id"
+                  ],
+                  "properties": {
+                    "papierkarte_id": {
+                      "$ref": "#/$defs/id_papierkarte"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "else": {
+            "properties": {
+              "stoerung_id": false,
+              "positionen": {
+                "items": {
+                  "if": {
+                    "properties": {
+                      "artikel_id": {
+                        "enum": [
+                          "water"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "artikel_id"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "zugeteilt_max": {
+                        "const": 0
+                      },
+                      "rest": {
+                        "const": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Adresse": {
+      "type": "object",
+      "properties": {
+        "strasse": {
+          "type": "string"
+        },
+        "hausnummer": {
+          "type": "string"
+        },
+        "plz": {
+          "type": "string"
+        },
+        "ort": {
+          "type": "string"
+        },
+        "ortsteil": {
+          "type": "string"
+        }
+      }
+    },
+    "Ausgabestelle": {
+      "type": "object",
+      "required": [
+        "ausgabestelle_id",
+        "ags",
+        "name",
+        "typ",
+        "abgabekanal",
+        "quelle",
+        "aktiv"
+      ],
+      "properties": {
+        "ausgabestelle_id": {
+          "$ref": "#/$defs/id_ausgabestelle"
+        },
+        "ags": {
+          "$ref": "#/$defs/ags"
+        },
+        "name": {
+          "type": "string"
+        },
+        "typ": {
+          "enum": [
+            "supermarket",
+            "convenience",
+            "bakery",
+            "butcher",
+            "farm",
+            "beverages",
+            "pharmacy",
+            "chemist",
+            "kiosk",
+            "wholesale",
+            "sonstige"
+          ]
+        },
+        "abgabekanal": {
+          "enum": [
+            "einzelhandel",
+            "apotheke"
+          ]
+        },
+        "adresse": {
+          "$ref": "#/$defs/Adresse"
+        },
+        "osm_ref": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "quelle": {
+          "type": "string"
+        },
+        "aktiv": {
+          "type": "boolean"
+        },
+        "brand": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "rolle": {
+          "enum": [
+            "kern",
+            "kern_insulin",
+            "ergaenzend_register"
+          ]
+        },
+        "osm_name_vorhanden": {
+          "type": "boolean"
+        },
+        "adresse_hinweis": {
+          "type": "string"
+        },
+        "ortsteil": {
+          "type": "string",
+          "description": "Ortsteil der Gemeinde (optional, alle Ausgabestellen). Nur gesetzt, wo aus OSM (addr:suburb) oder den Grundlagen eindeutig ableitbar. Anzeige = name + \" \" + ortsteil"
+        },
+        "ortsteil_quelle": {
+          "enum": [
+            "osm_addr_suburb",
+            "grundlagen_8_1"
+          ],
+          "description": "Herleitung von ortsteil."
+        },
+        "name_quelle": {
+          "type": "string",
+          "description": "Nur wenn name nicht aus dem Geofabrik-Datenstand stammt (z. B. OSM-API live)."
+        }
+      },
+      "description": "Öffentlich kartierter Standort laut OSM (ODbL). Einzige Quelle: system/kern/stammdaten-ausgabestellen.json; name wörtlich aus dem OSM-Tag name. Keine Vertragspartnerschaft. Anzeigename = name + ortsteil (falls gesetzt und nicht schon im name enthalten)."
+    },
+    "Lagerbestand": {
+      "type": "object",
+      "description": "Menge je Ausgabestelle; niemals Lagerort.",
+      "required": [
+        "bestand_id",
+        "ausgabestelle_id",
+        "artikel_id",
+        "menge",
+        "einheit",
+        "stand"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bestand_id": {
+          "$ref": "#/$defs/id_bestand"
+        },
+        "ausgabestelle_id": {
+          "$ref": "#/$defs/id_ausgabestelle"
+        },
+        "artikel_id": {
+          "$ref": "#/$defs/artikel_id"
+        },
+        "menge": {
+          "$ref": "#/$defs/menge_nichtnegativ"
+        },
+        "einheit": {
+          "$ref": "#/$defs/einheit"
+        },
+        "stand": {
+          "$ref": "#/$defs/zeitstempel"
+        }
+      }
+    },
+    "Ausgabebuchung": {
+      "type": "object",
+      "required": [
+        "buchung_id",
+        "ausgabestelle_id",
+        "artikel_id",
+        "menge",
+        "zeit",
+        "kanal",
+        "rezept_ref",
+        "status"
+      ],
+      "properties": {
+        "buchung_id": {
+          "$ref": "#/$defs/id_buchung"
+        },
+        "gutschein_id": {
+          "$ref": "#/$defs/id_gutschein",
+          "description": "Gutscheinposition; nicht zusammen mit rezept_id."
+        },
+        "ausgabestelle_id": {
+          "$ref": "#/$defs/id_ausgabestelle"
+        },
+        "artikel_id": {
+          "$ref": "#/$defs/artikel_id"
+        },
+        "menge": {
+          "$ref": "#/$defs/menge_positiv"
+        },
+        "einheit": {
+          "$ref": "#/$defs/einheit"
+        },
+        "zeit": {
+          "$ref": "#/$defs/zeitstempel"
+        },
+        "kanal": {
+          "enum": [
+            "retail_app",
+            "papier_abgleich"
+          ],
+          "description": "retail_app = App-Gutschein, papier_abgleich = Papierkarte. Beide werden im Handel gebucht; quelle_system ist immer retail_app"
+        },
+        "rezept_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "verbindlich",
+            "storniert"
+          ]
+        },
+        "haushalt_id": {
+          "$ref": "#/$defs/id_haushalt"
+        },
+        "einloesende_person_id": {
+          "$ref": "#/$defs/id_person",
+          "description": "Bestätigtes Mitglied des Haushalts, das die Einlösung vorgenommen hat. Bei Insulin muss die Person der rezept.person_id entsprechen."
+        },
+        "rezept_id": {
+          "$ref": "#/$defs/id_rezept",
+          "description": "Nur bei Insulin-Abgabe auf Rezept; dann ohne gutschein_id. rezept_ref enthält dieselbe ID."
+        }
+      },
+      "oneOf": [
+        {
+          "title": "Einlösung einer Gutscheinposition",
+          "required": [
+            "gutschein_id"
+          ]
+        },
+        {
+          "title": "Insulin-Abgabe auf Rezept",
+          "required": [
+            "rezept_id",
+            "einloesende_person_id"
+          ],
+          "properties": {
+            "artikel_id": {
+              "const": "insulin"
+            },
+            "rezept_ref": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "description": "Eine Ausgabe. Entweder gutschein_id (Gutscheinposition, wie v1) oder rezept_id (Insulin, nur Apotheke, einloesende_person_id = Rezeptinhaber), nie beides. v1-Buchungen bleiben gültig"
+    },
+    "Wareneingang": {
+      "type": "object",
+      "required": [
+        "wareneingang_id",
+        "ausgabestelle_id",
+        "artikel_id",
+        "menge",
+        "zeit",
+        "status"
+      ],
+      "properties": {
+        "wareneingang_id": {
+          "$ref": "#/$defs/id_wareneingang"
+        },
+        "ausgabestelle_id": {
+          "$ref": "#/$defs/id_ausgabestelle"
+        },
+        "artikel_id": {
+          "$ref": "#/$defs/artikel_id"
+        },
+        "menge": {
+          "$ref": "#/$defs/menge_positiv"
+        },
+        "einheit": {
+          "$ref": "#/$defs/einheit"
+        },
+        "zeit": {
+          "$ref": "#/$defs/zeitstempel"
+        },
+        "lieferhinweis": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200
+        },
+        "status": {
+          "enum": [
+            "verbindlich",
+            "storniert"
+          ]
+        }
+      }
+    },
+    "Behoerdenrolle": {
+      "type": "object",
+      "required": [
+        "rolle_id",
+        "behoerde_amtlich",
+        "ebene",
+        "sicht",
+        "darf_personendaten_sehen",
+        "darf_papierkarten_erzeugen"
+      ],
+      "properties": {
+        "rolle_id": {
+          "enum": [
+            "ROLE_STADT_FROHBURG",
+            "ROLE_LRA_LK_LEIPZIG",
+            "ROLE_LDS",
+            "ROLE_SMI",
+            "ROLE_BMLEH",
+            "ROLE_BLE"
+          ]
+        },
+        "behoerde_amtlich": {
+          "type": "string"
+        },
+        "ebene": {
+          "enum": [
+            "kommune",
+            "kreis",
+            "land",
+            "bund"
+          ]
+        },
+        "sicht": {
+          "type": "object"
+        },
+        "darf_personendaten_sehen": {
+          "type": "boolean"
+        },
+        "darf_papierkarten_erzeugen": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Rezept": {
+      "type": "object",
+      "description": "Synthetischer Rezeptnachweis. Verbindliche Bindung über person_id. Keine Diagnosen, keine verordnende Person, keine Medikationshistorie. Insulin ist keine Position des Haushaltsgutscheins. Realbetrieb: E-Rezept-Verfahren offen (nicht Teil von v1.1)",
+      "required": [
+        "rezept_id",
+        "person_id",
+        "gueltig_von",
+        "gueltig_bis",
+        "artikel_id",
+        "menge",
+        "status"
+      ],
+      "properties": {
+        "rezept_id": {
+          "$ref": "#/$defs/id_rezept"
+        },
+        "gueltig_von": {
+          "$ref": "#/$defs/zeitstempel"
+        },
+        "gueltig_bis": {
+          "$ref": "#/$defs/zeitstempel"
+        },
+        "artikel_id": {
+          "const": "insulin"
+        },
+        "menge": {
+          "$ref": "#/$defs/menge_positiv"
+        },
+        "status": {
+          "enum": [
+            "gueltig",
+            "eingeloest",
+            "abgelaufen",
+            "gesperrt"
+          ]
+        },
+        "person_id": {
+          "$ref": "#/$defs/id_person"
+        },
+        "einheit": {
+          "const": "IE"
+        },
+        "verfahren": {
+          "const": "synthetisch"
+        }
+      }
+    },
+    "Regelnachweis": {
+      "type": "object",
+      "description": "Nachvollziehbarkeit der Kernregel zugeteilt = min(angefragt, grundquote, restbestand) für eine Einlösung.",
+      "required": [
+        "angefragt",
+        "grundquote",
+        "restbestand",
+        "zugeteilt"
+      ],
+      "properties": {
+        "angefragt": {
+          "$ref": "#/$defs/menge_positiv"
+        },
+        "grundquote": {
+          "$ref": "#/$defs/menge_nichtnegativ"
+        },
+        "restbestand": {
+          "$ref": "#/$defs/menge_nichtnegativ"
+        },
+        "zugeteilt": {
+          "$ref": "#/$defs/menge_positiv"
+        },
+        "basiskontingent": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "formel": {
+          "type": "string"
+        },
+        "quote_art": {
+          "enum": [
+            "grundquote",
+            "rezept"
+          ],
+          "description": "rezept: grundquote enthält den Rezeptrest (Insulin)."
+        }
+      }
+    },
+    "payload_PERSON_REGISTERED": {
+      "type": "object",
+      "required": [
+        "person"
+      ],
+      "properties": {
+        "person": {
+          "$ref": "#/$defs/Person"
+        },
+        "haushalt": {
+          "$ref": "#/$defs/Haushalt"
+        },
+        "kanal": {
+          "enum": [
+            "app",
+            "papier"
+          ],
+          "description": "Registrierungskanal. app = Selbstregistrierung in der Customer App (quelle_system customer_app); papier = Erfassung am Schalter der Meldebehörde in der Desktopversion (quelle_system desktop). Optional: fehlt das Feld (Altbestand), gilt app. Nicht zu verwechseln mit person.kanal (bevorzugter Ausgabekanal der Person, z. B. papier auch bei Selbstregistrierung)"
+        }
+      },
+      "description": "Registrierung einer Person. v1.2-Vorschlag (V15): kanal=papier nur von desktop, kanal=app oder fehlend nur von customer_app."
+    },
+    "payload_PERSON_VERIFIED": {
+      "type": "object",
+      "required": [
+        "person_id",
+        "verifikation"
+      ],
+      "properties": {
+        "person_id": {
+          "$ref": "#/$defs/id_person"
+        },
+        "verifikation": {
+          "$ref": "#/$defs/Verifikation"
+        }
+      },
+      "description": "ABGEKÜNDIGT. Wird nur noch gelesen, als Alias für IDENTITY_VERIFIED; kein System darf neue Ereignisse dieses Typs schreiben. Vorhandene Einträge bleiben gültig und lesbar. In v2 entfällt der Typ",
+      "deprecated": true
+    },
+    "payload_ALLOCATION_RUN_COMPLETED": {
+      "type": "object",
+      "required": [
+        "periode_id"
+      ],
+      "properties": {
+        "periode_id": {
+          "$ref": "#/$defs/id_periode"
+        }
+      }
+    },
+    "payload_VOUCHER_ISSUED": {
+      "type": "object",
+      "required": [
+        "gutschein"
+      ],
+      "properties": {
+        "gutschein": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Gutschein"
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "ausgestellt"
+                },
+                "positionen": {
+                  "items": {
+                    "properties": {
+                      "eingeloest": {
+                        "const": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "description": "Nur die Desktopversion schreibt dieses Ereignis und vergibt gutschein_id. Customer App und Retail App lesen es nur. Anfangsbestände gehören nicht hierher — sie schreibt die Retail App als STOCK_ADJUSTED (anlass=anfangsbestand). Der Gutschein ist eine Momentaufnahme zum Ausstellungszeitpunkt: status = ausgestellt, eingeloest = 0, rest = zugeteilt_max (Kern prüft rest). Fortschreibungen nur über REDEMPTION_POSTED/REVERSED, nie durch erneutes VOUCHER_ISSUED (Desktop-Vorschlag DT4). v1.2-Vorschlag: VOUCHER_ISSUED mit anlass=stoerung braucht beim Ausstellen eine bereits erklärte Störung derselben AGS wie der Haushalt, die zum Ausstellungszeitpunkt (zeit_ereignis) aktiv ist. Bestehende reguläre Gutscheine bleiben unverändert"
+    },
+    "payload_PAPER_CARD_RENDERED": {
+      "type": "object",
+      "required": [
+        "papierkarte_id",
+        "gutschein_id"
+      ],
+      "properties": {
+        "papierkarte_id": {
+          "type": "string"
+        },
+        "gutschein_id": {
+          "$ref": "#/$defs/id_gutschein"
+        },
+        "code_anzeige": {
+          "type": "string",
+          "pattern": "^FA-PK-\\d{8}-\\d{6}-\\d{2}$",
+          "description": "{papierkarte_id}-{PZ}; PZ = ISO 7064 Mod 97-10 über die 14 Ziffern AGS+lfd."
+        },
+        "code_barcode": {
+          "type": "string",
+          "pattern": "^FAPK\\d{16}$",
+          "description": "Code 39: FAPK{AGS}{lfd}{PZ}."
+        },
+        "pruefziffer_verfahren": {
+          "const": "ISO 7064 Mod 97-10"
+        }
+      },
+      "description": "Nur Desktopversion. Optional Anzeigecode/Strichcode (DT1); wenn vorhanden, müssen sie zur papierkarte_id passen (Kern prüft die Prüfziffer)"
+    },
+    "payload_PAPER_CARD_PRINTED": {
+      "type": "object",
+      "required": [
+        "papierkarte_id",
+        "gutschein_id"
+      ],
+      "properties": {
+        "papierkarte_id": {
+          "type": "string"
+        },
+        "gutschein_id": {
+          "$ref": "#/$defs/id_gutschein"
+        },
+        "code_anzeige": {
+          "type": "string",
+          "pattern": "^FA-PK-\\d{8}-\\d{6}-\\d{2}$",
+          "description": "{papierkarte_id}-{PZ}; PZ = ISO 7064 Mod 97-10 über die 14 Ziffern AGS+lfd."
+        },
+        "code_barcode": {
+          "type": "string",
+          "pattern": "^FAPK\\d{16}$",
+          "description": "Code 39: FAPK{AGS}{lfd}{PZ}."
+        },
+        "pruefziffer_verfahren": {
+          "const": "ISO 7064 Mod 97-10"
+        }
+      },
+      "description": "Nur Desktopversion. Optional Anzeigecode/Strichcode (DT1); wenn vorhanden, müssen sie zur papierkarte_id passen (Kern prüft die Prüfziffer)"
+    },
+    "payload_REDEMPTION_POSTED": {
+      "type": "object",
+      "required": [
+        "ausgabebuchung"
+      ],
+      "properties": {
+        "ausgabebuchung": {
+          "$ref": "#/$defs/Ausgabebuchung"
+        },
+        "regel": {
+          "$ref": "#/$defs/Regelnachweis"
+        }
+      }
+    },
+    "payload_REDEMPTION_REVERSED": {
+      "type": "object",
+      "required": [
+        "buchung_id",
+        "begruendung"
+      ],
+      "properties": {
+        "buchung_id": {
+          "$ref": "#/$defs/id_buchung"
+        },
+        "begruendung": {
+          "type": "string",
+          "minLength": 3
+        }
+      }
+    },
+    "payload_STOCK_RECEIPT_POSTED": {
+      "type": "object",
+      "required": [
+        "wareneingang"
+      ],
+      "properties": {
+        "wareneingang": {
+          "$ref": "#/$defs/Wareneingang"
+        }
+      }
+    },
+    "payload_STOCK_ADJUSTED": {
+      "type": "object",
+      "required": [
+        "ausgabestelle_id",
+        "artikel_id",
+        "menge_neu",
+        "begruendung"
+      ],
+      "properties": {
+        "ausgabestelle_id": {
+          "$ref": "#/$defs/id_ausgabestelle"
+        },
+        "artikel_id": {
+          "$ref": "#/$defs/artikel_id"
+        },
+        "menge_neu": {
+          "$ref": "#/$defs/menge_nichtnegativ"
+        },
+        "einheit": {
+          "$ref": "#/$defs/einheit"
+        },
+        "begruendung": {
+          "type": "string",
+          "minLength": 3
+        },
+        "anlass": {
+          "type": "string",
+          "enum": [
+            "anfangsbestand",
+            "inventur",
+            "korrektur",
+            "sonstige"
+          ],
+          "description": "anfangsbestand: von der Retail App gesetzter Startbestand (Szenario oder Inventur), kein VOUCHER_ISSUED."
+        },
+        "stand": {
+          "$ref": "#/$defs/zeitstempel",
+          "description": "Stichzeit des gezählten bzw. angenommenen Bestands. anlass=anfangsbestand gilt je Ausgabestelle und Artikel genau einmal und nur ohne vorhandenen Bestand (Retail R2)."
+        }
+      },
+      "description": "Bestandskorrektur durch die Retail App. Anfangsbestände (Inventur/Szenario) schreibt die Retail App als STOCK_ADJUSTED mit anlass=anfangsbestand. VOUCHER_ISSUED bleibt ausschließlich der Desktopversion vorbehalten."
+    },
+    "payload_PRESCRIPTION_CHECKED": {
+      "type": "object",
+      "required": [
+        "rezept",
+        "ausgabestelle_id"
+      ],
+      "properties": {
+        "rezept": {
+          "$ref": "#/$defs/Rezept"
+        },
+        "ausgabestelle_id": {
+          "$ref": "#/$defs/id_ausgabestelle"
+        },
+        "nachweis_pruefung": {
+          "enum": [
+            "demo_pruefsumme"
+          ],
+          "description": "Art der Nachweisprüfung. Demo: synthetischer Token mit Prüfsumme, keine Sicherheit. Realbetrieb: E-Rezept – offen, nicht gebaut."
+        }
+      },
+      "description": "Freigabe einer Insulin-Abgabe in der Apotheke. Die Retail App (Apotheken-Zweig) schreibt dieses Ereignis vor REDEMPTION_POSTED. Das Rezept ist über person_id gebunden; nur die Rezeptinhaberin darf einlösen."
+    },
+    "payload_PERIOD_CLOSED": {
+      "type": "object",
+      "required": [
+        "periode_id"
+      ],
+      "properties": {
+        "periode_id": {
+          "$ref": "#/$defs/id_periode"
+        }
+      }
+    },
+    "Ereignis": {
+      "type": "object",
+      "description": "Eintrag im gemeinsamen, anhängenden Ereignislog (eine Zeile JSONL je Ereignis).",
+      "required": [
+        "ereignis_id",
+        "typ",
+        "zeit_ereignis",
+        "zeit_empfang",
+        "quelle_system",
+        "payload",
+        "schema_version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ereignis_id": {
+          "$ref": "#/$defs/id_ereignis"
+        },
+        "typ": {
+          "enum": [
+            "PERSON_REGISTERED",
+            "PERSON_VERIFIED",
+            "IDENTITY_VERIFIED",
+            "ALLOCATION_RUN_COMPLETED",
+            "VOUCHER_ISSUED",
+            "PAPER_CARD_RENDERED",
+            "PAPER_CARD_PRINTED",
+            "REDEMPTION_POSTED",
+            "REDEMPTION_REVERSED",
+            "STOCK_RECEIPT_POSTED",
+            "STOCK_ADJUSTED",
+            "PRESCRIPTION_CHECKED",
+            "PERIOD_CLOSED",
+            "SUPPLY_DISRUPTION_DECLARED",
+            "SUPPLY_DISRUPTION_ENDED"
+          ]
+        },
+        "zeit_ereignis": {
+          "$ref": "#/$defs/zeitstempel"
+        },
+        "zeit_empfang": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/zeitstempel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null, solange das Ereignis nur in der lokalen Warteschlange liegt. Auch erwarteter Dauerzustand für quelle_system = desktop im Offline-Betrieb unter file:// (kein zentraler Broker; DT5)."
+        },
+        "quelle_system": {
+          "$ref": "#/$defs/quelle_system"
+        },
+        "payload": {
+          "type": "object"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "PERSON_REGISTERED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_PERSON_REGISTERED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "PERSON_VERIFIED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_PERSON_VERIFIED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "IDENTITY_VERIFIED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_IDENTITY_VERIFIED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "ALLOCATION_RUN_COMPLETED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_ALLOCATION_RUN_COMPLETED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "VOUCHER_ISSUED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_VOUCHER_ISSUED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "PAPER_CARD_RENDERED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_PAPER_CARD_RENDERED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "PAPER_CARD_PRINTED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_PAPER_CARD_PRINTED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "REDEMPTION_POSTED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_REDEMPTION_POSTED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "REDEMPTION_REVERSED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_REDEMPTION_REVERSED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "STOCK_RECEIPT_POSTED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_STOCK_RECEIPT_POSTED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "STOCK_ADJUSTED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_STOCK_ADJUSTED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "PRESCRIPTION_CHECKED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_PRESCRIPTION_CHECKED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "PERIOD_CLOSED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_PERIOD_CLOSED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "SUPPLY_DISRUPTION_DECLARED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_SUPPLY_DISRUPTION_DECLARED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "typ": {
+                "const": "SUPPLY_DISRUPTION_ENDED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "$ref": "#/$defs/payload_SUPPLY_DISRUPTION_ENDED"
+              }
+            }
+          }
+        },
+        {
+          "x-regel": "Quellenregel",
+          "if": {
+            "properties": {
+              "typ": {
+                "enum": [
+                  "VOUCHER_ISSUED",
+                  "IDENTITY_VERIFIED",
+                  "SUPPLY_DISRUPTION_DECLARED",
+                  "SUPPLY_DISRUPTION_ENDED",
+                  "ALLOCATION_RUN_COMPLETED",
+                  "PAPER_CARD_RENDERED",
+                  "PAPER_CARD_PRINTED",
+                  "PERIOD_CLOSED"
+                ]
+              }
+            },
+            "required": [
+              "typ"
+            ]
+          },
+          "then": {
+            "properties": {
+              "quelle_system": {
+                "const": "desktop"
+              }
+            }
+          }
+        },
+        {
+          "x-regel": "Quellenregel (V15: an payload.kanal gebunden)",
+          "if": {
+            "properties": {
+              "typ": {
+                "enum": [
+                  "PERSON_REGISTERED"
+                ]
+              }
+            },
+            "required": [
+              "typ"
+            ]
+          },
+          "then": {
+            "if": {
+              "properties": {
+                "payload": {
+                  "properties": {
+                    "kanal": {
+                      "const": "papier"
+                    }
+                  },
+                  "required": [
+                    "kanal"
+                  ]
+                }
+              },
+              "required": [
+                "payload"
+              ]
+            },
+            "then": {
+              "properties": {
+                "quelle_system": {
+                  "const": "desktop"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "quelle_system": {
+                  "const": "customer_app"
+                }
+              }
+            }
+          }
+        },
+        {
+          "x-regel": "Quellenregel",
+          "if": {
+            "properties": {
+              "typ": {
+                "enum": [
+                  "REDEMPTION_POSTED",
+                  "PRESCRIPTION_CHECKED",
+                  "STOCK_RECEIPT_POSTED",
+                  "STOCK_ADJUSTED",
+                  "REDEMPTION_REVERSED"
+                ]
+              }
+            },
+            "required": [
+              "typ"
+            ]
+          },
+          "then": {
+            "properties": {
+              "quelle_system": {
+                "const": "retail_app"
+              }
+            }
+          }
+        }
+      ],
+      "x-quellenregel": {
+        "VOUCHER_ISSUED": "desktop",
+        "IDENTITY_VERIFIED": "desktop (Rolle Meldebehörde, verifikation.stelle FA-AUTH-…)",
+        "SUPPLY_DISRUPTION_DECLARED": "desktop",
+        "SUPPLY_DISRUPTION_ENDED": "desktop",
+        "PERSON_REGISTERED": "customer_app bei kanal=app oder ohne kanal (Altbestand); desktop bei kanal=papier (Erfassung am Schalter der Meldebehörde) – v1.2-Vorschlag V15",
+        "REDEMPTION_POSTED": "retail_app (auch Papierkarten; Buchung im Handel, kanal papier_abgleich)",
+        "PRESCRIPTION_CHECKED": "retail_app",
+        "STOCK_RECEIPT_POSTED": "retail_app",
+        "STOCK_ADJUSTED": "retail_app",
+        "REDEMPTION_REVERSED": "retail_app",
+        "PERSON_VERIFIED": "abgekündigt – von keinem System zu schreiben, nur lesen (Alias für IDENTITY_VERIFIED)",
+        "ALLOCATION_RUN_COMPLETED": "desktop",
+        "PAPER_CARD_RENDERED": "desktop",
+        "PAPER_CARD_PRINTED": "desktop",
+        "PERIOD_CLOSED": "desktop"
+      },
+      "x-schreibverbot": {
+        "PERSON_VERIFIED": "abgekündigt; nur lesen. Schreibende Systeme prüfen vor dem Anhängen (Kern: pruefe_schreibrecht / pruefeSchreibrecht)."
+      },
+      "x-paper-card-typen": {
+        "typen": [
+          "PAPER_CARD_RENDERED",
+          "PAPER_CARD_PRINTED"
+        ],
+        "hinweis": "PAPER_CARD_* meint nur diese Typen; PAPER_CARD_CREATED gibt es nicht."
+      }
+    },
+    "id_papierkarte": {
+      "type": "string",
+      "pattern": "^FA-PK-(0[1-9]|1[0-6])\\d{6}-\\d{6}$",
+      "description": "Form FA-PK-<kommune>-<lfd>. Kommune = amtlicher Gemeindeschlüssel (8 Stellen, Land 01–16), nicht das Periodendatum. v1.2-Vorschlag (V11): Ein Störungsgutschein auf Papier bekommt eine eigene papierkarte_id aus demselben Nummernkreis; je Haushalt und Periode sind damit mehrere Papierkarten zulässig, jede gehört zu genau einem Gutschein."
+    },
+    "id_behoerde": {
+      "type": "string",
+      "pattern": "^FA-AUTH-[A-Z0-9-]+$",
+      "description": "Behörden-ID, z. B. FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    },
+    "id_ausstellungsort": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/id_ausgabestelle"
+        },
+        {
+          "$ref": "#/$defs/id_behoerde"
+        }
+      ],
+      "description": "ausstellungsort ist eine Ausgabestelle (FA-R-…) oder eine Behörden-ID (FA-AUTH-…)."
+    },
+    "id_rezept": {
+      "type": "string",
+      "pattern": "^FA-RX-\\d{8}-\\d{6}$",
+      "description": "synthetische Rezept-ID"
+    },
+    "periode": {
+      "type": "object",
+      "description": "Eine Allokationsperiode = 7 Tage, Zuschnitt Montag bis Sonntag, Zeitzone Europe/Berlin",
+      "required": [
+        "periode_id"
+      ],
+      "properties": {
+        "periode_id": {
+          "$ref": "#/$defs/id_periode"
+        },
+        "zuschnitt": {
+          "const": "Mo-So"
+        },
+        "tage": {
+          "const": 7
+        }
+      }
+    },
+    "annahmen": {
+      "description": "Planungsannahmen, keine amtlichen Festsetzungen",
+      "type": "object",
+      "properties": {
+        "toilet_paper": {
+          "type": "object",
+          "description": "1 Rolle je Person und 7-Tage-Periode.",
+          "properties": {
+            "annahme": {
+              "const": true
+            },
+            "je_person_periode": {
+              "const": 1
+            },
+            "einheit": {
+              "const": "rolle"
+            }
+          }
+        },
+        "water": {
+          "type": "object",
+          "description": "Nur während einer aktiven SUPPLY_DISRUPTION (art trinkwasser) für die AGS. 2 L je Person und Tag (BBK) × 7 Tage = 14 L je Person und Periode.",
+          "properties": {
+            "annahme": {
+              "const": true
+            },
+            "nur_bei_stoerung": {
+              "const": true
+            },
+            "je_person_tag": {
+              "const": 2
+            },
+            "je_person_periode": {
+              "const": 14
+            },
+            "einheit": {
+              "const": "L"
+            },
+            "quelle": {
+              "const": "BBK"
+            }
+          }
+        },
+        "bevoelkerung": {
+          "type": "object",
+          "description": "10 % vulnerabel und 10 % ohne Smartphone sind unabhängig. ueberschneidung_anteil ist der Anteil an der Gesamtbevölkerung, der zu beiden Gruppen gehört (0 … min der beiden Anteile).",
+          "properties": {
+            "annahme": {
+              "const": true
+            },
+            "unabhaengig": {
+              "const": true
+            },
+            "anteil_vulnerabel": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.1
+            },
+            "anteil_ohne_smartphone": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.1
+            },
+            "ueberschneidung_anteil": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0
+            }
+          }
+        }
+      }
+    },
+    "payload_IDENTITY_VERIFIED": {
+      "type": "object",
+      "description": "Identitätsfeststellung. Schreibt nur die Desktopversion in der Rolle Meldebehörde (Frohburg: verifikation.stelle = FA-AUTH-FROHBURG-MELDEBEHOERDE).",
+      "required": [
+        "person_id",
+        "verifikation"
+      ],
+      "properties": {
+        "person_id": {
+          "$ref": "#/$defs/id_person"
+        },
+        "verifikation": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Verifikation"
+            },
+            {
+              "properties": {
+                "stelle": {
+                  "$ref": "#/$defs/id_behoerde"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "id_stoerung": {
+      "type": "string",
+      "pattern": "^FA-SD-\\d{8}-\\d{6}$",
+      "description": "Störungs-ID FA-SD-<AGS>-<lfd>, vergeben von der Desktopversion."
+    },
+    "stoerung_art": {
+      "enum": [
+        "trinkwasser"
+      ],
+      "description": "Art der Versorgungsstörung. trinkwasser gibt die Wasserposition frei. Vorerst nur trinkwasser. Erweiterbar: neuen Wert hier ergänzen, passenden Artikel mit nur_bei_stoerung = <art> in den Stammdaten anlegen, Bauskript neu laufen lassen (V13 in v1.2-CHANGES.md)"
+    },
+    "payload_SUPPLY_DISRUPTION_DECLARED": {
+      "type": "object",
+      "required": [
+        "stoerung_id",
+        "ags",
+        "art",
+        "beginn"
+      ],
+      "description": "Versorgungsstörung für eine Kommune (AGS) und einen Zeitraum. Schreibt nur die Desktopversion. Aktiv für Zeitpunkt t, wenn beginn ≤ t und (ende fehlt/null oder t < ende) und kein SUPPLY_DISRUPTION_ENDED mit ende ≤ t vorliegt.",
+      "properties": {
+        "stoerung_id": {
+          "$ref": "#/$defs/id_stoerung"
+        },
+        "ags": {
+          "$ref": "#/$defs/ags"
+        },
+        "art": {
+          "$ref": "#/$defs/stoerung_art"
+        },
+        "beginn": {
+          "$ref": "#/$defs/zeitstempel"
+        },
+        "ende": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/zeitstempel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "geplantes Ende; null = offen"
+        },
+        "stelle": {
+          "$ref": "#/$defs/id_behoerde"
+        },
+        "hinweis": {
+          "type": "string"
+        }
+      }
+    },
+    "payload_SUPPLY_DISRUPTION_ENDED": {
+      "type": "object",
+      "required": [
+        "stoerung_id",
+        "ags",
+        "ende"
+      ],
+      "description": "Beendet eine Versorgungsstörung zum Zeitpunkt ende. Schreibt nur die Desktopversion.",
+      "properties": {
+        "stoerung_id": {
+          "$ref": "#/$defs/id_stoerung"
+        },
+        "ags": {
+          "$ref": "#/$defs/ags"
+        },
+        "ende": {
+          "$ref": "#/$defs/zeitstempel"
+        },
+        "stelle": {
+          "$ref": "#/$defs/id_behoerde"
+        }
+      }
+    },
+    "Papierkarte": {
+      "type": "object",
+      "required": [
+        "papierkarte_id",
+        "gutschein_id"
+      ],
+      "description": "Behördliche Papierkarte zu einem Haushaltsgutschein. Die Prüfziffer gehört nur zum Anzeigecode und zum Strichcode, nie zur kanonischen papierkarte_id. status ohne amtliche Bedeutung; im Log entspricht PAPER_CARD_RENDERED = erzeugt, PAPER_CARD_PRINTED = gedruckt",
+      "properties": {
+        "papierkarte_id": {
+          "$ref": "#/$defs/id_papierkarte"
+        },
+        "gutschein_id": {
+          "$ref": "#/$defs/id_gutschein"
+        },
+        "haushalt_id": {
+          "$ref": "#/$defs/id_haushalt"
+        },
+        "periode_id": {
+          "$ref": "#/$defs/id_periode"
+        },
+        "code_anzeige": {
+          "type": "string",
+          "pattern": "^FA-PK-\\d{8}-\\d{6}-\\d{2}$",
+          "description": "{papierkarte_id}-{PZ}; PZ = ISO 7064 Mod 97-10 über die 14 Ziffern AGS+lfd."
+        },
+        "code_barcode": {
+          "type": "string",
+          "pattern": "^FAPK\\d{16}$",
+          "description": "Code 39: FAPK{AGS}{lfd}{PZ}."
+        },
+        "pruefziffer_verfahren": {
+          "const": "ISO 7064 Mod 97-10"
+        },
+        "status": {
+          "enum": [
+            "erzeugt",
+            "gedruckt"
+          ]
+        },
+        "ausstellungsort": {
+          "$ref": "#/$defs/id_ausstellungsort"
+        },
+        "hinweis": {
+          "type": "string"
+        }
+      }
+    },
+    "Gebietskennzahl": {
+      "type": "object",
+      "required": [
+        "ags",
+        "stichtag",
+        "foodallo_datenstatus"
+      ],
+      "description": "Kennzahl je Gebiet. foodallo_datenstatus unterscheidet „keine Daten“ von „Wert 0“. Bei keine_daten sind keine Kennzahlfelder erlaubt; es wird nichts hochgerechnet oder bevölkerungsgewichtet",
+      "properties": {
+        "ags": {
+          "$ref": "#/$defs/ags"
+        },
+        "stichtag": {
+          "type": "string",
+          "format": "date"
+        },
+        "einwohner": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "amtliche Einwohnerzahl"
+        },
+        "einwohner_quelle": {
+          "type": "string"
+        },
+        "foodallo_datenstatus": {
+          "enum": [
+            "vorhanden",
+            "keine_daten"
+          ]
+        },
+        "haushalte_teilnehmend": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "haushalte_versorgt": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fallzahl": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "foodallo_datenstatus": {
+                "const": "keine_daten"
+              }
+            },
+            "required": [
+              "foodallo_datenstatus"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ags": {
+                "$ref": "#/$defs/ags"
+              },
+              "stichtag": {
+                "type": "string",
+                "format": "date"
+              },
+              "einwohner": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "amtliche Einwohnerzahl"
+              },
+              "einwohner_quelle": {
+                "type": "string"
+              },
+              "foodallo_datenstatus": {
+                "enum": [
+                  "vorhanden",
+                  "keine_daten"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    }
+  },
+  "x-basis": [
+    "../foodallo-core.schema.v1.1.json"
+  ],
+  "x-angelegt_von": "retail_app",
+  "x-v12": {
+    "punkte": {
+      "V1": "Gutschein.anlass (regulaer|stoerung, Standard regulaer)",
+      "V2": "Gutschein.stoerung_id: Pflicht bei stoerung, verboten bei regulaer",
+      "V3": "Eindeutigkeit je Haushalt, Periode und stoerung_id; höchstens ein regulärer Gutschein je Haushalt/Periode; Buchung gegen gutschein_id",
+      "V4": "Einlösung: verwiesene Störung aktiv für AGS der Ausgabestelle zum Buchungszeitpunkt; Artikel nur_bei_stoerung",
+      "V5": "Ausstellung nur bei aktiver Störung derselben AGS",
+      "V6": "Störungsgutschein: Positionen nur Artikel mit nur_bei_stoerung",
+      "V7": "Regulärer Gutschein: keine Artikel mit nur_bei_stoerung (v1.1-Platzhalter mit 0 zulässig); Einlösung nur über Störungsgutschein",
+      "V8": "entfällt: kein Wasser im regulären Gutschein; je Periode eigener Störungsgutschein, solange aktiv",
+      "V9": "Rest verfällt mit ENDED, kein eigenes Ereignis",
+      "V10": "Gutschein.ags: Pflicht bei stoerung, sonst optional, wenn vorhanden gegen haushalt_id geprüft",
+      "V11": "eigene papierkarte_id je Störungsgutschein auf Papier, gleicher Nummernkreis; Einlösung über papier_abgleich",
+      "V12": "gutschein_id aus dem normalen Kreis, kein Präfix",
+      "V13": "stoerung_art vorerst nur trinkwasser; Erweiterung beschrieben",
+      "V14": "Validatoren: boolesche Teilschemas, if/then/else; Kern-Validator mitnutzbar",
+      "V15": "PERSON_REGISTERED.payload.kanal app|papier (optional, fehlt = app); app nur customer_app, papier nur desktop"
+    },
+    "kern": "foodallo_kern ab 1.7.0: startzustand/nachspielen(..., optionen={'v12': True}); Standard v1.1."
+  },
+  "$comment": "Verbindliche Fassung v1.2, aus dem gemeinsamen Vorschlag übernommen; abweichend nur in den Vermerk-Feldern $id, title, description, $comment, x-status, x-schema_version, x-angenommen. v1.1 und v1 bleiben lesbar (Altbestand)",
+  "x-angenommen": {
+    "durch": "FoodAllo",
+    "am": "2026-11-17",
+    "quelle": "proposals/foodallo-core.schema.v1.2-proposal.json",
+    "quelle_sha256": "69e79bd0193abc8bf454f1fc3eb25bd09b0a37418ceef26ecd0cbeebe91376af",
+    "bestaetigt_von": [
+      "customer_app (V1–V15)",
+      "desktop (V1–V15)"
+    ]
+  }
+}

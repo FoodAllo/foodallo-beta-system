@@ -1,0 +1,85 @@
+{
+  "hinweis": "Synthetische Personen (nur IDs, Haushaltszugehörigkeit, Verifikationsstatus; keine Namen). Inhaltlich gleich mit customer-app/data/personen.json. Gilt als Stand von PERSON_REGISTERED + IDENTITY_VERIFIED, bis diese Ereignisse im gemeinsamen Log stehen.",
+  "personen": [
+    {
+      "person_id": "FA-P-14729140-000001",
+      "haushalt_id": "FA-HH-14729140-000001",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000005",
+      "haushalt_id": "FA-HH-14729140-000001",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000003",
+      "haushalt_id": "FA-HH-14729140-000002",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000002",
+      "haushalt_id": "FA-HH-14729140-000003",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000004",
+      "haushalt_id": "FA-HH-14729140-000004",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000006",
+      "haushalt_id": "FA-HH-14729140-000006",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000007",
+      "haushalt_id": "FA-HH-14729140-000007",
+      "verifikation": {
+        "status": "offen",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000008",
+      "haushalt_id": "FA-HH-14729140-000008",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000009",
+      "haushalt_id": "FA-HH-14729140-000009",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000010",
+      "haushalt_id": "FA-HH-14729140-000010",
+      "verifikation": {
+        "status": "abgelehnt",
+        "verfahren": "synthetisch"
+      }
+    }
+  ]
+}

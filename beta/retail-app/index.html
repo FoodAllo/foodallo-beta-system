@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#45522c">
+  <meta name="robots" content="noindex, nofollow">
+  <title>FoodAllo Ausgabe</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.ico" sizes="any">
+  <link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="kopf" id="kopf" hidden>
+    <button type="button" class="kopf-logo" id="k-start" aria-label="Zur Startseite">
+      <img src="icons/logo-farbe-900.png" alt="FoodAllo" width="132" height="28">
+    </button>
+    <div class="kopf-ort">
+      <strong id="k-name">–</strong>
+      <span id="k-kasse" class="leise">–</span>
+    </div>
+    <button type="button" class="kopf-menue" id="k-einstellungen" aria-label="Einstellungen">&#9881;</button>
+  </header>
+  <p id="netz" class="netz" role="status" hidden></p>
+  <div id="stoerung" class="banner" role="status" hidden>Versorgungsstörung Trinkwasser gemeldet – Trinkwasser darf ausgegeben werden.</div>
+
+  <main id="main">
+    <!-- Schichtbeginn -->
+    <section id="s-schicht" class="screen dunkel">
+      <img class="logo-dunkel-grund" src="icons/logo-weiss-900.png" alt="FoodAllo" width="260" height="56">
+      <p class="hinweis-fiktiv">Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde</p>
+      <h1>Schicht beginnen</h1>
+      <p class="schritt">1. Ausgabestelle wählen</p>
+      <div id="ast-liste" class="auswahl" role="radiogroup" aria-label="Ausgabestelle"></div>
+      <p class="schritt">2. Kasse wählen</p>
+      <div id="kasse-liste" class="kassen" role="radiogroup" aria-label="Kasse"></div>
+      <div id="schicht-meldung" class="meldung" aria-live="polite"></div>
+      <button type="button" id="schicht-start" class="gross primaer" disabled>Schicht beginnen</button>
+    </section>
+
+    <!-- Startseite -->
+    <section id="s-start" class="screen" hidden>
+      <h1 class="vh">Startseite</h1>
+      <div class="kacheln">
+        <button type="button" class="kachel haupt" data-geh="gutschein" data-nur="handel"><span class="k-icon" aria-hidden="true">&#9638;</span>Gutschein einlösen<small>Code in der App scannen</small></button>
+        <button type="button" class="kachel" data-geh="karte" data-nur="handel"><span class="k-icon" aria-hidden="true">&#9636;</span>Lebensmittelkarte<small>Papierkarte erfassen</small></button>
+        <button type="button" class="kachel haupt" data-geh="rezept" data-nur="apotheke"><span class="k-icon" aria-hidden="true">&#10010;</span>Insulin auf Rezept<small>Rezeptnachweis scannen</small></button>
+        <button type="button" class="kachel" data-geh="wareneingang"><span class="k-icon" aria-hidden="true">&#8681;</span>Wareneingang<small>Lieferung buchen</small></button>
+        <button type="button" class="kachel" data-geh="bestand"><span class="k-icon" aria-hidden="true">&#9783;</span>Bestand<small>ansehen und korrigieren</small></button>
+        <button type="button" class="kachel" data-geh="journal"><span class="k-icon" aria-hidden="true">&#9776;</span>Buchungen heute<small>ansehen und stornieren</small></button>
+      </div>
+    </section>
+
+    <!-- Gutschein / Lebensmittelkarte erfassen -->
+    <section id="s-scan" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="start">&#8592; Abbrechen</button>
+      <h1 id="scan-titel">Gutschein einlösen</h1>
+      <p id="scan-anleitung" class="leise">Code in der App der Kundin oder des Kunden scannen oder Gutscheinnummer eintippen.</p>
+      <form id="f-scan" autocomplete="off" novalidate>
+        <label for="scan-eingabe" id="scan-label">Gutscheinnummer</label>
+        <input id="scan-eingabe" class="gross-eingabe" inputmode="text" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
+        <button type="button" id="scan-kamera" class="gross zweit" hidden>&#128247; Mit Kamera scannen</button>
+        <div id="kamera" class="kamera" hidden><video id="kamera-video" playsinline muted></video><button type="button" id="kamera-stop" class="zweit">Kamera schließen</button></div>
+        <div id="scan-meldung" class="meldung" aria-live="polite"></div>
+        <button type="submit" class="gross primaer">Weiter</button>
+      </form>
+    </section>
+
+    <!-- Wer holt ab? -->
+    <section id="s-person" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="scan-zurueck">&#8592; Anderer Gutschein</button>
+      <h1>Wer holt ab?</h1>
+      <p id="person-info" class="info-zeile"></p>
+      <p class="leise">Ausweis prüfen und die abholende Person antippen.</p>
+      <div id="person-liste" class="auswahl"></div>
+      <button type="button" id="person-fremd" class="gross zweit">Person ist nicht dabei</button>
+      <div id="person-meldung" class="meldung" aria-live="polite"></div>
+    </section>
+
+    <!-- Ausgabe zusammenstellen -->
+    <section id="s-korb" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="person">&#8592; Andere Person</button>
+      <h1>Ausgabe</h1>
+      <p id="korb-info" class="info-zeile"></p>
+      <ul id="korb-liste" class="korb"></ul>
+      <div id="korb-meldung" class="meldung" aria-live="polite"></div>
+      <button type="button" id="korb-buchen" class="gross primaer" disabled>Ausgabe buchen</button>
+    </section>
+
+    <!-- Insulin auf Rezept -->
+    <section id="s-rezept" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="start">&#8592; Abbrechen</button>
+      <h1>Insulin auf Rezept</h1>
+      <form id="f-rezept" autocomplete="off" novalidate>
+        <label for="rezept-eingabe">Rezeptnachweis scannen</label>
+        <input id="rezept-eingabe" class="gross-eingabe" spellcheck="false" enterkeyhint="go">
+        <button type="button" id="rezept-kamera" class="gross zweit" hidden>&#128247; Mit Kamera scannen</button>
+        <button type="submit" class="gross zweit">Rezept prüfen</button>
+      </form>
+      <div id="rezept-meldung" class="meldung" aria-live="polite"></div>
+      <div id="rezept-ergebnis" hidden>
+        <div id="rezept-karte" class="karte"></div>
+        <label class="haken"><input type="checkbox" id="rezept-ausweis"> Ausweis geprüft: Die abholende Person ist die Rezeptinhaberin bzw. der Rezeptinhaber.</label>
+        <label for="rezept-menge">Abgabemenge (Einheiten)</label>
+        <div class="stepper gross-stepper"><button type="button" data-schritt="-100" aria-label="weniger">&minus;</button><input id="rezept-menge" type="number" inputmode="numeric" min="0" step="100"><button type="button" data-schritt="100" aria-label="mehr">+</button></div>
+        <div class="schnell"><button type="button" data-menge="300">300</button><button type="button" data-menge="1000">1.000</button><button type="button" data-menge="max">Alles Offene</button></div>
+        <button type="button" id="rezept-buchen" class="gross primaer" disabled>Abgabe buchen</button>
+      </div>
+    </section>
+
+    <!-- Beleg -->
+    <section id="s-beleg" class="screen" hidden>
+      <div id="beleg" class="beleg"></div>
+      <button type="button" class="gross primaer" id="beleg-weiter">Nächste Kundin / nächster Kunde</button>
+      <button type="button" class="gross zweit" id="beleg-drucken">Beleg drucken</button>
+      <button type="button" class="gross zweit" id="beleg-start">Zur Startseite</button>
+    </section>
+
+    <!-- Wareneingang -->
+    <section id="s-wareneingang" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="start">&#8592; Startseite</button>
+      <h1>Wareneingang</h1>
+      <label for="we-lieferschein">Lieferscheinnummer</label>
+      <input id="we-lieferschein" class="gross-eingabe" maxlength="40" inputmode="text" autocomplete="off">
+      <label for="we-lieferant">Lieferant (optional)</label>
+      <input id="we-lieferant" maxlength="60" autocomplete="off">
+      <p class="schritt">Artikel antippen</p>
+      <div id="we-artikel" class="artikelwahl"></div>
+      <div id="we-eingabe" hidden>
+        <label for="we-menge" id="we-menge-label">Gelieferte Menge</label>
+        <div class="stepper gross-stepper"><button type="button" data-schritt="-1" aria-label="weniger">&minus;</button><input id="we-menge" type="number" inputmode="decimal" min="0"><button type="button" data-schritt="1" aria-label="mehr">+</button></div>
+        <button type="button" id="we-hinzu" class="gross zweit">Position übernehmen</button>
+      </div>
+      <ul id="we-positionen" class="positionen"></ul>
+      <div id="we-meldung" class="meldung" aria-live="polite"></div>
+      <button type="button" id="we-buchen" class="gross primaer" disabled>Wareneingang buchen</button>
+    </section>
+
+    <!-- Bestand -->
+    <section id="s-bestand" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="start">&#8592; Startseite</button>
+      <h1>Bestand</h1>
+      <ul id="bestand-liste" class="bestand"></ul>
+      <div id="bestand-meldung" class="meldung" aria-live="polite"></div>
+    </section>
+
+    <!-- Bestand korrigieren -->
+    <section id="s-korrektur" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="bestand">&#8592; Bestand</button>
+      <h1 id="korr-titel">Bestand korrigieren</h1>
+      <p id="korr-info" class="info-zeile"></p>
+      <label for="korr-menge" id="korr-menge-label">Gezählte Menge</label>
+      <div class="stepper gross-stepper"><button type="button" data-schritt="-1" aria-label="weniger">&minus;</button><input id="korr-menge" type="number" inputmode="decimal" min="0"><button type="button" data-schritt="1" aria-label="mehr">+</button></div>
+      <fieldset id="korr-gruende" class="gruende"><legend>Grund</legend></fieldset>
+      <label for="korr-notiz">Bemerkung (optional)</label>
+      <input id="korr-notiz" maxlength="120" autocomplete="off">
+      <div id="korr-meldung" class="meldung" aria-live="polite"></div>
+      <button type="button" id="korr-buchen" class="gross primaer">Korrektur buchen</button>
+    </section>
+
+    <!-- Buchungen heute -->
+    <section id="s-journal" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="start">&#8592; Startseite</button>
+      <h1>Buchungen heute</h1>
+      <ul id="journal-liste" class="journal"></ul>
+      <button type="button" id="journal-aelter" class="zweit">Ältere Buchungen anzeigen</button>
+      <div id="journal-meldung" class="meldung" aria-live="polite"></div>
+    </section>
+
+    <!-- Storno -->
+    <section id="s-storno" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="journal">&#8592; Buchungen</button>
+      <h1>Ausgabe stornieren</h1>
+      <p id="storno-info" class="info-zeile"></p>
+      <fieldset id="storno-gruende" class="gruende"><legend>Grund</legend></fieldset>
+      <div id="storno-meldung" class="meldung" aria-live="polite"></div>
+      <button type="button" id="storno-buchen" class="gross gefahr-knopf">Stornieren</button>
+    </section>
+
+    <!-- Einstellungen -->
+    <section id="s-einstellungen" class="screen" hidden>
+      <button type="button" class="zurueck" data-geh="start">&#8592; Startseite</button>
+      <h1>Einstellungen</h1>
+      <div class="karte">
+        <h2>Ausgabestelle</h2>
+        <p id="e-ast"></p>
+        <p id="e-adresse" class="leise"></p>
+        <button type="button" id="e-schicht-ende" class="gross zweit">Schicht beenden</button>
+      </div>
+      <div class="karte">
+        <h2>Daten</h2>
+        <p id="e-sync" class="leise"></p>
+        <button type="button" id="e-abgleich" class="gross zweit">Jetzt abgleichen</button>
+        <button type="button" id="e-export" class="gross zweit">Buchungen übertragen</button>
+        <p class="leise klein">Speichert die Buchungen dieses Geräts als Datei für die Übertragung an die Zentrale.</p>
+        <label class="datei-knopf zweit">Melderegister laden<input type="file" id="e-einwohner" accept=".json,.csv,text/csv,application/json" hidden></label>
+        <p id="e-einwohner-stand" class="leise klein"></p>
+      </div>
+      <details class="karte test">
+        <summary>Testbetrieb</summary>
+        <button type="button" id="e-testdaten" class="zweit">Testdaten laden</button>
+        <div id="e-testcodes" class="testcodes"></div>
+        <button type="button" id="e-loeschen" class="zweit gefahr">Buchungen auf diesem Gerät löschen</button>
+      </details>
+      <div id="e-meldung" class="meldung" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="fuss"><span class="beta">Beta</span> <span class="hinweis-fiktiv">Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde.</span><br>© <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap-Mitwirkende</a>, <a href="https://opendatacommons.org/licenses/odbl/1-0/" rel="noopener noreferrer" target="_blank">Open Database License (ODbL) 1.0</a>. Ortsnamen durch Musterstadt und Musterdorf ersetzt.</footer>
+
+  <script src="../kern/foodallo_kern.js"></script>
+  <script src="js/retail.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

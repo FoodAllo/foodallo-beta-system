@@ -1,0 +1,412 @@
+{
+  "hinweis": "Übungs-Gutscheine der Demonstration (Seed). Die Retail App vergibt keine gutschein_id. Alle Haushalte und Personen sind fiktiv. Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde.",
+  "ausgestellt_von": "desktop",
+  "gutscheine": [
+    {
+      "gutschein_id": "FA-V-20261116-000001",
+      "periode_id": "FA-PER-20261116",
+      "bezug": "haushalt",
+      "person_id": null,
+      "haushalt_id": "FA-HH-14729140-000001",
+      "kanal": "app",
+      "positionen": [
+        {
+          "artikel_id": "wheat_flour",
+          "bedarf": 4.0,
+          "basiskontingent": 4.0,
+          "zugeteilt_max": 4.0,
+          "eingeloest": 0,
+          "rest": 4.0,
+          "personen_anzahl": 2
+        },
+        {
+          "artikel_id": "rice",
+          "bedarf": 2.4,
+          "basiskontingent": 2.4,
+          "zugeteilt_max": 2.4,
+          "eingeloest": 0,
+          "rest": 2.4,
+          "personen_anzahl": 2
+        },
+        {
+          "artikel_id": "oil",
+          "bedarf": 0.7,
+          "basiskontingent": 0.7,
+          "zugeteilt_max": 0.7,
+          "eingeloest": 0,
+          "rest": 0.7,
+          "personen_anzahl": 2
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "bedarf": 2,
+          "basiskontingent": 2,
+          "zugeteilt_max": 2,
+          "eingeloest": 0,
+          "rest": 2,
+          "personen_anzahl": 2
+        },
+        {
+          "artikel_id": "water",
+          "bedarf": 0,
+          "basiskontingent": 28,
+          "zugeteilt_max": 0,
+          "eingeloest": 0,
+          "rest": 0,
+          "personen_anzahl": 2
+        }
+      ],
+      "status": "ausgestellt",
+      "papierkarte_id": null,
+      "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    },
+    {
+      "gutschein_id": "FA-V-20261116-000002",
+      "periode_id": "FA-PER-20261116",
+      "bezug": "haushalt",
+      "person_id": null,
+      "haushalt_id": "FA-HH-14729140-000002",
+      "kanal": "papier",
+      "positionen": [
+        {
+          "artikel_id": "wheat_flour",
+          "bedarf": 2.0,
+          "basiskontingent": 2.0,
+          "zugeteilt_max": 2.0,
+          "eingeloest": 0,
+          "rest": 2.0,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "rice",
+          "bedarf": 1.2,
+          "basiskontingent": 1.2,
+          "zugeteilt_max": 1.2,
+          "eingeloest": 0,
+          "rest": 1.2,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "oil",
+          "bedarf": 0.35,
+          "basiskontingent": 0.35,
+          "zugeteilt_max": 0.35,
+          "eingeloest": 0,
+          "rest": 0.35,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "bedarf": 1,
+          "basiskontingent": 1,
+          "zugeteilt_max": 1,
+          "eingeloest": 0,
+          "rest": 1,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "water",
+          "bedarf": 0,
+          "basiskontingent": 14,
+          "zugeteilt_max": 0,
+          "eingeloest": 0,
+          "rest": 0,
+          "personen_anzahl": 1
+        }
+      ],
+      "status": "ausgestellt",
+      "papierkarte_id": "FA-PK-14729140-000002",
+      "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    },
+    {
+      "gutschein_id": "FA-V-20261116-000003",
+      "periode_id": "FA-PER-20261116",
+      "bezug": "haushalt",
+      "person_id": null,
+      "haushalt_id": "FA-HH-14729140-000003",
+      "kanal": "app",
+      "positionen": [
+        {
+          "artikel_id": "wheat_flour",
+          "bedarf": 2.0,
+          "basiskontingent": 2.0,
+          "zugeteilt_max": 2.0,
+          "eingeloest": 0,
+          "rest": 2.0,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "rice",
+          "bedarf": 1.2,
+          "basiskontingent": 1.2,
+          "zugeteilt_max": 1.2,
+          "eingeloest": 0,
+          "rest": 1.2,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "oil",
+          "bedarf": 0.35,
+          "basiskontingent": 0.35,
+          "zugeteilt_max": 0.35,
+          "eingeloest": 0,
+          "rest": 0.35,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "bedarf": 1,
+          "basiskontingent": 1,
+          "zugeteilt_max": 1,
+          "eingeloest": 0,
+          "rest": 1,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "water",
+          "bedarf": 0,
+          "basiskontingent": 14,
+          "zugeteilt_max": 0,
+          "eingeloest": 0,
+          "rest": 0,
+          "personen_anzahl": 1
+        }
+      ],
+      "status": "ausgestellt",
+      "papierkarte_id": null,
+      "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    },
+    {
+      "gutschein_id": "FA-V-20261116-000004",
+      "periode_id": "FA-PER-20261116",
+      "bezug": "haushalt",
+      "person_id": null,
+      "haushalt_id": "FA-HH-14729140-000004",
+      "kanal": "app",
+      "positionen": [
+        {
+          "artikel_id": "wheat_flour",
+          "bedarf": 2.0,
+          "basiskontingent": 2.0,
+          "zugeteilt_max": 2.0,
+          "eingeloest": 0,
+          "rest": 2.0,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "rice",
+          "bedarf": 1.2,
+          "basiskontingent": 1.2,
+          "zugeteilt_max": 1.2,
+          "eingeloest": 0,
+          "rest": 1.2,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "oil",
+          "bedarf": 0.35,
+          "basiskontingent": 0.35,
+          "zugeteilt_max": 0.35,
+          "eingeloest": 0,
+          "rest": 0.35,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "bedarf": 1,
+          "basiskontingent": 1,
+          "zugeteilt_max": 1,
+          "eingeloest": 0,
+          "rest": 1,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "water",
+          "bedarf": 0,
+          "basiskontingent": 14,
+          "zugeteilt_max": 0,
+          "eingeloest": 0,
+          "rest": 0,
+          "personen_anzahl": 1
+        }
+      ],
+      "status": "ausgestellt",
+      "papierkarte_id": null,
+      "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    },
+    {
+      "gutschein_id": "FA-V-20261116-000005",
+      "periode_id": "FA-PER-20261116",
+      "bezug": "haushalt",
+      "person_id": null,
+      "haushalt_id": "FA-HH-14729140-000006",
+      "kanal": "app",
+      "positionen": [
+        {
+          "artikel_id": "wheat_flour",
+          "bedarf": 2.0,
+          "basiskontingent": 2.0,
+          "zugeteilt_max": 2.0,
+          "eingeloest": 0,
+          "rest": 2.0,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "rice",
+          "bedarf": 1.2,
+          "basiskontingent": 1.2,
+          "zugeteilt_max": 1.2,
+          "eingeloest": 0,
+          "rest": 1.2,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "oil",
+          "bedarf": 0.35,
+          "basiskontingent": 0.35,
+          "zugeteilt_max": 0.35,
+          "eingeloest": 0,
+          "rest": 0.35,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "bedarf": 1,
+          "basiskontingent": 1,
+          "zugeteilt_max": 1,
+          "eingeloest": 0,
+          "rest": 1,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "water",
+          "bedarf": 0,
+          "basiskontingent": 14,
+          "zugeteilt_max": 0,
+          "eingeloest": 0,
+          "rest": 0,
+          "personen_anzahl": 1
+        }
+      ],
+      "status": "ausgestellt",
+      "papierkarte_id": null,
+      "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    },
+    {
+      "gutschein_id": "FA-V-20261116-000006",
+      "periode_id": "FA-PER-20261116",
+      "bezug": "haushalt",
+      "person_id": null,
+      "haushalt_id": "FA-HH-14729140-000008",
+      "kanal": "app",
+      "positionen": [
+        {
+          "artikel_id": "wheat_flour",
+          "bedarf": 2.0,
+          "basiskontingent": 2.0,
+          "zugeteilt_max": 2.0,
+          "eingeloest": 0,
+          "rest": 2.0,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "rice",
+          "bedarf": 1.2,
+          "basiskontingent": 1.2,
+          "zugeteilt_max": 1.2,
+          "eingeloest": 0,
+          "rest": 1.2,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "oil",
+          "bedarf": 0.35,
+          "basiskontingent": 0.35,
+          "zugeteilt_max": 0.35,
+          "eingeloest": 0,
+          "rest": 0.35,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "bedarf": 1,
+          "basiskontingent": 1,
+          "zugeteilt_max": 1,
+          "eingeloest": 0,
+          "rest": 1,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "water",
+          "bedarf": 0,
+          "basiskontingent": 14,
+          "zugeteilt_max": 0,
+          "eingeloest": 0,
+          "rest": 0,
+          "personen_anzahl": 1
+        }
+      ],
+      "status": "ausgestellt",
+      "papierkarte_id": null,
+      "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    },
+    {
+      "gutschein_id": "FA-V-20261116-000007",
+      "periode_id": "FA-PER-20261116",
+      "bezug": "haushalt",
+      "person_id": null,
+      "haushalt_id": "FA-HH-14729140-000009",
+      "kanal": "app",
+      "positionen": [
+        {
+          "artikel_id": "wheat_flour",
+          "bedarf": 2.0,
+          "basiskontingent": 2.0,
+          "zugeteilt_max": 2.0,
+          "eingeloest": 0,
+          "rest": 2.0,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "rice",
+          "bedarf": 1.2,
+          "basiskontingent": 1.2,
+          "zugeteilt_max": 1.2,
+          "eingeloest": 0,
+          "rest": 1.2,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "oil",
+          "bedarf": 0.35,
+          "basiskontingent": 0.35,
+          "zugeteilt_max": 0.35,
+          "eingeloest": 0,
+          "rest": 0.35,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "toilet_paper",
+          "bedarf": 1,
+          "basiskontingent": 1,
+          "zugeteilt_max": 1,
+          "eingeloest": 0,
+          "rest": 1,
+          "personen_anzahl": 1
+        },
+        {
+          "artikel_id": "water",
+          "bedarf": 0,
+          "basiskontingent": 14,
+          "zugeteilt_max": 0,
+          "eingeloest": 0,
+          "rest": 0,
+          "personen_anzahl": 1
+        }
+      ],
+      "status": "ausgestellt",
+      "papierkarte_id": null,
+      "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE"
+    }
+  ]
+}

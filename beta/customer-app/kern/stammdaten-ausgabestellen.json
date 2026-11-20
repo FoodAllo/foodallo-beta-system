@@ -1,0 +1,543 @@
+{
+  "titel": "FoodAllo – Stammdaten Ausgabestellen Musterstadt (einzige Quelle)",
+  "stand": "2026-11-17",
+  "ags": "14729140",
+  "lizenz": "© OpenStreetMap-Mitwirkende, Open Database License (ODbL) 1.0",
+  "hinweise": [
+    "Namen, Marken und Adressen wörtlich aus den OSM-Tags name, brand, branch, addr:* des Geofabrik-Datenstands 29.09.2026.",
+    "Personenbezogene OSM-Tags (z. B. operator) werden bewusst nicht übernommen.",
+    "Öffentlich kartierte Standorte; keine Vertragspartnerschaft. aktiv=true für alle 28 Register-Einträge (wie data/ausgabestellen.json); rolle kennzeichnet die 9 Kern-Ausgabestellen laut §8.1: kern (6 Lebensmittel) und kern_insulin (3 Apotheken), übrige ergaenzend_register.",
+    "IDs FA-R-14729140-NNNN folgen der Reihenfolge der Tabellen in §8.1 (gleich mit data/ausgabestellen.json).",
+    "Änderungen nur über Festlegung; Customer App, Retail App und Desktopversion lesen diese Datei.",
+    "Zwei Objekte haben in OSM keinen name-Tag (node/262300227, node/262300783); sie heißen nach OSM-Shop-Typ „Fleischerei (ohne Namen in OSM)“ (node/262300227, shop=butcher) bzw. „Kiosk (ohne Namen in OSM)“ (node/262300783, shop=kiosk), osm_name_vorhanden=false (Festlegung).",
+    "ortsteil (Festlegung): nur gesetzt, wo eindeutig ableitbar – aus OSM addr:suburb (ortsteil_quelle osm_addr_suburb) oder aus Grundlagen §8.1 (grundlagen_8_1). Kein Ortsteil wird aus Straßennamen oder branch geraten.",
+    "Anzeige: name + Leerzeichen + ortsteil (Kern: anzeigeName / anzeige_name); enthält name den Ortsteil schon, nur name.",
+    "Sichtbare Ortsnamen (20.11.2026): Kernstadt (addr:city und Ortsteil der Kernstadt) als Musterstadt, übrige Ortsteile als Musterdorf. OSM-Quelle und Lizenz ODbL unverändert (Pfad clip.osm.pbf bleibt). Namen, Marken und Filialbezeichnungen (branch) unverändert, auch wenn sie einen Orts- oder Ortsteilnamen enthalten (z. B. „Fleischerei Frohburg“, branch „Frohburg“ bei 0015, „Kohrener Land-Apotheke“). 0005: name bleibt „Tante Enso“, branch bleibt „Kohren Sahlis“, Anzeige fest über anzeigename „Tante Enso Kohren-Sahlis“; Adresse ortsteil = Musterdorf.",
+    "© OpenStreetMap-Mitwirkende, Open Database License (ODbL) 1.0. Ortsnamen durch Musterstadt und Musterdorf ersetzt.",
+    "Demonstration mit fiktiven Daten, nicht im Einsatz bei einer Behörde."
+  ],
+  "ausgabestellen": [
+    {
+      "ausgabestelle_id": "FA-R-14729140-0001",
+      "ags": "14729140",
+      "name": "Edeka",
+      "typ": "supermarket",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/1336530156"
+      ],
+      "aktiv": true,
+      "rolle": "kern",
+      "brand": "Edeka",
+      "adresse": {
+        "strasse": "Bahnhofstraße",
+        "hausnummer": "54",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0002",
+      "ags": "14729140",
+      "name": "Lidl",
+      "typ": "supermarket",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/23241670"
+      ],
+      "aktiv": true,
+      "rolle": "kern",
+      "brand": "Lidl",
+      "adresse": {
+        "strasse": "Wiesenmühlenweg",
+        "hausnummer": "1",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0003",
+      "ags": "14729140",
+      "name": "Netto Marken-Discount",
+      "typ": "supermarket",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/23241683"
+      ],
+      "aktiv": true,
+      "rolle": "kern",
+      "brand": "Netto Marken-Discount",
+      "adresse": {
+        "strasse": "An der Wyhraaue",
+        "hausnummer": "4",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0004",
+      "ags": "14729140",
+      "name": "Norma",
+      "typ": "supermarket",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/134419359"
+      ],
+      "aktiv": true,
+      "rolle": "kern",
+      "brand": "Norma",
+      "adresse": {
+        "strasse": "Wiesenmühlenweg",
+        "hausnummer": "8",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0005",
+      "ags": "14729140",
+      "name": "Tante Enso",
+      "ortsteil": "Musterdorf",
+      "ortsteil_quelle": "grundlagen_8_1",
+      "typ": "supermarket",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/229042511"
+      ],
+      "aktiv": true,
+      "rolle": "kern",
+      "adresse": {
+        "strasse": "Am Bahnhof",
+        "hausnummer": "5",
+        "plz": "12345",
+        "ort": "Musterstadt",
+        "ortsteil": "Musterdorf"
+      },
+      "brand": "Tante Enso",
+      "branch": "Kohren Sahlis",
+      "name_quelle": "name = „Tante Enso“ wörtlich aus dem OSM-Tag name; branch = „Kohren Sahlis“ unverändert (Filialbezeichnung). Anzeige fest über anzeigename „Tante Enso Kohren-Sahlis“ (nicht name+ortsteil, weil ortsteil nun Musterdorf ist). Adresse: ort = Musterstadt, ortsteil = Musterdorf.",
+      "anzeigename": "Tante Enso Kohren-Sahlis"
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0006",
+      "ags": "14729140",
+      "name": "Lebensmittelgeschäft Fischer",
+      "typ": "convenience",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/6514993285"
+      ],
+      "aktiv": true,
+      "rolle": "kern",
+      "adresse": {
+        "strasse": "Markt",
+        "hausnummer": "2",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0007",
+      "ags": "14729140",
+      "name": "Apotheke \"Am Markt\"",
+      "typ": "pharmacy",
+      "abgabekanal": "apotheke",
+      "osm_ref": [
+        "node/260739204"
+      ],
+      "aktiv": true,
+      "rolle": "kern_insulin",
+      "adresse": {
+        "strasse": "Markt",
+        "hausnummer": "16",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0008",
+      "ags": "14729140",
+      "name": "Sonnen-Apotheke",
+      "typ": "pharmacy",
+      "abgabekanal": "apotheke",
+      "osm_ref": [
+        "node/260739159"
+      ],
+      "aktiv": true,
+      "rolle": "kern_insulin",
+      "adresse": {
+        "strasse": "Straße der Freundschaft",
+        "hausnummer": "31",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0009",
+      "ags": "14729140",
+      "name": "Kohrener Land-Apotheke",
+      "ortsteil": "Musterdorf",
+      "ortsteil_quelle": "osm_addr_suburb",
+      "typ": "pharmacy",
+      "abgabekanal": "apotheke",
+      "osm_ref": [
+        "node/338359143"
+      ],
+      "aktiv": true,
+      "rolle": "kern_insulin",
+      "adresse": {
+        "strasse": "Kohrener Markt",
+        "hausnummer": "5",
+        "plz": "12345",
+        "ort": "Musterstadt",
+        "ortsteil": "Musterdorf"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0010",
+      "ags": "14729140",
+      "name": "Bäckerei Claus",
+      "ortsteil": "Musterdorf",
+      "ortsteil_quelle": "osm_addr_suburb",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/6433536353"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Straße der Einheit",
+        "hausnummer": "1",
+        "plz": "12345",
+        "ort": "Musterstadt",
+        "ortsteil": "Musterdorf"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0011",
+      "ags": "14729140",
+      "name": "Bäckerei Frank",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/262300274"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Markt",
+        "hausnummer": "11",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0012",
+      "ags": "14729140",
+      "name": "Bäckerei Kwiezinski",
+      "ortsteil": "Musterdorf",
+      "ortsteil_quelle": "osm_addr_suburb",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/320088123"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Straße des Friedens",
+        "hausnummer": "26",
+        "plz": "12345",
+        "ort": "Musterstadt",
+        "ortsteil": "Musterdorf"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0013",
+      "ags": "14729140",
+      "name": "Bäckerei Reiße",
+      "ortsteil": "Musterdorf",
+      "ortsteil_quelle": "osm_addr_suburb",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/678171241"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Am Teichdamm",
+        "hausnummer": "3",
+        "plz": "12345",
+        "ort": "Musterstadt",
+        "ortsteil": "Musterdorf"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0014",
+      "ags": "14729140",
+      "name": "Bäckerei Reiße",
+      "ortsteil": "Musterdorf",
+      "ortsteil_quelle": "osm_addr_suburb",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/755858439"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Kohrener Markt",
+        "hausnummer": "6",
+        "plz": "12345",
+        "ort": "Musterstadt",
+        "ortsteil": "Musterdorf"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0015",
+      "ags": "14729140",
+      "name": "Bäckerei Reiße",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/266498478"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "branch": "Frohburg",
+      "adresse": {
+        "strasse": "Markt",
+        "hausnummer": "4",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0016",
+      "ags": "14729140",
+      "name": "Emil Reimann",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/5693123384"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "brand": "Emil Reimann",
+      "adresse": {
+        "strasse": "An der Wyhraaue",
+        "hausnummer": "4",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0017",
+      "ags": "14729140",
+      "name": "Emil Reimann",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/13289256924"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "brand": "Emil Reimann",
+      "adresse": {
+        "strasse": "Bahnhofstraße",
+        "hausnummer": "54",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0018",
+      "ags": "14729140",
+      "name": "Feinbäckerei Grieser",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/262300347"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "August-Bebel-Straße",
+        "hausnummer": "26",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0019",
+      "ags": "14729140",
+      "name": "Vetter",
+      "typ": "bakery",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/807292725"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse_hinweis": "Adresse in OSM offen"
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0020",
+      "ags": "14729140",
+      "name": "Fleischerei Frohburg",
+      "typ": "butcher",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/6515013751"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Markt",
+        "hausnummer": "19A",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0021",
+      "ags": "14729140",
+      "name": "Fleischerei (ohne Namen in OpenStreetMap)",
+      "typ": "butcher",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/262300227"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse_hinweis": "Adresse in OSM offen",
+      "osm_name_vorhanden": false,
+      "name_quelle": "OSM ohne name-Tag (nur shop=butcher, Geofabrik 29.09.2026 und OSM-API 17.11.2026); Bezeichnung nach Shop-Typ (Festlegung)."
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0022",
+      "ags": "14729140",
+      "name": "Getränkescheune",
+      "typ": "beverages",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/397581931"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Altenburger Straße",
+        "hausnummer": "2c",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0023",
+      "ags": "14729140",
+      "name": "Huster",
+      "typ": "beverages",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/24489562"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Von-Falkenstein-Straße",
+        "hausnummer": "42",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0024",
+      "ags": "14729140",
+      "name": "Netto Getränke-Discount",
+      "typ": "beverages",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/5693123385"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "brand": "Netto Getränke-Discount",
+      "adresse": {
+        "strasse": "An der Wyhraaue",
+        "hausnummer": "4",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0025",
+      "ags": "14729140",
+      "name": "Der krumme Damm",
+      "typ": "farm",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "way/1231865298"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse_hinweis": "Adresse in OSM offen"
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0026",
+      "ags": "14729140",
+      "name": "Rossmann",
+      "typ": "chemist",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/13257305099"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "brand": "Rossmann",
+      "adresse": {
+        "strasse": "Bahnhofstraße",
+        "hausnummer": "56",
+        "plz": "12345",
+        "ort": "Musterstadt"
+      }
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0027",
+      "ags": "14729140",
+      "name": "Kiosk (ohne Namen in OpenStreetMap)",
+      "typ": "kiosk",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/262300783"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse_hinweis": "Adresse in OSM offen",
+      "osm_name_vorhanden": false,
+      "name_quelle": "OSM ohne name-Tag (nur shop=kiosk, Geofabrik 29.09.2026 und OSM-API 17.11.2026); Bezeichnung nach Shop-Typ (Festlegung)."
+    },
+    {
+      "ausgabestelle_id": "FA-R-14729140-0028",
+      "ags": "14729140",
+      "name": "InnoMar",
+      "ortsteil": "Musterdorf",
+      "ortsteil_quelle": "osm_addr_suburb",
+      "typ": "wholesale",
+      "abgabekanal": "einzelhandel",
+      "osm_ref": [
+        "node/7535457499"
+      ],
+      "aktiv": true,
+      "rolle": "ergaenzend_register",
+      "adresse": {
+        "strasse": "Dolsenhainer Straße",
+        "hausnummer": "28",
+        "plz": "12345",
+        "ort": "Musterstadt",
+        "ortsteil": "Musterdorf"
+      }
+    }
+  ]
+}

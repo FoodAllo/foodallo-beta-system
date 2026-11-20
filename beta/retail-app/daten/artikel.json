@@ -1,0 +1,66 @@
+{
+  "hinweis": "Artikel der Retail-Demo (gemeinsamer Vorschlag v1.1). Basiswerte je Person und 7-Tage-Periode: Mehl/Reis/Öl Vorschlag Grundlagen Abschnitt 6; Trinkwasser (2 L je Person und Tag, BBK = 14 L je Periode) und Toilettenpapier (1 Rolle je Person und Woche) sind Planungsannahmen (annahme=true). Trinkwasser nur während einer aktiven SUPPLY_DISRUPTION (art trinkwasser) für die AGS der Ausgabestelle; die Ereignisse schreibt nur die Desktopversion. Ausgabestellen stehen ausschließlich in ../../kern/stammdaten-ausgabestellen.json.",
+  "schema_revision": "1.1-gemeinsam",
+  "artikel": [
+    {
+      "artikel_id": "wheat_flour",
+      "bezeichnung_de": "Weizenmehl",
+      "einheit": "kg",
+      "gruppe": "staple",
+      "abgabekanal": "einzelhandel",
+      "rezeptpflicht": false,
+      "periode_basis_vorschlag": 2.0,
+      "annahme": false
+    },
+    {
+      "artikel_id": "rice",
+      "bezeichnung_de": "Reis",
+      "einheit": "kg",
+      "gruppe": "staple",
+      "abgabekanal": "einzelhandel",
+      "rezeptpflicht": false,
+      "periode_basis_vorschlag": 1.2,
+      "annahme": false
+    },
+    {
+      "artikel_id": "oil",
+      "bezeichnung_de": "Speiseöl",
+      "einheit": "L",
+      "gruppe": "staple",
+      "abgabekanal": "einzelhandel",
+      "rezeptpflicht": false,
+      "periode_basis_vorschlag": 0.35,
+      "annahme": false
+    },
+    {
+      "artikel_id": "water",
+      "bezeichnung_de": "Trinkwasser",
+      "einheit": "L",
+      "gruppe": "staple",
+      "abgabekanal": "einzelhandel",
+      "rezeptpflicht": false,
+      "periode_basis_vorschlag": 14,
+      "annahme": true,
+      "nur_bei_stoerung": "trinkwasser"
+    },
+    {
+      "artikel_id": "toilet_paper",
+      "bezeichnung_de": "Toilettenpapier",
+      "einheit": "rolle",
+      "gruppe": "nonfood_hygiene",
+      "abgabekanal": "einzelhandel",
+      "rezeptpflicht": false,
+      "periode_basis_vorschlag": 1,
+      "annahme": true
+    },
+    {
+      "artikel_id": "insulin",
+      "bezeichnung_de": "Insulin",
+      "einheit": "IE",
+      "gruppe": "nonfood_pharma",
+      "abgabekanal": "apotheke",
+      "rezeptpflicht": true,
+      "periode_basis_vorschlag": null
+    }
+  ]
+}
