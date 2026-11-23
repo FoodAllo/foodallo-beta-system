@@ -955,13 +955,43 @@
     $("oberflaeche").hidden = true;
     $("anmeldung").hidden = false;
     document.title = "Anmeldung · FoodAllo Fachverfahren Lebensmittelversorgung (Beta)";
-    var sel = $("dienststelle");
-    sel.innerHTML = REIHENFOLGE.map(function (id) { var d = DIENSTSTELLEN[id]; return "<option value='" + id + "'>" + esc(d.name + (d.amt ? " – " + d.amt : "")) + "</option>"; }).join("");
-    function ap() { $("arbeitsplatz").innerHTML = DIENSTSTELLEN[sel.value].arbeitsplaetze.map(function (a) { return "<option>" + esc(a) + "</option>"; }).join(""); }
-    sel.onchange = ap; ap();
+    var sel = $("dienststelle"), apSel = $("arbeitsplatz");
+    /* Login-Fix 23.11.2026: Listen immer mit gültigem value und fester Vorauswahl befüllen,
+       Auswahl nach Neuladen/Zurück (Formular-Wiederherstellung, Autofill) neu abgleichen,
+       Anmelden nie an der Browser-Listenprüfung scheitern lassen. */
+    function gueltigeRolle(v) { return DIENSTSTELLEN[v] ? v : REIHENFOLGE[0]; }
+    function fuelleListe(el, eintraege, wunsch) {
+      el.innerHTML = eintraege.map(function (e) { return "<option value=\"" + esc(e.wert) + "\">" + esc(e.text) + "</option>"; }).join("");
+      var idx = 0;
+      for (var i = 0; i < eintraege.length; i++) { if (eintraege[i].wert === wunsch) { idx = i; break; } }
+      el.selectedIndex = idx;
+      if (el.options[idx]) el.options[idx].selected = true;
+    }
+    function ap(wunsch) {
+      var plaetze = DIENSTSTELLEN[gueltigeRolle(sel.value)].arbeitsplaetze;
+      fuelleListe(apSel, plaetze.map(function (a) { return { wert: a, text: a }; }), wunsch);
+    }
+    function dsListe(wunsch) {
+      fuelleListe(sel, REIHENFOLGE.map(function (id) { var d = DIENSTSTELLEN[id]; return { wert: id, text: d.name + (d.amt ? " – " + d.amt : "") }; }), gueltigeRolle(wunsch));
+    }
+    function abgleich() {
+      var r = gueltigeRolle(sel.value), a = apSel.value;
+      if (sel.value !== r || sel.selectedIndex < 0) dsListe(r);
+      if (DIENSTSTELLEN[r].arbeitsplaetze.indexOf(a) === -1 || apSel.selectedIndex < 0) ap(a);
+    }
+    dsListe(REIHENFOLGE[0]); ap();
+    sel.onchange = function () { ap(); };
+    sel.oninput = function () { if (DIENSTSTELLEN[sel.value] && DIENSTSTELLEN[sel.value].arbeitsplaetze.indexOf(apSel.value) === -1) ap(); };
+    apSel.onchange = abgleich;
+    if (!zeigeAnmeldung.pageshow) { zeigeAnmeldung.pageshow = true; window.addEventListener("pageshow", function () { if (!$("anmeldung").hidden && zeigeAnmeldung.abgleich) zeigeAnmeldung.abgleich(); }); }
+    zeigeAnmeldung.abgleich = abgleich;
+    setTimeout(function () { if (!$("anmeldung").hidden) abgleich(); }, 0);
     $("anmeldeform").onsubmit = function (ev) {
       ev.preventDefault();
-      var s = { rolle: sel.value, arbeitsplatz: $("arbeitsplatz").value, kennung: $("kennung").value.trim() };
+      abgleich();
+      var rolle = gueltigeRolle(sel.value), plaetze = DIENSTSTELLEN[rolle].arbeitsplaetze;
+      var platz = plaetze.indexOf(apSel.value) !== -1 ? apSel.value : plaetze[0];
+      var s = { rolle: rolle, arbeitsplatz: platz, kennung: $("kennung").value.trim() };
       try { sessionStorage.setItem(SPEICHER.sitzung, JSON.stringify(s)); } catch (e) { /* ohne Sitzungsspeicher */ }
       anmelden(s, null);
     };

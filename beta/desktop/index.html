@@ -16,11 +16,11 @@
   <div class="anmeldung-box">
     <img class="anmeldung-logo" src="assets/logos/white_logo_transparent_background.png" alt="FoodAllo">
     <h1>Fachverfahren Lebensmittelversorgung <span class="beta">Beta</span></h1>
-    <form id="anmeldeform" autocomplete="off">
+    <form id="anmeldeform" autocomplete="off" novalidate>
       <label for="dienststelle">Dienststelle</label>
-      <select id="dienststelle" required></select>
+      <select id="dienststelle" name="dienststelle" autocomplete="off"></select>
       <label for="arbeitsplatz">Arbeitsplatz</label>
-      <select id="arbeitsplatz" required></select>
+      <select id="arbeitsplatz" name="arbeitsplatz" autocomplete="off"></select>
       <label for="kennung">Benutzerkennung</label>
       <input id="kennung" type="text" placeholder="z. B. sachbearbeitung1" maxlength="40">
       <button type="submit" class="primaer" id="btn-anmelden">Anmelden</button>
@@ -62,6 +62,6 @@
 <script src="assets/melderegister.js"></script>
 <script src="assets/zugriff.js"></script>
 <script src="assets/karten.js"></script>
-<script src="assets/app.js"></script>
+<script src="assets/app.js?v=20261123-login"></script>
 </body>
 </html>
