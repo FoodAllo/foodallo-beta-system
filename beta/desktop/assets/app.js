@@ -136,7 +136,7 @@
     for (var i = 0; i < D.perioden.length; i++) if (D.perioden[i].periode_id === id) return D.perioden[i];
     return D.perioden[D.perioden.length - 1];
   }
-  function periodeText(p) { return datum(p.beginn) + " – " + datum(p.ende) + (p.status === "offen" ? " (laufend)" : ""); }
+  function periodeText(p) { return datum(p.beginn) + " – " + datum(p.ende) + (p.status === "offen" ? " (Demonstrationszeitraum)" : ""); }
   function letztePeriodeGeschlossen() {
     var g = D.perioden.filter(function (p) { return p.status === "geschlossen"; });
     return g.length ? g[g.length - 1].periode_id : PERIODE_LAUFEND;
@@ -691,7 +691,7 @@
     var p = periodeObj(PERIODE_LAUFEND);
     var html = seitenTitel("Haushaltsübersicht", "Musterstadt, Pass- und Meldebehörde · Zuteilungszeitraum " + periodeText(p));
     html += "<div class='werkzeug'><input id='hh-suche' type='search' placeholder='Name oder Anschrift' value='" + esc(state.suche) + "' style='min-width:320px'><span class='klein'>" + HAUSHALTE.length + " Haushalte, " + PERSONEN.length + " Personen</span></div>";
-    html += "<div class='karte'><table id='hh-tabelle'><thead><tr><th>Haushalt</th><th>Anschrift</th><th>Personen</th><th>Bezugsweg</th><th>Zuteilung laufender Zeitraum</th></tr></thead><tbody>";
+    html += "<div class='karte'><table id='hh-tabelle'><thead><tr><th>Haushalt</th><th>Anschrift</th><th>Personen</th><th>Bezugsweg</th><th>Zuteilung im Demonstrationszeitraum</th></tr></thead><tbody>";
     var q = (state.suche || "").toLowerCase();
     HAUSHALTE.forEach(function (hh) {
       var v = PERS[hh.vorstand];
@@ -704,7 +704,7 @@
       var ks = kartenHH(hh), gsh = gutscheineHH(hh.haushalt_id), zut;
       var zusatz = gsh.stoerung.map(function (g) { return "Zusatz Trinkwasser: " + fmtZahl(wasserMenge(g)) + " Liter" + (stoerungAktiv(g.stoerung_id) ? "" : " (verfallen mit Ende der Störung)"); });
       if (hh.kanal === "papier") zut = ks.length ? ks.map(function (k) { return esc(KARTENART_DE[k.art]) + ": " + esc(kartenStatus(k)); }).join("<br>") + "<br><span class='klein'>" + ks[0].berechtigt.length + " bezugsberechtigte Person" + (ks[0].berechtigt.length === 1 ? "" : "en") + "</span>" : "<span class='klein'>noch keine Karte (keine bestätigte Person)</span>";
-      else zut = hh.person_ids.some(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; }) ? "über die FoodAllo-App" + (zusatz.length ? "<br>" + zusatz.join("<br>") : "") : "<span class='klein'>noch keine Zuteilung (keine bestätigte Person)</span>";
+      else zut = hh.person_ids.some(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; }) ? "Gutschein in der FoodAllo-App" + (zusatz.length ? "<br>" + zusatz.join("<br>") : "") : "<span class='klein'>noch keine Zuteilung (keine bestätigte Person)</span>";
       html += "<tr><td>" + esc(haushaltName(hh)) + "<br><span class='klein'>" + hh.groesse + " Personen</span></td><td>" + esc(anschrift(v)) + "</td><td>" + pers + "</td><td>" + esc(KANAL_DE[hh.kanal] || "") + "</td><td>" + zut + "</td></tr>";
     });
     html += "</tbody></table></div>";
@@ -752,7 +752,7 @@
       if (!l.length) html += "<tr class='wahl" + (h.haushalt_id === state.haushalt ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='regulaer'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + h.groesse + " Personen</span></td><td>—</td><td><span class='status grau'>Identität noch nicht bestätigt</span></td></tr>";
       l.forEach(function (kk) {
         var stt = kartenStatus(kk), aktiv = h.haushalt_id === state.haushalt && k && kk.art === k.art;
-        html += "<tr class='wahl" + (aktiv ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='" + kk.art + "'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + esc(kk.berechtigt.map(personName).join(", ")) + "</span></td><td>" + esc(KARTENART_DE[kk.art]) + "<br><span class='kartenart'>" + (kk.art === "stoerung" ? fmtZahl(wasserMenge(kk.gutschein)) + " Liter Trinkwasser" : "Zuteilung laufender Zeitraum") + "</span></td><td><span class='status " + (/zu drucken/.test(stt) ? "offen" : "grau") + "'>" + esc(stt) + "</span></td></tr>";
+        html += "<tr class='wahl" + (aktiv ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='" + kk.art + "'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + esc(kk.berechtigt.map(personName).join(", ")) + "</span></td><td>" + esc(KARTENART_DE[kk.art]) + "<br><span class='kartenart'>" + (kk.art === "stoerung" ? fmtZahl(wasserMenge(kk.gutschein)) + " Liter Trinkwasser" : "Zuteilung im Demonstrationszeitraum") + "</span></td><td><span class='status " + (/zu drucken/.test(stt) ? "offen" : "grau") + "'>" + esc(stt) + "</span></td></tr>";
       });
     });
     html += "</tbody></table><p class='klein'>Je Haushalt eine Lebensmittelkarte für den Zuteilungszeitraum und während einer Versorgungsstörung eine eigene Zusatzkarte Trinkwasser.</p></div><div>";
@@ -848,13 +848,13 @@
     else if (darfAggregat(null, "land")) A.laender.forEach(function (l) { html += zeile(l.name, l.code === "14" ? A.land.einwohner : null, l.code === "14" ? "14" : null); });
     html += "</tbody></table><p class='hinweis'>Fallzahlen unter " + Z.KLEINZAHL_STANDARD + " werden nicht ausgewiesen. Einwohnerzahlen angelehnt an amtliche Daten (Statistisches Landesamt Sachsen), Stand 31.12.2025.</p></div>";
 
-    html += "<div class='spalten'><div class='karte'><h2>Bestands- und Ausgabeübersicht</h2><table><thead><tr><th>Ware</th><th class='num'>Ausgegeben im laufenden Zeitraum</th><th class='num'>Bestand</th><th class='num'>Reichweite</th></tr></thead><tbody>";
+    html += "<div class='spalten'><div class='karte'><h2>Bestands- und Ausgabeübersicht</h2><table><thead><tr><th>Ware</th><th class='num'>Ausgegeben im Demonstrationszeitraum</th><th class='num'>Bestand</th><th class='num'>Reichweite</th></tr></thead><tbody>";
     var lauf = buchungen(PERIODE_LAUFEND);
     ["wheat_flour", "rice", "oil", "toilet_paper", "insulin"].forEach(function (id) {
       var a = artikel(id), rw = reichweite(id);
       html += "<tr><td>" + esc(a.bezeichnung_de) + "</td><td class='num'>" + esc(K.fmtMenge(summe(lauf, id), a.einheit)) + "</td><td class='num'>" + esc(K.fmtMenge(bestand(id), a.einheit)) + "</td><td class='num'>" + (rw == null ? "—" : fmtZahl(rw, 1) + " Tage") + "</td></tr>";
     });
-    html += "</tbody></table><p class='hinweis'>Szenariodaten. Reichweite: Bestand geteilt durch die durchschnittliche Tagesausgabe der letzten sieben Tage.</p></div>";
+    html += "</tbody></table><p class='hinweis'>Szenariodaten aus synthetischen Haushalten, nicht die Personen und Haushalte oben. Buchungen, Wareneingänge und Bestandskorrekturen der Retail-App sind nicht eingerechnet. Reichweite: Bestand geteilt durch die durchschnittliche Tagesausgabe vom 10. bis 17.11.2026.</p></div>";
     html += "<div class='karte'><h2>Ausgaben je Tag</h2>" + (darfKennzahl(Z.AGS_FROHBURG, r.aggregationsebene) ? chart(zeitreihe()) + "<p class='hinweis'>Szenariodaten.</p>" : "<p class='klein'>Nicht verfügbar.</p>") + "</div></div>";
 
     var hinw = [];
@@ -882,7 +882,7 @@
       var ew = 0; A.gemeinden_landkreis_leipzig.forEach(function (g) { if (g.ags === s.p.ags) ew = g.ew; });
       var hh = HAUSHALTE.filter(function (h) { return h.ags === s.p.ags; }).length;
       html += "<tr><td>" + esc(STOERUNG_DE[s.p.art] || s.p.art) + " <span class='status grau'>Szenario</span></td><td>" + esc(gebiet) + "</td><td>" + datumZeit(s.p.beginn) + "</td><td>" + (s.ende ? datumZeit(s.ende) : "—") + "</td><td>" +
-        (s.ende ? "<span class='status grau'>beendet</span>" : "<span class='status abgelehnt'>andauernd</span>") + "</td><td class='num'>" + fmtZahl(ew, 0) + "</td><td class='num'>" + fallzahl(hh, s.p.ags) + "</td><td>" + (s.p.art === "trinkwasser" ? "Trinkwasser: in Vorbereitung" : "—") + "</td></tr>";
+        (s.ende ? "<span class='status grau'>beendet</span>" : "<span class='status abgelehnt'>andauernd</span>") + "</td><td class='num'>" + fmtZahl(ew, 0) + "</td><td class='num'>" + fallzahl(hh, s.p.ags) + "</td><td>" + (s.p.art === "trinkwasser" ? "Trinkwasser: Zusatzgutschein bzw. Zusatzkarte, 14 Liter je Person" : "—") + "</td></tr>";
     });
     html += "</tbody></table><p class='hinweis'>Fallzahlen unter " + Z.KLEINZAHL_STANDARD + " werden nicht ausgewiesen.</p></div>";
     host.innerHTML = html;
@@ -892,7 +892,7 @@
   var BESTAND_ARTIKEL = ["wheat_flour", "rice", "oil", "toilet_paper", "insulin"];
   function renderAusgabestellen(host) {
     var r = Z.rolle(state.rolle), d = ds();
-    var html = seitenTitel("Ausgabestellen", esc(d.name) + " · " + d.gebiet);
+    var html = seitenTitel("Ausgabestellen", esc(dsVoll()) + " · " + d.gebiet);
     var liste = ausgabestellen().filter(function (s) { return s.aktiv !== false; });
     if (darfStellen()) {
       html += "<div class='karte'><table id='stellen-tabelle'><thead><tr><th>Ausgabestelle</th><th>Art</th><th>Anschrift</th><th>Ausgabe</th>" +
@@ -929,13 +929,13 @@
     var r = Z.rolle(state.rolle), d = ds();
     var html = seitenTitel("Bestände", esc(d.name) + " · " + d.gebiet + " · Szenariodaten");
     var gebiet = r.aggregationsebene === "gemeinde" ? "Musterstadt" : r.aggregationsebene === "kreis" ? "Landkreis Leipzig" : "Freistaat Sachsen";
-    html += "<div class='karte'><table id='bestand-tabelle'><thead><tr><th>Gebiet</th><th>Ware</th><th class='num'>Bestand</th><th class='num'>Ausgegeben im laufenden Zeitraum</th><th class='num'>Reichweite</th></tr></thead><tbody>";
+    html += "<div class='karte'><table id='bestand-tabelle'><thead><tr><th>Gebiet</th><th>Ware</th><th class='num'>Bestand</th><th class='num'>Ausgegeben im Demonstrationszeitraum</th><th class='num'>Reichweite</th></tr></thead><tbody>";
     var lauf = buchungen(PERIODE_LAUFEND);
     BESTAND_ARTIKEL.forEach(function (id) {
       var a = artikel(id), rw = reichweite(id);
       html += "<tr><td>" + esc(gebiet) + "</td><td>" + esc(a.bezeichnung_de) + "</td><td class='num'>" + esc(K.fmtMenge(bestand(id), a.einheit)) + "</td><td class='num'>" + esc(K.fmtMenge(summe(lauf, id), a.einheit)) + "</td><td class='num'>" + (rw == null ? "—" : fmtZahl(rw, 1) + " Tage") + "</td></tr>";
     });
-    html += "</tbody></table>" + (r.aggregationsebene !== "gemeinde" ? "<p class='hinweis'>Übrige Gebiete: keine Daten.</p>" : "") + "<p class='hinweis'>Bestände sind Szenariodaten, keine Inventur. Keine Lagerorte.</p></div>";
+    html += "</tbody></table>" + (r.aggregationsebene !== "gemeinde" ? "<p class='hinweis'>Übrige Gebiete: keine Daten.</p>" : "") + "<p class='hinweis'>Bestände sind Szenariodaten, keine Inventur. Keine Lagerorte. Anfangsbestände, Wareneingänge und Korrekturen der Retail-App sind nicht eingerechnet.</p></div>";
     if (r.aggregationsebene === "gemeinde") {
       html += "<div class='karte'><h2>Nach Art der Ausgabestelle (Musterstadt)</h2><table><thead><tr><th>Art</th><th>Ware</th><th class='num'>Bestand</th></tr></thead><tbody>";
       ["supermarket", "convenience", "pharmacy"].forEach(function (typ) {
