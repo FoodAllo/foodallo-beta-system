@@ -12,13 +12,13 @@ Im Ordner dieser Paketdateien einen lokalen Webserver starten, zum Beispiel:
 python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
-Anschließend im Browser `http://127.0.0.1:8000/` öffnen. Die Dateien müssen über HTTP geladen werden, nicht als `file://`.
+Anschließend im Browser `http://127.0.0.1:8000/` öffnen. Die Customer App lädt ihre Daten per `fetch`. Das funktioniert in gängigen Browsern nicht über `file://` — im Gegensatz zur Desktopversion und zur Retail App, die sich so öffnen lassen.
 
 ## Ausprobieren
 
 Auf dem Anmeldebildschirm gibt es einen Besucherzugang:
 
-- **Als Familie Meier ausprobieren** — bestätigt angemeldet, mit Haushaltsgutschein
+- **Als Familie Meier ausprobieren** — Identität bestätigt; der Haushaltsgutschein gilt für den Demonstrationszeitraum 16.–22.11.2026 und erscheint in der App nur in diesem Zeitraum
 - **Als Familie Müller ausprobieren** — Wartebildschirm, Identität wird noch geprüft
 
 Dafür müssen Sie nichts eingeben. Der Zugang gilt nur in diesem Browser.
