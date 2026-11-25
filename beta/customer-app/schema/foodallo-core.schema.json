@@ -1,44 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "foodallo-core.schema.v1.2.json",
-  "title": "FoodAllo Kernschema v1.2",
-  "description": "FoodAllo Kernschema v1.2, verbindlich.11.2026. Inhaltlich gleich mit proposals/foodallo-core.schema.v1.2-proposal.json (sha256 69e79bd0193abc8bf454f1fc3eb25bd09b0a37418ceef26ecd0cbeebe91376af; bestätigt von Customer App und Desktopversion, V1–V15). Zusatzgutschein bei Störung (anlass, stoerung_id, ags), Registrierungskanal (PERSON_REGISTERED.kanal). Ereignisfeld schema_version bleibt 1; jedes gültige v1.1-Ereignis bleibt gültig. Änderungsnotiz: proposals/v1.2-CHANGES.md. Texte „v1.2-Vorschlag“ in $defs sind die übernommene Herleitung und gelten jetzt verbindlich",
-  "x-status": "verbindlich.11.2026",
+  "title": "FoodAllo Kernschema v1.2 (verbindlich, angenommen Festlegung)",
+  "description": "FoodAllo Kernschema v1.2, verbindlich, angenommen Festlegung. Inhaltlich gleich mit proposals/foodallo-core.schema.v1.2-proposal.json (sha256 69e79bd0193abc8bf454f1fc3eb25bd09b0a37418ceef26ecd0cbeebe91376af; bestätigt von Customer App und Desktopversion, V1–V15). Zusatzgutschein bei Störung (anlass, stoerung_id, ags), Registrierungskanal (PERSON_REGISTERED.kanal). Ereignisfeld schema_version bleibt 1; jedes gültige v1.1-Ereignis bleibt gültig. Änderungsnotiz: proposals/v1.2-CHANGES.md. Texte „v1.2-Vorschlag“ in $defs sind die übernommene Herleitung und gelten jetzt verbindlich.",
+  "x-status": "verbindlich, angenommen Festlegung",
   "x-schema_version": "1.2",
-  "x-angelegt_am": "2026-11-17",
-  "x-hinweise": [
-    "Alle Personen- und Haushaltsdaten sind synthetisch; kein Melderegister, keine Klarnamen.",
-    "Keine Lagerorte von Reserven in Bestand oder Ereignissen.",
-    "schema_version im Ereignis bleibt 1; Minor 1.1 ist abwärtskompatibel.",
-    "VOUCHER_ISSUED schreibt nur die Desktopversion. Die Customer App prägt keine gutschein_id.",
-    "Gutschein-Bezug in v1.1 ist haushalt. Basiskontingent = Summe der Personenquoten. Jedes bestätigte Mitglied darf einlösen.",
-    "Toilettenpapier und Trinkwasser-Mengen sind Planungsannahmen (keine amtliche Festsetzung).",
-    "10 % vulnerabel und 10 % ohne Smartphone sind unabhängig; Überschneidung konfigurierbar (Annahme).",
-    "Rezept ist über synthetische person_id gebunden. Insulin ist keine Gutscheinposition.",
-    "papierkarte_id: FA-PK-<kommune/AGS>-<lfd>. ausstellungsort: FA-R-… oder FA-AUTH-…",
-    "Periode: 7 Tage, Montag bis Sonntag, Europe/Berlin.",
-    "Anfangsbestände schreibt die Retail App als STOCK_ADJUSTED mit anlass=anfangsbestand; VOUCHER_ISSUED nur Desktop.",
-    "Planungsannahmen sind im Schema mit dem Feld annahme gekennzeichnet.",
-    "ereignis_id: FA-E-<uuid>, UUID nur Kleinbuchstaben",
-    "Authentifizierung: IDENTITY_VERIFIED schreibt nur die Desktopversion in der Rolle Meldebehörde (verifikation.stelle FA-AUTH-…). PERSON_VERIFIED ist nur noch Lese-Alias.",
-    "PERSON_REGISTERED schreibt nur die Customer App.",
-    "Trinkwasser ist freigegeben, solange für die AGS der Ausgabestelle eine SUPPLY_DISRUPTION (art trinkwasser) aktiv ist. Ereignisse nur von der Desktopversion.",
-    "REDEMPTION_POSTED (nur retail_app): Ausgabebuchung trägt entweder gutschein_id (Gutscheinposition) oder rezept_id (Insulin).",
-    "Ausgabestellen-Stammdaten: einzige Quelle system/kern/stammdaten-ausgabestellen.json (OSM, ODbL).",
-    "Offen für den Realbetrieb: E-Rezept (gematik/TI) statt synthetischem Rezeptnachweis; wird in v1.1 nicht gebaut.",
-    "Darstellungsregel (DT7): Jede angezeigte Zahl trägt ihre Herkunft amtlich / synthetisch / szenario / annahme. Bestände sind Szenario, keine Inventur; Aggregate sind keine amtliche Statistik. Filialnamen aus OSM, keine Vertragspartnerschaft.",
-    "Sichtrechte und Kleinzahlregel (DT8): pruefeSichtrecht (Rolle, Objekttyp, AGS, Aggregationsebene) und die Unterdrückung von Fallzahlen n < 5 ab Kreisebene bleiben außerhalb des Austauschschemas. Das Kernschema enthält keine Klarnamen und keine fallbezogene Ausleitung an Landes- und Bundesrollen.",
-    "Betriebsvereinbarung Ereignislog (DT9): JSONL-Datei system/data/ereignislog.jsonl, nur anhängen (exklusive Dateisperre, vorhandene ereignis_id nicht erneut schreiben, vorher Sicherung ereignislog.jsonl.bak-<JJJJMMTT-HHMMSS>). Kein System überschreibt die Datei. Die Desktopversion exportiert für file:// zusätzlich ereignislog.js (window.EREIGNISLOG) – abgeleitete Kopie, nicht maßgeblich.",
-    "Annahmen (DT11): $defs/annahmen gilt unverändert für alle drei Systeme.",
-    "Quellenregel: ALLOCATION_RUN_COMPLETED, PAPER_CARD_RENDERED, PAPER_CARD_PRINTED und PERIOD_CLOSED schreibt ausschließlich die Desktopversion",
-    "PAPER_CARD_* bezeichnet ausschließlich die vorhandenen Typen PAPER_CARD_RENDERED und PAPER_CARD_PRINTED. Einen Typ PAPER_CARD_CREATED gibt es nicht.",
-    "REDEMPTION_POSTED schreibt ausschließlich die Retail App (quelle_system retail_app), auch für Papierkarten (kanal papier_abgleich): Papierkarten werden im Handel gebucht",
-    "v1.2-Vorschlag: Zusatzgutschein bei Störung = eigenes VOUCHER_ISSUED mit anlass=stoerung, stoerung_id und ags; reguläre Gutscheine bleiben unverändert.",
-    "v1.2-Vorschlag: Solange die Störung aktiv ist, bekommt jeder betroffene Haushalt je Periode einen eigenen Störungsgutschein. Wasser kommt nicht in den regulären Gutschein; die reguläre Quote bleibt unberührt",
-    "v1.2-Vorschlag: Artikel mit nur_bei_stoerung (heute: water; aus retail-app/daten/artikel.json abgeleitet) nur über Störungsgutscheine.",
-    "v1.2-Vorschlag (V9): Der Rest eines Störungsgutscheins verfällt mit dem Ende der Störung (SUPPLY_DISRUPTION_ENDED bzw. ende); kein eigenes Ereignis.",
-    "Validatoren: boolesches Teilschema false (Feld verboten) und verschachteltes if/then/else werden benötigt; der Kern-Validator (kern/foodallo_kern.py pruefe_schema, nur Standardbibliothek) kann das ab 1.5.0."
-  ],
   "$ref": "#/$defs/Ereignis",
   "$defs": {
     "schema_version": {
@@ -127,7 +93,7 @@
     "id_ereignis": {
       "type": "string",
       "pattern": "^FA-E-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-      "description": "FA-E-<uuid> nach RFC 4122, ausschließlich Kleinbuchstaben"
+      "description": "FA-E-<uuid> nach RFC 4122, ausschließlich Kleinbuchstaben (Festlegung)."
     },
     "Verifikation": {
       "type": "object",
@@ -293,7 +259,7 @@
         },
         "nur_bei_stoerung": {
           "$ref": "#/$defs/stoerung_art",
-          "description": "Artikel ist nur einlösbar, solange für die AGS der Ausgabestelle eine Störung dieser Art aktiv ist"
+          "description": "Artikel ist nur einlösbar, solange für die AGS der Ausgabestelle eine Störung dieser Art aktiv ist (Retail-Ergänzung R3, Festlegung)."
         }
       }
     },
@@ -422,7 +388,7 @@
             "stoerung"
           ],
           "default": "regulaer",
-          "description": "regulaer = Periodengutschein (wie v1.1; fehlendes Feld = regulaer). stoerung = Zusatzgutschein wegen einer Versorgungsstörung, zusätzlich zum regulären Gutschein; solange die Störung aktiv ist, je Periode ein eigener"
+          "description": "regulaer = Periodengutschein (wie v1.1; fehlendes Feld = regulaer). stoerung = Zusatzgutschein wegen einer Versorgungsstörung, zusätzlich zum regulären Gutschein; solange die Störung aktiv ist, je Periode ein eigener (V1, V8 Festlegung)."
         },
         "stoerung_id": {
           "$ref": "#/$defs/id_stoerung",
@@ -430,7 +396,7 @@
         },
         "ags": {
           "$ref": "#/$defs/ags",
-          "description": "AGS des Haushalts, 8 Stellen. Pflicht bei anlass=stoerung, sonst optional; wenn vorhanden, muss sie der AGS aus haushalt_id (FA-HH-<AGS>-<lfd>) entsprechen (prüft der Kern)"
+          "description": "AGS des Haushalts, 8 Stellen (V10, Festlegung). Pflicht bei anlass=stoerung, sonst optional; wenn vorhanden, muss sie der AGS aus haushalt_id (FA-HH-<AGS>-<lfd>) entsprechen (prüft der Kern)."
         }
       },
       "description": "Periodengutschein, in v1.1 immer haushaltsbezogen. gutschein_id vergibt ausschließlich die Desktopversion (VOUCHER_ISSUED). Jedes bestätigte Mitglied des Haushalts darf einlösen. v1.2-Vorschlag: Je Haushalt und Periode höchstens ein regulärer Gutschein und höchstens ein Störungsgutschein je stoerung_id (V3, prüft der Kern). Eingelöst wird immer gegen den Rest der angegebenen gutschein_id. Ein Störungsgutschein ist nur einlösbar, solange die verwiesene Störung für die AGS der Ausgabestelle zum Buchungszeitpunkt aktiv ist (V4); mit ENDED verfällt sein Rest ohne eigenes Ereignis (V9). Reguläre Gutscheine enthalten keine Artikel mit nur_bei_stoerung; aus v1.1 bleibt nur die Platzhalterposition mit zugeteilt_max 0 und rest 0 zulässig (V7). Störungsgutscheine nutzen den normalen Nummernkreis FA-V-YYYYMMDD-NNNNNN ohne eigenen Präfix (V12); unterschieden wird nur über anlass und stoerung_id.",
@@ -622,7 +588,7 @@
         },
         "ortsteil": {
           "type": "string",
-          "description": "Ortsteil der Gemeinde (optional, alle Ausgabestellen). Nur gesetzt, wo aus OSM (addr:suburb) oder den Grundlagen eindeutig ableitbar. Anzeige = name + \" \" + ortsteil"
+          "description": "Ortsteil der Gemeinde (optional, alle Ausgabestellen). Nur gesetzt, wo aus OSM (addr:suburb) oder den Grundlagen eindeutig ableitbar. Anzeige = name + \" \" + ortsteil (Festlegung, 12:32, Nr. 1)."
         },
         "ortsteil_quelle": {
           "enum": [
@@ -636,7 +602,7 @@
           "description": "Nur wenn name nicht aus dem Geofabrik-Datenstand stammt (z. B. OSM-API live)."
         }
       },
-      "description": "Öffentlich kartierter Standort laut OSM (ODbL). Einzige Quelle: system/kern/stammdaten-ausgabestellen.json; name wörtlich aus dem OSM-Tag name. Keine Vertragspartnerschaft. Anzeigename = name + ortsteil (falls gesetzt und nicht schon im name enthalten)."
+      "description": "Öffentlich kartierter Standort laut OSM (ODbL). Einzige Quelle: kern/stammdaten-ausgabestellen.json; name wörtlich aus dem OSM-Tag name. Keine Vertragspartnerschaft. Anzeigename = name + ortsteil (falls gesetzt und nicht schon im name enthalten)."
     },
     "Lagerbestand": {
       "type": "object",
@@ -711,7 +677,7 @@
             "retail_app",
             "papier_abgleich"
           ],
-          "description": "retail_app = App-Gutschein, papier_abgleich = Papierkarte. Beide werden im Handel gebucht; quelle_system ist immer retail_app"
+          "description": "retail_app = App-Gutschein, papier_abgleich = Papierkarte. Beide werden im Handel gebucht; quelle_system ist immer retail_app (Festlegung)."
         },
         "rezept_ref": {
           "type": [
@@ -760,7 +726,7 @@
           }
         }
       ],
-      "description": "Eine Ausgabe. Entweder gutschein_id (Gutscheinposition, wie v1) oder rezept_id (Insulin, nur Apotheke, einloesende_person_id = Rezeptinhaber), nie beides. v1-Buchungen bleiben gültig"
+      "description": "Eine Ausgabe. Entweder gutschein_id (Gutscheinposition, wie v1) oder rezept_id (Insulin, nur Apotheke, einloesende_person_id = Rezeptinhaber), nie beides (Festlegung). v1-Buchungen bleiben gültig."
     },
     "Wareneingang": {
       "type": "object",
@@ -851,7 +817,7 @@
     },
     "Rezept": {
       "type": "object",
-      "description": "Synthetischer Rezeptnachweis. Verbindliche Bindung über person_id. Keine Diagnosen, keine verordnende Person, keine Medikationshistorie. Insulin ist keine Position des Haushaltsgutscheins. Realbetrieb: E-Rezept-Verfahren offen (nicht Teil von v1.1)",
+      "description": "Synthetischer Rezeptnachweis. Verbindliche Bindung über person_id (Festlegung). Keine Diagnosen, keine verordnende Person, keine Medikationshistorie. Insulin ist keine Position des Haushaltsgutscheins. Realbetrieb: E-Rezept-Verfahren offen (nicht Teil von v1.1).",
       "required": [
         "rezept_id",
         "person_id",
@@ -953,7 +919,7 @@
             "app",
             "papier"
           ],
-          "description": "Registrierungskanal. app = Selbstregistrierung in der Customer App (quelle_system customer_app); papier = Erfassung am Schalter der Meldebehörde in der Desktopversion (quelle_system desktop). Optional: fehlt das Feld (Altbestand), gilt app. Nicht zu verwechseln mit person.kanal (bevorzugter Ausgabekanal der Person, z. B. papier auch bei Selbstregistrierung)"
+          "description": "Registrierungskanal (V15, Festlegung). app = Selbstregistrierung in der Customer App (quelle_system customer_app); papier = Erfassung am Schalter der Meldebehörde in der Desktopversion (quelle_system desktop). Optional: fehlt das Feld (Altbestand), gilt app. Nicht zu verwechseln mit person.kanal (bevorzugter Ausgabekanal der Person, z. B. papier auch bei Selbstregistrierung)."
         }
       },
       "description": "Registrierung einer Person. v1.2-Vorschlag (V15): kanal=papier nur von desktop, kanal=app oder fehlend nur von customer_app."
@@ -972,7 +938,7 @@
           "$ref": "#/$defs/Verifikation"
         }
       },
-      "description": "ABGEKÜNDIGT. Wird nur noch gelesen, als Alias für IDENTITY_VERIFIED; kein System darf neue Ereignisse dieses Typs schreiben. Vorhandene Einträge bleiben gültig und lesbar. In v2 entfällt der Typ",
+      "description": "ABGEKÜNDIGT (Festlegung). Wird nur noch gelesen, als Alias für IDENTITY_VERIFIED; kein System darf neue Ereignisse dieses Typs schreiben. Vorhandene Einträge bleiben gültig und lesbar. In v2 entfällt der Typ.",
       "deprecated": true
     },
     "payload_ALLOCATION_RUN_COMPLETED": {
@@ -1016,7 +982,7 @@
           ]
         }
       },
-      "description": "Nur die Desktopversion schreibt dieses Ereignis und vergibt gutschein_id. Customer App und Retail App lesen es nur. Anfangsbestände gehören nicht hierher — sie schreibt die Retail App als STOCK_ADJUSTED (anlass=anfangsbestand). Der Gutschein ist eine Momentaufnahme zum Ausstellungszeitpunkt: status = ausgestellt, eingeloest = 0, rest = zugeteilt_max (Kern prüft rest). Fortschreibungen nur über REDEMPTION_POSTED/REVERSED, nie durch erneutes VOUCHER_ISSUED (Desktop-Vorschlag DT4). v1.2-Vorschlag: VOUCHER_ISSUED mit anlass=stoerung braucht beim Ausstellen eine bereits erklärte Störung derselben AGS wie der Haushalt, die zum Ausstellungszeitpunkt (zeit_ereignis) aktiv ist. Bestehende reguläre Gutscheine bleiben unverändert"
+      "description": "Nur die Desktopversion schreibt dieses Ereignis und vergibt gutschein_id. Customer App und Retail App lesen es nur. Anfangsbestände gehören nicht hierher — sie schreibt die Retail App als STOCK_ADJUSTED (anlass=anfangsbestand). Der Gutschein ist eine Momentaufnahme zum Ausstellungszeitpunkt: status = ausgestellt, eingeloest = 0, rest = zugeteilt_max (Kern prüft rest). Fortschreibungen nur über REDEMPTION_POSTED/REVERSED, nie durch erneutes VOUCHER_ISSUED (Desktop-Vorschlag DT4). v1.2-Vorschlag (V5, Festlegung: bleibt): VOUCHER_ISSUED mit anlass=stoerung braucht beim Ausstellen eine bereits erklärte Störung derselben AGS wie der Haushalt, die zum Ausstellungszeitpunkt (zeit_ereignis) aktiv ist. Bestehende reguläre Gutscheine bleiben unverändert."
     },
     "payload_PAPER_CARD_RENDERED": {
       "type": "object",
@@ -1045,7 +1011,7 @@
           "const": "ISO 7064 Mod 97-10"
         }
       },
-      "description": "Nur Desktopversion. Optional Anzeigecode/Strichcode (DT1); wenn vorhanden, müssen sie zur papierkarte_id passen (Kern prüft die Prüfziffer)"
+      "description": "Nur Desktopversion (Festlegung, 12:32, Nr. 2). Optional Anzeigecode/Strichcode (DT1); wenn vorhanden, müssen sie zur papierkarte_id passen (Kern prüft die Prüfziffer)."
     },
     "payload_PAPER_CARD_PRINTED": {
       "type": "object",
@@ -1074,7 +1040,7 @@
           "const": "ISO 7064 Mod 97-10"
         }
       },
-      "description": "Nur Desktopversion. Optional Anzeigecode/Strichcode (DT1); wenn vorhanden, müssen sie zur papierkarte_id passen (Kern prüft die Prüfziffer)"
+      "description": "Nur Desktopversion (Festlegung, 12:32, Nr. 2). Optional Anzeigecode/Strichcode (DT1); wenn vorhanden, müssen sie zur papierkarte_id passen (Kern prüft die Prüfziffer)."
     },
     "payload_REDEMPTION_POSTED": {
       "type": "object",
@@ -1653,7 +1619,7 @@
     },
     "periode": {
       "type": "object",
-      "description": "Eine Allokationsperiode = 7 Tage, Zuschnitt Montag bis Sonntag, Zeitzone Europe/Berlin",
+      "description": "Eine Allokationsperiode = 7 Tage, Zuschnitt Montag bis Sonntag, Zeitzone Europe/Berlin (Festlegung bestätigt).",
       "required": [
         "periode_id"
       ],
@@ -1670,7 +1636,7 @@
       }
     },
     "annahmen": {
-      "description": "Planungsannahmen, keine amtlichen Festsetzungen",
+      "description": "Planungsannahmen, keine amtlichen Festsetzungen (Festlegung).",
       "type": "object",
       "properties": {
         "toilet_paper": {
@@ -1780,7 +1746,7 @@
       "enum": [
         "trinkwasser"
       ],
-      "description": "Art der Versorgungsstörung. trinkwasser gibt die Wasserposition frei. Vorerst nur trinkwasser. Erweiterbar: neuen Wert hier ergänzen, passenden Artikel mit nur_bei_stoerung = <art> in den Stammdaten anlegen, Bauskript neu laufen lassen (V13 in v1.2-CHANGES.md)"
+      "description": "Art der Versorgungsstörung. trinkwasser gibt die Wasserposition frei. Vorerst nur trinkwasser (Festlegung). Erweiterbar: neuen Wert hier ergänzen, passenden Artikel mit nur_bei_stoerung = <art> in den Stammdaten anlegen, Bauskript neu laufen lassen (V13 in v1.2-CHANGES.md)."
     },
     "payload_SUPPLY_DISRUPTION_DECLARED": {
       "type": "object",
@@ -1852,7 +1818,7 @@
         "papierkarte_id",
         "gutschein_id"
       ],
-      "description": "Behördliche Papierkarte zu einem Haushaltsgutschein. Die Prüfziffer gehört nur zum Anzeigecode und zum Strichcode, nie zur kanonischen papierkarte_id. status ohne amtliche Bedeutung; im Log entspricht PAPER_CARD_RENDERED = erzeugt, PAPER_CARD_PRINTED = gedruckt",
+      "description": "Behördliche Papierkarte zu einem Haushaltsgutschein (Desktop-Vorschläge DT1, DT6; status erzeugt/gedruckt und Anzeigecode von Festlegung freigegeben 17.11.2026). Die Prüfziffer gehört nur zum Anzeigecode und zum Strichcode, nie zur kanonischen papierkarte_id. status ohne amtliche Bedeutung; im Log entspricht PAPER_CARD_RENDERED = erzeugt, PAPER_CARD_PRINTED = gedruckt.",
       "properties": {
         "papierkarte_id": {
           "$ref": "#/$defs/id_papierkarte"
@@ -1900,7 +1866,7 @@
         "stichtag",
         "foodallo_datenstatus"
       ],
-      "description": "Kennzahl je Gebiet. foodallo_datenstatus unterscheidet „keine Daten“ von „Wert 0“. Bei keine_daten sind keine Kennzahlfelder erlaubt; es wird nichts hochgerechnet oder bevölkerungsgewichtet",
+      "description": "Kennzahl je Gebiet (Desktop-Vorschlag DT2, von Festlegung freigegeben 17.11.2026). foodallo_datenstatus unterscheidet „keine Daten“ von „Wert 0“. Bei keine_daten sind keine Kennzahlfelder erlaubt; es wird nichts hochgerechnet oder bevölkerungsgewichtet.",
       "properties": {
         "ags": {
           "$ref": "#/$defs/ags"
@@ -1983,40 +1949,5 @@
         }
       ]
     }
-  },
-  "x-basis": [
-    "../foodallo-core.schema.v1.1.json"
-  ],
-  "x-angelegt_von": "retail_app",
-  "x-v12": {
-    "punkte": {
-      "V1": "Gutschein.anlass (regulaer|stoerung, Standard regulaer)",
-      "V2": "Gutschein.stoerung_id: Pflicht bei stoerung, verboten bei regulaer",
-      "V3": "Eindeutigkeit je Haushalt, Periode und stoerung_id; höchstens ein regulärer Gutschein je Haushalt/Periode; Buchung gegen gutschein_id",
-      "V4": "Einlösung: verwiesene Störung aktiv für AGS der Ausgabestelle zum Buchungszeitpunkt; Artikel nur_bei_stoerung",
-      "V5": "Ausstellung nur bei aktiver Störung derselben AGS",
-      "V6": "Störungsgutschein: Positionen nur Artikel mit nur_bei_stoerung",
-      "V7": "Regulärer Gutschein: keine Artikel mit nur_bei_stoerung (v1.1-Platzhalter mit 0 zulässig); Einlösung nur über Störungsgutschein",
-      "V8": "entfällt: kein Wasser im regulären Gutschein; je Periode eigener Störungsgutschein, solange aktiv",
-      "V9": "Rest verfällt mit ENDED, kein eigenes Ereignis",
-      "V10": "Gutschein.ags: Pflicht bei stoerung, sonst optional, wenn vorhanden gegen haushalt_id geprüft",
-      "V11": "eigene papierkarte_id je Störungsgutschein auf Papier, gleicher Nummernkreis; Einlösung über papier_abgleich",
-      "V12": "gutschein_id aus dem normalen Kreis, kein Präfix",
-      "V13": "stoerung_art vorerst nur trinkwasser; Erweiterung beschrieben",
-      "V14": "Validatoren: boolesche Teilschemas, if/then/else; Kern-Validator mitnutzbar",
-      "V15": "PERSON_REGISTERED.payload.kanal app|papier (optional, fehlt = app); app nur customer_app, papier nur desktop"
-    },
-    "kern": "foodallo_kern ab 1.7.0: startzustand/nachspielen(..., optionen={'v12': True}); Standard v1.1."
-  },
-  "$comment": "Verbindliche Fassung v1.2, aus dem gemeinsamen Vorschlag übernommen; abweichend nur in den Vermerk-Feldern $id, title, description, $comment, x-status, x-schema_version, x-angenommen. v1.1 und v1 bleiben lesbar (Altbestand)",
-  "x-angenommen": {
-    "durch": "FoodAllo",
-    "am": "2026-11-17",
-    "quelle": "proposals/foodallo-core.schema.v1.2-proposal.json",
-    "quelle_sha256": "69e79bd0193abc8bf454f1fc3eb25bd09b0a37418ceef26ecd0cbeebe91376af",
-    "bestaetigt_von": [
-      "customer_app (V1–V15)",
-      "desktop (V1–V15)"
-    ]
   }
 }
