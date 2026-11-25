@@ -38,7 +38,7 @@
       <div class="card login-card">
         <img class="logo-login" src="icons/logo-login.png" width="156" height="48" alt="FoodAllo">
         <h2>Anmelden</h2>
-        <p class="lede">Melden Sie sich mit Ihrer Anmeldenummer und Ihrer Geheimzahl an. Danach sehen Sie den Gutschein für Ihren Haushalt.</p>
+        <p class="lede">Melden Sie sich mit Ihrer Anmeldenummer und Ihrer Geheimzahl an. Wenn Ihre Identität bestätigt ist, sehen Sie den Gutschein für Ihren Haushalt.</p>
         <form id="login-form" autocomplete="on">
           <label for="person-id">Anmeldenummer</label>
           <input id="person-id" name="username" autocomplete="username" spellcheck="false" required>
@@ -48,10 +48,10 @@
         </form>
         <p id="login-error" class="error" hidden role="alert"></p>
         <button type="button" class="btn linkish" id="btn-eid">Mit Online-Ausweis anmelden</button>
-        <button type="button" class="btn linkish" id="btn-melde">Anmeldung über die Meldebehörde</button>
-        <button type="button" class="btn linkish" id="btn-register">Andere Anmeldung</button>
+        <button type="button" class="btn linkish" id="btn-melde">Anmeldung über die Pass- und Meldebehörde</button>
+        <button type="button" class="btn linkish" id="btn-register">Zum ersten Mal anmelden</button>
         <div class="besucher-zugang">
-          <p class="besucher-label">Zum Ausprobieren dieser Demonstration</p>
+          <p class="besucher-label">Zum Ausprobieren dieser Demonstration. Familie Meier hat bereits einen Gutschein. Familie Müller wartet noch auf die Bestätigung durch die Pass- und Meldebehörde.</p>
           <button type="button" class="btn" id="btn-besucher-meier">Als Familie Meier ausprobieren</button>
           <button type="button" class="btn" id="btn-besucher-mueller">Als Familie Müller ausprobieren</button>
         </div>
@@ -76,8 +76,8 @@
 
     <section data-view="melde" hidden>
       <div class="card">
-        <h2>Anmeldung über die Meldebehörde</h2>
-        <p class="lede">Melden Sie sich hier an, wenn Ihr Ausweis keine Online-Ausweisfunktion hat. Danach prüfen Sie Ihre Identität vor Ort in der Meldebehörde der Musterstadt.</p>
+        <h2>Anmeldung über die Pass- und Meldebehörde</h2>
+        <p class="lede">Melden Sie sich hier an, wenn Ihr Ausweis keine Online-Ausweisfunktion hat. Danach lassen Sie Ihre Identität vor Ort in der Pass- und Meldebehörde der Musterstadt prüfen.</p>
         <form id="melde-form">
           <label for="melde-nachname">Nachname</label>
           <input id="melde-nachname" name="nachname" autocomplete="family-name" required>
@@ -92,8 +92,8 @@
 
     <section data-view="register" hidden>
       <div class="card">
-        <h2>Neu anmelden</h2>
-        <p class="lede">Melden Sie sich hier an, wenn Sie die App zum ersten Mal nutzen. Die Meldebehörde der Musterstadt prüft danach Ihre Identität. Erst dann erscheint Ihr Gutschein.</p>
+        <h2>Zum ersten Mal anmelden</h2>
+        <p class="lede">Melden Sie sich hier an, wenn Sie die App zum ersten Mal nutzen. Die Pass- und Meldebehörde der Musterstadt prüft danach Ihre Identität. Erst dann erscheint Ihr Gutschein.</p>
         <form id="register-form">
           <label for="reg-alter">Zu welcher Altersgruppe gehören Sie?</label>
           <select id="reg-alter" required>
@@ -105,7 +105,7 @@
           <label for="reg-kanal">Wie möchten Sie den Gutschein nutzen?</label>
           <select id="reg-kanal" required>
             <option value="app" selected>Mit dieser App</option>
-            <option value="papier">Mit einer Papierkarte</option>
+            <option value="papier">Mit einer Lebensmittelkarte (auf Papier)</option>
           </select>
           <button type="submit" class="btn primary">Anmeldung absenden</button>
         </form>

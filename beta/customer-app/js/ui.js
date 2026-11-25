@@ -177,12 +177,12 @@
     }
     if (opts.weg === "eid") {
       html += "<p>Sie haben sich in einer Übung mit dem Online-Ausweis angemeldet. Es wurde kein echter Ausweis-Dienst aufgerufen.</p>";
-      html += "<p>Die Meldebehörde der Musterstadt muss Ihre Identität noch bestätigen. Diese Bestätigung schreibt nicht die App. Schauen Sie später noch einmal nach.</p>";
+      html += "<p>Die Pass- und Meldebehörde der Musterstadt muss Ihre Identität noch bestätigen. Die App selbst bestätigt Ihre Identität nicht. Schauen Sie später noch einmal nach.</p>";
     } else if (opts.weg === "meldebehoerde") {
-      html += "<p>Ihre Anmeldung ist gespeichert. Bitte gehen Sie zur Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt, und lassen Sie Ihre Identität prüfen. Nehmen Sie ein Ausweisdokument mit.</p>";
+      html += "<p>Ihre Anmeldung ist gespeichert. Bitte gehen Sie zur Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt, und lassen Sie Ihre Identität prüfen. Nehmen Sie ein Ausweisdokument mit.</p>";
       html += "<p>Schauen Sie später noch einmal in die App. Sobald die Prüfung abgeschlossen ist, sehen Sie hier Ihren Gutschein.</p>";
     } else {
-      html += "<p>Die Meldebehörde der Musterstadt prüft gerade Ihre Identität.</p>";
+      html += "<p>Die Pass- und Meldebehörde der Musterstadt prüft gerade Ihre Identität.</p>";
       html += "<p>Das kann etwas dauern. Schauen Sie später noch einmal nach.</p>";
       html += "<p>Sobald die Prüfung abgeschlossen ist, sehen Sie hier Ihren Gutschein.</p>";
     }
@@ -209,7 +209,7 @@
     return '<section class="card warn" aria-live="polite">' +
       "<h2>Ihre Identität konnte nicht bestätigt werden</h2>" +
       "<p>Sie können deshalb zurzeit keinen Gutschein nutzen.</p>" +
-      "<p>Bitte wenden Sie sich an die Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt. " +
+      "<p>Bitte wenden Sie sich an die Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt. " +
       "Nehmen Sie ein Ausweisdokument mit.</p>" +
       "<p>Wenn die Prüfung später erfolgreich ist, erscheint Ihr Gutschein hier.</p>" +
       "</section>";
@@ -224,15 +224,15 @@
   }
 
   function renderRegistriert() {
-    return "<p>Ihre Anmeldung ist gespeichert. Die Meldebehörde der Musterstadt prüft jetzt Ihre Angaben. " +
+    return "<p>Ihre Anmeldung ist gespeichert. Die Pass- und Meldebehörde der Musterstadt prüft jetzt Ihre Angaben. " +
       "Schauen Sie später noch einmal nach, ob Ihr Gutschein bereitsteht. Merken Sie sich Ihre Geheimzahl.</p>";
   }
 
   function renderPapierhinweis(gutschein) {
     var html = '<section class="card info">';
-    html += "<h2>Sie nutzen eine Papierkarte</h2>";
-    html += "<p>Die Mengen auf der Karte sind dieselben wie in der App. " +
-      "Die Karte bekommen Sie in der Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.</p>";
+    html += "<h2>Sie nutzen eine Lebensmittelkarte</h2>";
+    html += "<p>Die Mengen auf der Lebensmittelkarte sind dieselben wie in der App. " +
+      "Die Karte bekommen Sie in der Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.</p>";
     var code = buergercode(gutschein);
     if (code) {
       html += "<p>Ihre Kartennummer lautet: <strong>" + escapeHtml(code) + "</strong></p>";
@@ -295,6 +295,8 @@
     } else {
       html += "<p>Die Mengen gelten für Ihren ganzen Haushalt. Jede bestätigte Person aus dem Haushalt darf abholen.</p>";
     }
+    html += "<p>Die Mengen gelten je Person und Woche, zum Beispiel eine Rolle Toilettenpapier je Person. " +
+      "Trinkwasser gibt es nur während einer Versorgungsstörung: 2 Liter je Person und Tag (14 Liter je Person und Woche), auf einem zusätzlichen Gutschein.</p>";
     html += "</header>";
 
     if (ctx.v12 && gutschein.anlass === "stoerung") {
@@ -326,7 +328,7 @@
     var html = '<section class="card">';
     html += "<h2>Insulin und Rezept</h2>";
     if (opts.hatGueltigesRezept) {
-      html += "<p>Sie haben ein gültiges Rezept. Insulin bekommen Sie nur in einer Apotheke in Musterstadt. " +
+      html += "<p>Sie haben ein gültiges Rezept. Insulin bekommen Sie nur in einer Apotheke in Musterstadt oder Musterdorf. " +
         "Nur Sie selbst dürfen das Rezept einlösen, nicht andere Personen aus Ihrem Haushalt.</p>";
       if (opts.menge != null) {
         html += "<p>Menge: " + escapeHtml(formatMenge(opts.menge, "IE")) + "</p>";
@@ -347,7 +349,7 @@
     opts = opts || {};
     var html = '<section class="card stellen">';
     html += "<h2>Wo Sie abholen können</h2>";
-    html += "<p>Lebensmittel und Toilettenpapier bekommen Sie in diesen Geschäften in Musterstadt:</p>";
+    html += "<p>Lebensmittel und Toilettenpapier bekommen Sie in diesen Geschäften in Musterstadt und Musterdorf:</p>";
     html += "<ul class='stellen-list'>";
     (opts.einzelhandel || []).forEach(function (s) {
       html += "<li><strong>" + escapeHtml(s.name) + "</strong>";
@@ -373,33 +375,38 @@
     return '<section class="card help">' +
       "<h2>Hilfe und häufige Fragen</h2>" +
       "<h3>Wie melde ich mich an?</h3>" +
-      "<p>Geben Sie Ihre Anmeldenummer und Ihre Geheimzahl ein. Die Anmeldenummer bekommen Sie von der Stadt. " +
-      "Wenn Sie noch kein Konto haben, können Sie sich in der App anmelden (Registrieren).</p>" +
+      "<p>Geben Sie Ihre Anmeldenummer und Ihre Geheimzahl ein. Die Anmeldenummer bekommen Sie von der Pass- und Meldebehörde. " +
+      "Wenn Sie noch kein Konto haben, wählen Sie auf dem Anmeldebildschirm „Zum ersten Mal anmelden“.</p>" +
       "<h3>Warum sehe ich keinen Gutschein?</h3>" +
-      "<p>Zuerst prüft die Meldebehörde der Musterstadt Ihre Identität. " +
+      "<p>Zuerst prüft die Pass- und Meldebehörde der Musterstadt Ihre Identität. " +
       "Das kann etwas dauern. Danach wird der Gutschein für Ihren Haushalt ausgestellt. Schauen Sie später noch einmal nach.</p>" +
       "<h3>Meine Identität wurde nicht bestätigt. Was kann ich tun?</h3>" +
-      "<p>Gehen Sie zur Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt. Nehmen Sie ein Ausweisdokument mit.</p>" +
+      "<p>Gehen Sie zur Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt. Nehmen Sie ein Ausweisdokument mit.</p>" +
       "<h3>Wo hole ich Lebensmittel ab?</h3>" +
       "<p>In den Geschäften, die in der App unter „Wo Sie abholen können“ stehen. " +
-      "Zeigen Sie dort Ihren Gutschein in der App oder Ihre Papierkarte. Die Abholung bucht das Geschäft, nicht diese App.</p>" +
+      "Zeigen Sie dort Ihren Gutschein in der App (Ihre Gutscheinnummer) oder Ihre Lebensmittelkarte. Die Abholung bucht das Geschäft, nicht diese App.</p>" +
       "<h3>Wie bekomme ich Insulin?</h3>" +
       "<p>Insulin gibt es nur in einer Apotheke und nur mit einem Rezept. Nur die Person, für die das Rezept ausgestellt ist, darf es einlösen.</p>" +
+      "<h3>Wie werden die Mengen berechnet?</h3>" +
+      "<p>Die Mengen gelten für den ganzen Haushalt und für eine Woche, von Montag bis Sonntag. " +
+      "Toilettenpapier zum Beispiel: eine Rolle je Person und Woche. " +
+      "Trinkwasser gibt es nur während einer Versorgungsstörung, auf einem zusätzlichen Gutschein: 2 Liter je Person und Tag, also 14 Liter je Person und Woche.</p>" +
       "<h3>Warum steht Trinkwasser auf dem Gutschein?</h3>" +
-      "<p>Wenn die Trinkwasserversorgung gestört ist, können Sie zusätzliches Trinkwasser abholen. " +
-      "Steht kein Trinkwasser auf dem Gutschein, ist zurzeit nichts zusätzlich vorgesehen.</p>" +
-      "<h3>Ich habe keine App, nur eine Papierkarte.</h3>" +
-      "<p>Die Mengen sind dieselben wie in der App. Die Karte bekommen Sie in der Meldebehörde der Musterstadt.</p>" +
+      "<p>Trinkwasser gibt es nur während einer Versorgungsstörung, und zwar auf einem zusätzlichen Gutschein. " +
+      "Die Menge beträgt 2 Liter je Person und Tag, also 14 Liter je Person und Woche. " +
+      "Steht kein Trinkwasser auf einem Gutschein, ist zurzeit nichts zusätzlich vorgesehen.</p>" +
+      "<h3>Ich habe keine App, nur eine Lebensmittelkarte.</h3>" +
+      "<p>Die Mengen sind dieselben wie in der App. Die Lebensmittelkarte bekommen Sie in der Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.</p>" +
       "<h3>Die App geht nicht online.</h3>" +
       "<p>Ihre zuletzt gespeicherten Angaben bleiben sichtbar. Abholen können Sie trotzdem im Geschäft. " +
       "Neue Prüfungen und neue Gutscheine erscheinen, sobald die Verbindung wieder da ist.</p>" +
       "<h3>Wie melde ich mich mit dem Online-Ausweis an?</h3>" +
       "<p>Wenn Ihr Ausweis die Online-Ausweisfunktion hat, können Sie den Übungsweg in der App nutzen. " +
-      "Das ist eine lokale Übung. Es wird kein echter Ausweis-Dienst aufgerufen. Die Meldebehörde muss Ihre Identität danach noch bestätigen.</p>" +
+      "Das ist eine lokale Übung. Es wird kein echter Ausweis-Dienst aufgerufen. Die Pass- und Meldebehörde muss Ihre Identität danach noch bestätigen.</p>" +
       "<h3>Mein Ausweis hat keine Online-Funktion.</h3>" +
-      "<p>Dann melden Sie sich über die Meldebehörde an. Gehen Sie mit einem Ausweisdokument nach Musterstadt, Markt 13–15.</p>" +
-      "<h3>Ich nutze eine Papierkarte und keine App.</h3>" +
-      "<p>Dann ist diese App nicht für Sie vorgesehen. Die Papierkarte bekommen Sie in der Meldebehörde der Musterstadt.</p>" +
+      "<p>Dann melden Sie sich über die Pass- und Meldebehörde an. Gehen Sie mit einem Ausweisdokument zur Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.</p>" +
+      "<h3>Ich nutze eine Lebensmittelkarte und keine App.</h3>" +
+      "<p>Dann ist diese App nicht für Sie vorgesehen. Die Lebensmittelkarte bekommen Sie in der Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.</p>" +
       "</section>";
   }
 
@@ -436,19 +443,19 @@
   }
 
   function eidErfolgHinweis() {
-    return "Die Übung war erfolgreich. Die Meldebehörde muss Ihre Identität noch bestätigen. Diese Bestätigung schreibt nicht die App.";
+    return "Die Übung war erfolgreich. Die Pass- und Meldebehörde muss Ihre Identität noch bestätigen. Die App selbst bestätigt Ihre Identität nicht.";
   }
 
   function keinOnlineAusweisHinweis() {
-    return "Ihr Ausweis hat keine Online-Ausweisfunktion. Bitte melden Sie sich über die Meldebehörde an. Gehen Sie mit einem Ausweisdokument nach Musterstadt, Markt 13–15.";
+    return "Ihr Ausweis hat keine Online-Ausweisfunktion. Bitte melden Sie sich über die Pass- und Meldebehörde an. Gehen Sie mit einem Ausweisdokument zur Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.";
   }
 
   function analogKeinAppKonto() {
-    return "Sie nutzen eine Papierkarte. Diese App ist für Sie nicht vorgesehen. Die Karte bekommen Sie in der Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.";
+    return "Sie nutzen eine Lebensmittelkarte. Diese App ist für Sie nicht vorgesehen. Die Karte bekommen Sie in der Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt.";
   }
 
   function registerUnbekannt() {
-    return "Zu diesen Angaben wurde niemand gefunden. Prüfen Sie den Nachnamen und die Ausweisnummer oder wenden Sie sich an die Meldebehörde der Musterstadt.";
+    return "Zu diesen Angaben wurde niemand gefunden. Prüfen Sie den Nachnamen und die Ausweisnummer oder wenden Sie sich an die Pass- und Meldebehörde der Musterstadt.";
   }
 
   function wartendOhneAmtlicheId() {

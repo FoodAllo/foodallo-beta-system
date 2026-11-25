@@ -26,9 +26,9 @@ Dafür müssen Sie nichts eingeben. Der Zugang gilt nur in diesem Browser.
 ## Inhalt
 
 - Gutschein, Ausgabestellen und Hinweise in verständlicher Sprache
-- Anmeldung über Anmeldenummer, Meldebehörde oder eine lokale Ausweis-Übung (kein echter Ausweis-Dienst)
+- Anmeldung über Anmeldenummer, Pass- und Meldebehörde oder eine lokale Ausweis-Übung (kein echter Ausweis-Dienst)
 - Ortsnamen in der Anzeige: Musterstadt und Musterdorf. Sichtbare Postleitzahl: 12345. Straßennamen und Hausnummern der Geschäfte bleiben erhalten.
-- Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt
+- Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt
 
 Die mitgelieferten Daten (Log, Register, Kernregeln, Ausgabestellen) sind schreibgeschützte Kopien für diese Demonstration. Die App schreibt nicht in diese Dateien.
 
