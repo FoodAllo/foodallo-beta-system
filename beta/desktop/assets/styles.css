@@ -149,7 +149,10 @@ dl.daten dd { margin: 0; }
   .skip, .kopf, nav.reiter, .fuss, .no-print, .anmeldung { display: none !important; }
   body { background: #fff; }
   main { max-width: none; margin: 0; padding: 0; min-height: 0; }
-  main > *:not(.druckbereich) { display: none !important; }
+  /* Druckbereich liegt in der Kartenansicht in .korb > div: diese Vorfahren nicht ausblenden */
+  main > *:not(.druckbereich):not(.korb) { display: none !important; }
+  main > .korb { display: block; }
+  main > .korb:not(:has(.druckbereich)) { display: none !important; }
   .druckbereich > *:not(.kartenblatt) { display: none !important; }
   .kartenblatt { border: none; max-width: none; margin: 0; page-break-inside: avoid; }
   body.format-a6 .kartenblatt { padding: 0; }
