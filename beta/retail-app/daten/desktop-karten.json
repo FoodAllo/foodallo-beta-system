@@ -1,0 +1,105 @@
+{
+ "hinweis": "Lebensmittelkarten der Desktopversion, die die Retail App zur Laufzeit zuordnet (nur im Speicher; gemeinsamer Ereignislog, Customer- und Desktop-Dateien bleiben unverändert). Fiktive Daten. Quelle (nur gelesen): Desktopversion, Ansicht „Lebensmittelkarten“ und desktop/assets/ereignislog.js, Stand 27.11.2026 (79c1a3e/224acc7). Kennungen der Bezugswoche 16.11.2026; die Retail App verschiebt sie in die laufende Woche. Becker steht in ../../data/demo-becker.json, Meier zusätzlich in ../../data/demo-meier.json.",
+ "version": 1,
+ "regel": "art regulaer: Karte zeigt auf den regulären Gutschein des Haushalts in der laufenden Woche, den die Retail App aus dem gemeinsamen Log kennt (Retail-Nummer kann abweichen, z. B. Schulze FA-PK-14729140-000124). art stoerung: Zusatzkarte Trinkwasser; die Retail App führt den Gutschein der Desktopversion zur Laufzeit (gutschein) samt Störung (stoerungen), weil der gemeinsame Log ihn nicht enthält. Einlösungen darauf bleiben wie bei Becker nur auf diesem Gerät.",
+ "stoerungen": [
+  {
+   "ereignis_id": "FA-E-bfb9b602-dbde-5229-be18-765939c15e6f",
+   "typ": "SUPPLY_DISRUPTION_DECLARED",
+   "zeit_ereignis": "2026-11-17T08:00:00+01:00",
+   "zeit_empfang": null,
+   "quelle_system": "desktop",
+   "payload": {
+    "stoerung_id": "FA-SD-14729140-000001",
+    "ags": "14729140",
+    "art": "trinkwasser",
+    "beginn": "2026-11-17T08:00:00+01:00",
+    "ende": null,
+    "stelle": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+    "hinweis": "DEMO-SZENARIO, synthetisch, keine reale Störung. art=trinkwasser, weil das Schema v1.1-gemeinsam derzeit nur diesen Wert kennt (ein Stromausfall ist im Enum nicht vorgesehen und wird nicht erfunden). Ende offen (ende=null); in dieser Fassung kein SUPPLY_DISRUPTION_ENDED, das Szenario läuft."
+   },
+   "schema_version": 1
+  }
+ ],
+ "karten": [
+  {
+   "familie": "Schulze",
+   "haushalt_id": "FA-HH-14729140-000124",
+   "art": "regulaer",
+   "papierkarte_id": "FA-PK-14729140-000067",
+   "desktop_gutschein_id": "FA-V-20261116-000230",
+   "retail_papierkarte_id": "FA-PK-14729140-000124"
+  },
+  {
+   "familie": "Schulze",
+   "haushalt_id": "FA-HH-14729140-000124",
+   "art": "stoerung",
+   "papierkarte_id": "FA-PK-14729140-000066",
+   "desktop_gutschein_id": "FA-V-20261116-000228",
+   "gutschein": {
+    "gutschein_id": "FA-V-20261116-000228",
+    "periode_id": "FA-PER-20261116",
+    "bezug": "haushalt",
+    "person_id": null,
+    "haushalt_id": "FA-HH-14729140-000124",
+    "kanal": "papier",
+    "positionen": [
+     {
+      "artikel_id": "water",
+      "bedarf": 28.0,
+      "basiskontingent": 28.0,
+      "zugeteilt_max": 28.0,
+      "eingeloest": 0,
+      "rest": 28.0,
+      "personen_anzahl": 2
+     }
+    ],
+    "status": "ausgestellt",
+    "papierkarte_id": "FA-PK-14729140-000066",
+    "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+    "anlass": "stoerung",
+    "stoerung_id": "FA-SD-14729140-000001",
+    "ags": "14729140"
+   }
+  },
+  {
+   "familie": "Meier",
+   "haushalt_id": "FA-HH-14729140-000123",
+   "art": "regulaer",
+   "papierkarte_id": "FA-PK-14729140-000123",
+   "desktop_gutschein_id": "FA-V-20261116-000229"
+  },
+  {
+   "familie": "Meier",
+   "haushalt_id": "FA-HH-14729140-000123",
+   "art": "stoerung",
+   "papierkarte_id": "FA-PK-14729140-000068",
+   "desktop_gutschein_id": "FA-V-20261116-000227",
+   "gutschein": {
+    "gutschein_id": "FA-V-20261116-000227",
+    "periode_id": "FA-PER-20261116",
+    "bezug": "haushalt",
+    "person_id": null,
+    "haushalt_id": "FA-HH-14729140-000123",
+    "kanal": "app",
+    "positionen": [
+     {
+      "artikel_id": "water",
+      "bedarf": 56.0,
+      "basiskontingent": 56.0,
+      "zugeteilt_max": 56.0,
+      "eingeloest": 0,
+      "rest": 56.0,
+      "personen_anzahl": 4
+     }
+    ],
+    "status": "ausgestellt",
+    "papierkarte_id": "FA-PK-14729140-000068",
+    "ausstellungsort": "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+    "anlass": "stoerung",
+    "stoerung_id": "FA-SD-14729140-000001",
+    "ags": "14729140"
+   }
+  }
+ ]
+}

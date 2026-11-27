@@ -92,11 +92,15 @@ Auf einem anderen Gerät oder in einem anderen Browser ist der Abgleich leer; da
 | `kasse` | Kasse 1–6 der Schicht, `null` bei übernommenen Altbuchungen |
 | `buchung_id` | Ausgabebuchung `FA-X-…`; bei `storno` die stornierte Buchung (`storno_von` gleich) |
 | `gutschein_id` / `rezept_id` | genau eins davon bei `ausgabe`/`storno` (Insulin: `rezept_id`) |
-| `papierkarte_id` | bei Lebensmittelkarten `FA-PK-…`, sonst `null` |
+| `papierkarte_id` | bei Lebensmittelkarten die **gescannte bzw. eingegebene** Karte `FA-PK-…` (bei Karten der Desktopversion deren Nummer, z. B. Schulze `FA-PK-14729140-000067`), sonst die Karte des Gutscheins oder `null` |
+| `alias_von` | optional (ab Retail v28): nur wenn die gescannte Karte in der Retail App unter einer anderen Nummer geführt wird, die Retail-Nummer (Schulze: `FA-PK-14729140-000124`). Fehlt sonst. |
 | `haushalt_id`, `periode_id` | Haushalt `FA-HH-…`, Woche `FA-PER-{Montag}` |
 | `weg` | `gutschein`, `lebensmittelkarte` oder `rezept` |
 | `positionen[]` | `artikel_id` (Schlüssel aus `retail-app/daten/artikel.json`), `menge` (kanonische Einheit), `einheit` (`kg`, `L`, `rolle`, `IE`, `pack`) |
-| `demo` | `true` bei der Demonstrationskarte Becker (`FA-V-…-900001`) |
+| `demo` | `true` bei der Demonstrationskarte Becker (`FA-V-…-900001`) und den Zusatzkarten Trinkwasser der Desktopversion (Meier `FA-V-…-000227`, Schulze `FA-V-…-000228`), die die Retail App nur zur Laufzeit führt |
+
+Zuordnung immer über `haushalt_id` (Gutscheinnummern weichen zwischen gemeinsamem Log und Customer-/Desktop-Log ab: Meier regulär
+`FA-V-…-000123` im gemeinsamen Log, `FA-V-…-000229` in Customer/Desktop). Ein Storno trägt dieselbe `papierkarte_id` wie seine Ausgabe.
 
 Ein Storno hebt die Ausgabe mit derselben `buchung_id` auf (Menge wieder frei). Neue Felder werden nur ergänzt; eine inkompatible
 Änderung bekommt einen neuen Schlüssel (`…v2`) und `version: 2`.

@@ -68,3 +68,17 @@ dort gehört `FA-V-20261116-000123` zum Haushalt `FA-HH-14729140-000014`. Die Lo
 4. Die Customer App zeigt unter „Bereits abgeholt“ die Einlösungen aus ihrem Log und, im selben Browser, alle `REDEMPTION_POSTED` in
    `foodallo.retail.ereignisse.v1` mit `ausgabebuchung.haushalt_id = FA-HH-14729140-000123` und `gutschein_id` der laufenden Woche
    (`FA-V-<Montag>-…`, unabhängig von der laufenden Nummer, ohne Trinkwasser), abzüglich `REDEMPTION_REVERSED`.
+
+## Umsetzung Retail App (v28, 27.11.2026)
+
+- Die Retail App lädt `../data/demo-meier.json` (in `sw.js` unter `OPTIONAL`) und `retail-app/daten/desktop-karten.json`
+  (aus der Desktopversion gelesene Karten: Schulze regulär/Trinkwasser, Meier regulär/Trinkwasser). Kein `baueDemo` für Meier.
+- Reguläre Karte `FA-PK-14729140-000123-07` / `FAPK1472914000012307`: Zuordnung nur im Speicher zum regulären Gutschein der laufenden
+  Woche, der zum Haushalt `FA-HH-14729140-000123` gehört (immer über `haushalt_id`, nie über die Gutscheinnummer; im gemeinsamen Log
+  `FA-V-<Montag>-000123`). Die Kartennummer wird dem Gutschein nicht ins Objekt geschrieben, sondern über eine Kartentabelle aufgelöst
+  (gleiche Wirkung, Kern unverändert). Die Gutscheinnummer `FA-V-<Montag>-000229` aus Customer/Desktop wird ebenfalls auf diesen
+  Gutschein abgebildet. Haushalt `FA-HH-14729140-000014` wird nie belastet.
+- Zusatzkarte Trinkwasser `FA-PK-14729140-000068-75`: eigener Laufzeit-Gutschein `FA-V-<Montag>-000227` (56 Liter, wie Desktop) samt
+  Störung `FA-SD-14729140-000001`; Einlösungen wie bei Becker nur auf diesem Gerät (`demo: true` im Abgleich).
+- Demo-Ware „Demo-Anfangsbestand Lebensmittelkarten Meier und Schulze“ an den Ausgabestellen 0001–0006 (nur lokal).
+- Abgleich `foodallo.abgleich.retail.v1`: `haushalt_id` `FA-HH-14729140-000123`, `papierkarte_id` = gescannte Karte.

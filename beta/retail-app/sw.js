@@ -1,14 +1,14 @@
 /* FoodAllo Retail App – Service Worker: App-Hülle offline aus dem Cache, Log-Datei immer frisch versuchen. */
-var CACHE = "foodallo-retail-v27";   // v27: FoodAllo-Logo überall in Originalfarbe auf heller Fläche; v26: Grundton Grün (nur Farben, Logo in Originalfarbe, Belege schwarz-weiß); v25: Abgleich Retail → Desktop im selben Browser (foodallo.abgleich.retail.v1, BroadcastChannel foodallo-abgleich); v24: Scan nur mit Prüfziffer und zweifacher Lesung, Karten auf „Gutschein einlösen“, Update sicher (Netz zuerst, Neuladen), Becker-Demo-Ware an allen Ausgabestellen 0001–0006; v23: Kamerascan mit zxing-Rückfall (Plausibilitätsprüfung, Schrägband), Buchungen-Liste neu gesetzt, Demodaten springen in die laufende Woche; v22: v22: Demo-Anfangsbestand Becker bei Netto (nur lokal); v21: v21: Demonstrationskarte Familie Becker einlösbar, Strichcode Code 39; v20: v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
+var CACHE = "foodallo-retail-v28";   // v28: Lebensmittelkarten der Desktopversion (Meier, Schulze, Zusatzkarten Trinkwasser) zur Laufzeit zugeordnet; v27: FoodAllo-Logo überall in Originalfarbe auf heller Fläche; v26: Grundton Grün (nur Farben, Logo in Originalfarbe, Belege schwarz-weiß); v25: Abgleich Retail → Desktop im selben Browser (foodallo.abgleich.retail.v1, BroadcastChannel foodallo-abgleich); v24: Scan nur mit Prüfziffer und zweifacher Lesung, Karten auf „Gutschein einlösen“, Update sicher (Netz zuerst, Neuladen), Becker-Demo-Ware an allen Ausgabestellen 0001–0006; v23: Kamerascan mit zxing-Rückfall (Plausibilitätsprüfung, Schrägband), Buchungen-Liste neu gesetzt, Demodaten springen in die laufende Woche; v22: v22: Demo-Anfangsbestand Becker bei Netto (nur lokal); v21: v21: Demonstrationskarte Familie Becker einlösbar, Strichcode Code 39; v20: v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
 var HUELLE = [
   "./", "./index.html", "./manifest.webmanifest", "./css/app.css", "./js/retail.js", "./js/scanner.js", "./js/app.js", "./js/vendor/zxing-library-0.23.0.min.js",
-  "./daten/artikel.json", "../kern/stammdaten-ausgabestellen.json", "./daten/demo-gutscheine.json", "./daten/anfangsbestand.jsonl", "./daten/demo-rezeptnachweise.json", "./daten/demo-personen.json", "./daten/melderegister-zuordnung.json",
+  "./daten/artikel.json", "../kern/stammdaten-ausgabestellen.json", "./daten/demo-gutscheine.json", "./daten/anfangsbestand.jsonl", "./daten/demo-rezeptnachweise.json", "./daten/demo-personen.json", "./daten/desktop-karten.json", "./daten/melderegister-zuordnung.json",
   "../kern/foodallo_kern.js", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-192.png", "./icons/icon-maskable-512.png",
   "./icons/apple-touch-icon.png", "./icons/favicon.ico", "./icons/favicon-32.png", "./icons/favicon-48.png",
   "./icons/logo-header.png", "./icons/logo-farbe-900.png", "./icons/logo-weiss-900.png", "./icons/logo-dunkel-900.png",
   "../schema/foodallo-core.schema.v1.2.json"
 ];
-var OPTIONAL = ["../data/demo-becker.json"];
+var OPTIONAL = ["../data/demo-becker.json", "../data/demo-meier.json"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {

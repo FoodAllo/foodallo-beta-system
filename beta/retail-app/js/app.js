@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var K = window.FAKern, R = window.FARetail;
-  var APP_VERSION = "v27";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
+  var APP_VERSION = "v28";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
   var SPEICHER = "foodallo.retail.ereignisse.v1";
   var EXPORTIERT = "foodallo.retail.exportiert.v1";
   var SCHICHT = "foodallo.retail.schicht.v2";
@@ -18,15 +18,19 @@
      laufende Woche (Mo–So, Datum in Europe/Berlin). Sie steht weder im Melderegister noch im gemeinsamen Log. Ihre Einlösungen
      liegen nur in SPEICHER auf diesem Gerät (die Customer App liest sie dort) und gehen nicht in die Datei „Buchungen als Datei speichern“. */
   var DEMO_DATEI = "../data/demo-becker.json";
+  var KARTEN_DATEI = "daten/desktop-karten.json", MEIER_DATEI = "../data/demo-meier.json";   // Lebensmittelkarten der Desktopversion (Laufzeitzuordnung)
   var DEMO_GUTSCHEIN = /^FA-V-\d{8}-900001$/;
   var DEMO_AST = "FA-R-14729140-0003";                                          // Netto Marken-Discount: Demo-Anfangsbestand für die Becker-Karte
   var DEMO_BESTAND = "Demo-Anfangsbestand Lebensmittelkarte Becker";            // Kennzeichen im Lieferhinweis, nur lokal, nicht im Export
+  var DEMO_BESTAND_KARTEN = "Demo-Anfangsbestand Lebensmittelkarten Meier und Schulze";   // dito für die Desktop-Karten
+  function istDemoBestand(t) { t = String(t || ""); return t.indexOf(DEMO_BESTAND) === 0 || t.indexOf(DEMO_BESTAND_KARTEN) === 0; }
 
   var stamm = null, seedGutscheine = [], personenSeed = [], schema = null, testRezepte = [], ereignisse = [], zustand = null;
   var schicht = null, wahl = { ast: null, kasse: null }, namen = {};
   var vorgang = null, rezeptVorgang = null, wePositionen = [], weArtikel = null, korrektur = null, stornoBuchung = null, journalAlle = false;
   var kameraStrom = null, kameraZiel = null;
   var demo = null, demoNamen = [];
+  var fremdKarten = [], laufzeitEreignisse = [], laufzeitGutscheine = {}, gescanntJeBuchung = {};
 
   /* ---------- Texte ---------- */
   var EINHEIT = { kg: "kg", L: "Liter", rolle: "Rollen", IE: "Einheiten", pack: "Packungen" };
@@ -173,10 +177,12 @@
     function bezug(x, buchung) {
       g = buchung.gutschein_id ? zustand.gutscheine[buchung.gutschein_id] : null;
       x.buchung_id = buchung.buchung_id; x.gutschein_id = buchung.gutschein_id || null; x.rezept_id = buchung.rezept_id || null;
-      x.papierkarte_id = g && g.papierkarte_id ? g.papierkarte_id : null; x.haushalt_id = buchung.haushalt_id || (g && g.haushalt_id) || null;
+      var gk = gescanntJeBuchung[buchung.buchung_id], eigen = g && g.papierkarte_id ? g.papierkarte_id : null;
+      x.papierkarte_id = gk || eigen; x.haushalt_id = buchung.haushalt_id || (g && g.haushalt_id) || null;
+      if (gk && eigen && gk !== eigen) x.alias_von = eigen;   // Karte der Desktopversion, in der Retail App unter anderer Nummer geführt
       x.periode_id = g ? g.periode_id : null; x.weg = buchung.rezept_id ? "rezept" : (buchung.kanal === "papier_abgleich" ? "lebensmittelkarte" : "gutschein");
       x.positionen = [{ artikel_id: buchung.artikel_id, menge: buchung.menge, einheit: buchung.einheit }];
-      x.demo = !!(buchung.gutschein_id && DEMO_GUTSCHEIN.test(buchung.gutschein_id));
+      x.demo = istDemoGutschein(buchung.gutschein_id);
       return x;
     }
     if (e.typ === "REDEMPTION_POSTED") { b = p.ausgabebuchung; return bezug(basis("ausgabe", b.zeit, b.ausgabestelle_id), b); }
@@ -185,7 +191,7 @@
       var x = bezug(basis("storno", e.zeit_ereignis, b.ausgabestelle_id), b); x.storno_von = p.buchung_id; return x;
     }
     if (e.typ === "STOCK_RECEIPT_POSTED") {
-      var w = p.wareneingang; if (String(w.lieferhinweis || "").indexOf(DEMO_BESTAND) === 0) return null;
+      var w = p.wareneingang; if (istDemoBestand(w.lieferhinweis)) return null;
       var y = basis("wareneingang", w.zeit, w.ausgabestelle_id);
       y.wareneingang_id = w.wareneingang_id; y.gutschein_id = null; y.papierkarte_id = null; y.haushalt_id = null; y.periode_id = null;
       y.positionen = [{ artikel_id: w.artikel_id, menge: w.menge, einheit: w.einheit }]; y.demo = false; return y;
@@ -200,7 +206,7 @@
     if (!zustand) return;
     try {
       var d = abgleichLesen(), da = {}, neu = [];
-      d.ereignisse.forEach(function (x) { da[x.ereignis_id] = true; });
+      d.ereignisse.forEach(function (x) { da[x.ereignis_id] = true; if (x.typ === "ausgabe" && x.buchung_id && x.papierkarte_id && !gescanntJeBuchung[x.buchung_id]) gescanntJeBuchung[x.buchung_id] = x.papierkarte_id; });
       ereignisse.forEach(function (e) {
         if (da[e.ereignis_id] || gemeinsamIds[e.ereignis_id] || e.quelle_system !== R.QUELLE) return;
         var x = abgleichEintrag(e); if (!x) return;
@@ -283,23 +289,26 @@
     var t = { normal: [], demo: [], buchungen: {} };
     (liste || []).forEach(function (e) {
       var p = e.payload || {}, b = p.ausgabebuchung;
-      var ist = (e.typ === "REDEMPTION_POSTED" && b && DEMO_GUTSCHEIN.test(b.gutschein_id || "")) || (e.typ === "REDEMPTION_REVERSED" && !!t.buchungen[p.buchung_id]) ||
-        (e.typ === "STOCK_RECEIPT_POSTED" && p.wareneingang && String(p.wareneingang.lieferhinweis || "").indexOf(DEMO_BESTAND) === 0) ||
-        (e.typ === "STOCK_ADJUSTED" && String(p.begruendung || "").indexOf(DEMO_BESTAND) === 0);
+      var ist = (e.typ === "REDEMPTION_POSTED" && b && istDemoGutschein(b.gutschein_id)) || (e.typ === "REDEMPTION_REVERSED" && !!t.buchungen[p.buchung_id]) ||
+        (e.typ === "STOCK_RECEIPT_POSTED" && p.wareneingang && istDemoBestand(p.wareneingang.lieferhinweis)) ||
+        (e.typ === "STOCK_ADJUSTED" && istDemoBestand(p.begruendung));
       if (ist && b) t.buchungen[b.buchung_id] = true;
       (ist ? t.demo : t.normal).push(e);
     });
     return t;
   }
+  function wocheAb() { var m = /(\d{4})(\d{2})(\d{2})$/.exec(montagBerlin()); return ", Woche ab " + m[3] + "." + m[2] + "." + m[1]; }
   function demoBestandHinweis() { var m = /(\d{4})(\d{2})(\d{2})$/.exec(demo.periode_id); return DEMO_BESTAND + ", Woche ab " + m[3] + "." + m[2] + "." + m[1]; }
+  function kartenBestandHinweis() { return DEMO_BESTAND_KARTEN + wocheAb(); }
+  function aktuellerHinweis(t) { return (demo && t === demoBestandHinweis()) || (fremdKarten.length && t === kartenBestandHinweis()); }
   /* Demo-Einlösungen und Demo-Anfangsbestand früherer Wochen verwerfen: am Montag ist die Karte wieder voll */
   function ohneAlteDemo(liste) {
     var alt = {};
     teileDemo(liste).demo.forEach(function (e) {
       var b = e.payload.ausgabebuchung, w = e.payload.wareneingang;
-      if (b && (!demo || b.gutschein_id !== demo.gutschein_id)) alt[b.buchung_id] = true;
-      if (w && (!demo || w.lieferhinweis !== demoBestandHinweis())) alt[e.ereignis_id] = true;
-      if (e.typ === "STOCK_ADJUSTED" && (!demo || e.payload.begruendung !== demoBestandHinweis())) alt[e.ereignis_id] = true;
+      if (b && !((demo && b.gutschein_id === demo.gutschein_id) || laufzeitGutscheine[b.gutschein_id])) alt[b.buchung_id] = true;
+      if (w && !aktuellerHinweis(w.lieferhinweis)) alt[e.ereignis_id] = true;
+      if (e.typ === "STOCK_ADJUSTED" && !aktuellerHinweis(e.payload.begruendung)) alt[e.ereignis_id] = true;
     });
     return liste.filter(function (e) { var p = e.payload || {}, b = p.ausgabebuchung; return !alt[b ? b.buchung_id : (e.typ === "REDEMPTION_REVERSED" ? p.buchung_id : e.ereignis_id)]; });
   }
@@ -308,12 +317,24 @@
      Ware in Höhe der Becker-Mengen. Mit vorhandenem Bestand als Wareneingang, sonst als Anfangsbestand. Nur lokal, nicht im
      Export, im Lieferhinweis bzw. in der Begründung als Demo gekennzeichnet. So ist die Karte überall einlösbar, wo sie gilt. */
   function demoBestandSicherstellen() {
-    if (!demo) return;
-    var hinweis = demoBestandHinweis();
-    demo.ausgabestellen.forEach(function (ast) {
+    if (demo) bestandFuer(demoBestandHinweis(), demo.ausgabestellen, demo.gutschein.positionen);
+    if (fremdKarten.length) bestandFuer(kartenBestandHinweis(), DEMO_STELLEN, kartenMengen());
+  }
+  /* Summe der Mengen aller zugeordneten Desktop-Karten der laufenden Woche (reguläre Karte und Zusatzkarte Trinkwasser) */
+  function kartenMengen() {
+    var m = {}, reihe = [];
+    fremdKarten.forEach(function (e) {
+      var id = zielGutschein(e), g = id && zustand.gutscheine[id]; if (!g) return;
+      g.positionen.forEach(function (p) { if (!(p.zugeteilt_max > 0)) return; if (!(p.artikel_id in m)) { reihe.push(p.artikel_id); m[p.artikel_id] = 0; } m[p.artikel_id] = K.r3(m[p.artikel_id] + p.zugeteilt_max); });
+    });
+    return reihe.map(function (k) { return { artikel_id: k, zugeteilt_max: m[k] }; });
+  }
+  var DEMO_STELLEN = ["FA-R-14729140-0001", "FA-R-14729140-0002", "FA-R-14729140-0003", "FA-R-14729140-0004", "FA-R-14729140-0005", "FA-R-14729140-0006"];
+  function bestandFuer(hinweis, stellen, positionen) {
+    stellen.forEach(function (ast) {
       var a = zustand.ausgabestellen[ast];
       if (!a || a.abgabekanal !== "einzelhandel") return;
-      demo.gutschein.positionen.forEach(function (p) {
+      positionen.forEach(function (p) {
         if (!(p.zugeteilt_max > 0)) return;
         var schon = ereignisse.some(function (e) {
           var pl = e.payload || {}, w = pl.wareneingang;
@@ -328,7 +349,53 @@
       });
     });
   }
-  function neuBerechnen() { zustand = K.nachspielen(stamm, seedGutscheine, personenSeed, ereignisse, { v12: true }).zustand; }
+  function neuBerechnen() { zustand = K.nachspielen(stamm, seedGutscheine, personenSeed, laufzeitEreignisse.concat(ereignisse), { v12: true }).zustand; }
+
+  /* ---------- Lebensmittelkarten der Desktopversion (Laufzeitzuordnung, nur im Speicher) ----------
+     daten/desktop-karten.json (aus der Desktopversion gelesen) und ../data/demo-meier.json. Reguläre Karten zeigen auf den regulären
+     Gutschein des Haushalts in der laufenden Woche (Retail kennt ihn aus dem gemeinsamen Log, ggf. unter eigener Kartennummer, z. B.
+     Schulze FA-PK-14729140-000124 ↔ Desktop FA-PK-14729140-000067). Zusatzkarten Trinkwasser bringen ihren Gutschein und die Störung
+     der Desktopversion mit (nicht im gemeinsamen Log); Einlösungen darauf bleiben wie bei Becker nur auf diesem Gerät. */
+  function istDemoGutschein(id) { return !!id && (DEMO_GUTSCHEIN.test(id) || !!laufzeitGutscheine[id]); }
+  function baueFremdKarten(map, meier, logText) {
+    var liste = [], pk = {};
+    function dazu(e) {
+      if (!e || !/^FA-PK-\d{8}-\d{6}$/.test(e.papierkarte_id || "") || !/^FA-HH-\d{8}-\d{6}$/.test(e.haushalt_id || "") || pk[e.papierkarte_id]) return;
+      if (!K.papierkartenCode(e.papierkarte_id)) return;                       // Prüfziffer über den Kern
+      pk[e.papierkarte_id] = true; liste.push(e);
+    }
+    ((map && map.karten) || []).forEach(function (e) { dazu(JSON.parse(JSON.stringify(e))); });
+    if (meier && meier.haushalt_id) {
+      dazu({ familie: meier.familie, haushalt_id: meier.haushalt_id, art: "regulaer", papierkarte_id: meier.papierkarte_id });
+      if (meier.zusatz_papierkarte_id && !pk[meier.zusatz_papierkarte_id]) dazu({ familie: meier.familie, haushalt_id: meier.haushalt_id, art: "stoerung", papierkarte_id: meier.zusatz_papierkarte_id });
+    }
+    var gutscheine = [], evs = [];
+    liste.forEach(function (e) {
+      if (e.art !== "stoerung") return;
+      if (!e.gutschein || !e.gutschein.gutschein_id || e.gutschein.haushalt_id !== e.haushalt_id) { e.art = "ohne"; return; }
+      var g = inLaufendeWoche(e.gutschein); g.papierkarte_id = e.papierkarte_id;
+      if (String(logText || "").indexOf('"' + e.gutschein.gutschein_id + '"') >= 0) { e.art = "ohne"; return; }   // gemeinsamer Log führt ihn selbst
+      e.gutschein_id = g.gutschein_id; gutscheine.push(g);
+    });
+    // Störung der Desktopversion (Beginn wie dort, Ende offen) – nicht in die laufende Woche verschoben, sie läuft seit dem Beginn
+    ((map && map.stoerungen) || []).forEach(function (ev) { if (ev && ev.typ === "SUPPLY_DISRUPTION_DECLARED") evs.push(ev); });
+    return { karten: liste.filter(function (e) { return e.art !== "ohne"; }), gutscheine: gutscheine, ereignisse: evs };
+  }
+  /* Gutschein der laufenden Woche zu einer Desktop-Karte */
+  function zielGutschein(e) {
+    if (e.art === "stoerung") return e.gutschein_id && zustand.gutscheine[e.gutschein_id] ? e.gutschein_id : null;
+    var gs = zustand.gutscheine, t = Object.keys(gs).filter(function (k) {
+      var g = gs[k]; return g.haushalt_id === e.haushalt_id && K.gutscheinAnlass(g) === "regulaer" && g.status !== "storniert" && gueltigJetzt(g);
+    });
+    return t.length === 1 ? t[0] : null;
+  }
+  function fremdKarte(s) {
+    for (var i = 0; i < fremdKarten.length; i++) {
+      var e = fremdKarten[i], c = K.papierkartenCode(e.papierkarte_id) || {};
+      if (s === e.papierkarte_id || s === c.code_anzeige || s === c.code_barcode) return e;
+    }
+    return null;
+  }
 
   /* Ereignisse prüfen (Schema v1.2 + Kernregeln) und nur gemeinsam übernehmen – alles oder nichts */
   function uebernimmAlle(evs, ohneSpeichern) {
@@ -489,7 +556,12 @@
   function findeGutschein(eingabe) {
     var s = String(eingabe || "").trim(), gs = zustand.gutscheine;
     var voll = /FA-V-\d{8}-\d{6}/i.exec(s);
-    if (voll) { var id = wocheText(voll[0].toUpperCase()); return gs[id] ? { id: id } : { m: M.nichtGefunden }; }
+    if (voll) {
+      var id = wocheText(voll[0].toUpperCase()); if (gs[id]) return { id: id };
+      // Gutscheinnummer der Desktop/Customer-Daten zu einer zugeordneten Karte (z. B. Meier FA-V-<Montag>-000229)
+      for (var i = 0; i < fremdKarten.length; i++) if (fremdKarten[i].desktop_gutschein_id && wocheText(fremdKarten[i].desktop_gutschein_id) === id) { var z = zielGutschein(fremdKarten[i]); if (z) return { id: z }; }
+      return { m: M.nichtGefunden };
+    }
     if (/^\d{1,6}$/.test(s)) {
       var nr = ("000000" + s).slice(-6);
       var t = Object.keys(gs).filter(function (k) { return k.slice(-6) === nr && gueltigJetzt(gs[k]); });
@@ -508,6 +580,8 @@
     var r = K.gutscheinZurPapierkarte(zustand, s);
     if (r.gutschein_id) return { id: r.gutschein_id, karte: s };
     if (/mehreren/.test(r.fehler || "")) return { m: M.karteMehrdeutig };
+    var fk = fremdKarte(s);   // Karte der Desktopversion (Nummer weicht ab oder Gutschein ohne Kartennummer)
+    if (fk) { var zid = zielGutschein(fk); if (zid) return { id: zid, karte: null, gescannt: fk.papierkarte_id }; }
     if (/^\d{1,6}$/.test(s)) {
       var nr = ("000000" + s).slice(-6), gs = zustand.gutscheine;
       var t = Object.keys(gs).filter(function (k) { return gs[k].papierkarte_id && gs[k].papierkarte_id.slice(-6) === nr && gueltigJetzt(gs[k]); });
@@ -536,14 +610,14 @@
     var offen = g.positionen.some(function (p) { return p.rest !== null && p.rest > 0.0005; });
     if (g.status === "ausgeschoepft" || !offen) return meldung("scan-meldung", vorgang.modus === "karte" ? ["Lebensmittelkarte bereits vollständig eingelöst.", "Diese Woche ist keine weitere Ausgabe möglich. Die nächste Karte gilt ab Montag."] : M.eingeloest);
     $("scan-eingabe").value = "";
-    vorgang.gutschein_id = r.id; vorgang.karte = r.karte || null;
+    vorgang.gutschein_id = r.id; vorgang.karte = r.karte || null; vorgang.gescannt = r.gescannt || null;
     zeigePersonen(); geh("person");
   }
 
   /* ---------- Wer holt ab? ---------- */
   function zeigePersonen() {
     var g = zustand.gutscheine[vorgang.gutschein_id], z = zeitraum(g), ms = mitglieder(g.haushalt_id);
-    $("person-info").innerHTML = "<strong>" + esc(haushaltName(g.haushalt_id)) + "</strong><span>" + esc(gutscheinWort(g) + (z ? " · gültig bis " + datum(z.bis) : "") + (demo && g.gutschein_id === demo.gutschein_id ? " · Demonstrationskarte, Einlösung nur auf diesem Gerät" : "")) + "</span>";
+    $("person-info").innerHTML = "<strong>" + esc(haushaltName(g.haushalt_id)) + "</strong><span>" + esc(gutscheinWort(g) + (z ? " · gültig bis " + datum(z.bis) : "") + (istDemoGutschein(g.gutschein_id) ? " · Demonstrationskarte, Einlösung nur auf diesem Gerät" : "")) + "</span>";
     var box = $("person-liste"); box.innerHTML = ""; meldung("person-meldung", null);
     if (!ms.length) { meldung("person-meldung", M.keinMitglied); return; }
     ms.forEach(function (pid, i) {
@@ -639,12 +713,14 @@
     for (var i = 0; i < ids.length; i++) {
       // Papierkarte: Buchung läuft gegen genau diese Karte (retail.js löst die Karte auf, Kanal Papierabgleich)
       var ein = { ausgabestelle_id: schicht.ast, einloesende_person_id: vorgang.person_id, artikel_id: ids[i], angefragt: vorgang.mengen[ids[i]] };
-      if (karte) ein.papierkarte = vorgang.karte || g.papierkarte_id; else { ein.gutschein_id = g.gutschein_id; ein.kanal = "retail_app"; }
+      if (karte && vorgang.gescannt && !vorgang.karte) { ein.gutschein_id = g.gutschein_id; ein.kanal = "papier_abgleich"; }   // Desktop-Karte: direkt auf den zugeordneten Gutschein
+      else if (karte) ein.papierkarte = vorgang.karte || g.papierkarte_id; else { ein.gutschein_id = g.gutschein_id; ein.kanal = "retail_app"; }
       var r = R.erzeugeEinloesung(zustand, ein, jetzt);
       if (!r.ok) return meldung("korb-meldung", uebersetze(r.fehler));
       evs = evs.concat(r.ereignisse);
       posten.push({ artikel_id: ids[i], menge: r.plan.zugeteilt, einheit: r.plan.einheit, buchung_id: r.ereignisse[r.ereignisse.length - 1].payload.ausgabebuchung.buchung_id });
     }
+    if (karte && vorgang.gescannt) posten.forEach(function (x) { gescanntJeBuchung[x.buchung_id] = vorgang.gescannt; });   // Abgleich: gescannte Kartennummer
     var u = uebernimmAlle(evs);
     if (!u.ok) return meldung("korb-meldung", uebersetze(u.fehler));
     var gn = zustand.gutscheine[g.gutschein_id];
@@ -655,10 +731,10 @@
     zeigeBeleg({
       titel: "Ausgabe gebucht", zeit: jetzt, posten: posten,
       zeilen: [["Abgeholt von", personName(vorgang.person_id, vorgang.person_nr)], ["Haushalt", haushaltName(gn.haushalt_id).replace(/^Haushalt /, "")],
-        [gutscheinWort(gn), "Nr. " + kurzNr(karte ? gn.papierkarte_id : gn.gutschein_id)],
+        [gutscheinWort(gn), "Nr. " + kurzNr(karte ? (vorgang.gescannt || gn.papierkarte_id) : gn.gutschein_id)],
         ["Beleg", belegNr(posten[0].buchung_id)]],
       fuss: rest.length ? "Diese Woche noch frei: " + rest.join(", ") + "." : "Für diese Woche ist alles abgeholt.",
-      hinweis: demo && gn.gutschein_id === demo.gutschein_id ? "Demonstrationskarte: Die Einlösung ist nur auf diesem Gerät gespeichert." : (karte ? "Bitte die ausgegebenen Mengen auf der Lebensmittelkarte abzeichnen." : null),
+      hinweis: istDemoGutschein(gn.gutschein_id) ? "Demonstrationskarte: Die Einlösung ist nur auf diesem Gerät gespeichert." : (karte ? "Bitte die ausgegebenen Mengen auf der Lebensmittelkarte abzeichnen." : null),
       weiter: ["Nächste Kundin / nächster Kunde", function () { scanStarten(karte ? "karte" : "gutschein"); }]
     });
   }
@@ -911,6 +987,7 @@
     }).then(function (t) {
       var liste = K.ausJsonl(t).map(function (e) { gemeinsamIds[e.ereignis_id] = true; return inLaufendeWoche(e); }), abgelehnt = 0;
       liste.forEach(function (ev) { var r = uebernimmAlle([ev], true); if (!r.ok) abgelehnt++; });
+      demoBestandSicherstellen();   // Desktop-Karten zeigen auf Gutscheine aus dem Log: Demo-Ware erst danach vollständig
       speichere();
       localStorage.setItem(ABGLEICH, K.zeitBerlin());
       if (!still) { meldung("e-meldung", ["Abgleich abgeschlossen.", abgelehnt ? "Einige Daten konnten nicht übernommen werden. Bitte die Marktleitung informieren." : "Alle Daten sind aktuell."], abgelehnt ? "hinweis" : "ok"); zeigeEinstellungen(); }
@@ -1108,11 +1185,16 @@
     function optionalText(u) { return fetch(u, { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).catch(function () { return ""; }); }
     Promise.all([j("../kern/stammdaten-ausgabestellen.json"), j("daten/artikel.json"), j("daten/demo-gutscheine.json"), j(SCHEMA_DATEI),
       optional("daten/demo-rezeptnachweise.json"), j("daten/demo-personen.json"), optional(REGISTER_DATEI), optional(ZUORDNUNG_DATEI),
-      optional(DEMO_DATEI), optionalText(LOG_DATEI), optionalText("daten/anfangsbestand.jsonl")]).then(function (x) {
+      optional(DEMO_DATEI), optionalText(LOG_DATEI), optionalText("daten/anfangsbestand.jsonl"), optional(KARTEN_DATEI), optional(MEIER_DATEI)]).then(function (x) {
       stamm = { ausgabestellen: x[0].ausgabestellen, artikel: x[1].artikel };
       seedGutscheine = inLaufendeWoche(x[2].gutscheine); schema = x[3]; testRezepte = (x[4] && x[4].nachweise) || []; personenSeed = x[5].personen;
       try { demo = baueDemo(x[8]); } catch (e) { demo = null; }
       if (demo) { seedGutscheine = seedGutscheine.concat([demo.gutschein]); personenSeed = personenSeed.concat(demo.personen); demoNamen = demo.namen; }
+      try {
+        var fk = baueFremdKarten(x[11], x[12], x[9]);
+        fremdKarten = fk.karten; laufzeitEreignisse = fk.ereignisse; seedGutscheine = seedGutscheine.concat(fk.gutscheine);
+        fk.gutscheine.forEach(function (g) { laufzeitGutscheine[g.gutschein_id] = true; });
+      } catch (e) { fremdKarten = []; laufzeitEreignisse = []; }
       register = listeAus(x[6]).concat(listeAus(x[7])); zuordnung = listeAus(x[7]); namenNeu();
       // Gespeicherte Kopien gemeinsamer Demo-Ereignisse (gleiche ereignis_id) durch die Fassung der laufenden Woche ersetzen
       var gemeinsam = {};
