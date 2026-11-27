@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var K = window.FAKern, R = window.FARetail;
-  var APP_VERSION = "v24";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
+  var APP_VERSION = "v25";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
   var SPEICHER = "foodallo.retail.ereignisse.v1";
   var EXPORTIERT = "foodallo.retail.exportiert.v1";
   var SCHICHT = "foodallo.retail.schicht.v2";
@@ -158,7 +158,65 @@
 
   /* ---------- Speicher / Ereignisse ---------- */
   function ladeJson(k, d) { try { return JSON.parse(localStorage.getItem(k) || "") || d; } catch (e) { return d; } }
-  function speichere() { localStorage.setItem(SPEICHER, JSON.stringify(ereignisse)); }
+  function speichere() { localStorage.setItem(SPEICHER, JSON.stringify(ereignisse)); abgleichSchreiben(); }
+
+  /* ---------- Abgleich Retail → Desktop (gleicher Browser, gleiche Herkunft, ohne Server) ----------
+     Spezifikation: ../data/ABGLEICH-RETAIL-DESKTOP.md. Schlüssel ABGLEICH_SPEICHER, nur anhängen, je ereignis_id höchstens einmal,
+     keine Namen. Inhalt: eigene Ausgaben (auch Lebensmittelkarte Becker, gekennzeichnet demo), Stornos und Wareneingänge.
+     Nicht enthalten: Ereignisse aus dem gemeinsamen Log/Anfangsbestand, Bestandskorrekturen, automatischer Demo-Anfangsbestand.
+     Neue Einträge zusätzlich per BroadcastChannel ABGLEICH_KANAL („storage“ feuert nur in anderen Tabs). */
+  var ABGLEICH_SPEICHER = "foodallo.abgleich.retail.v1", ABGLEICH_KANAL = "foodallo-abgleich", ABGLEICH_SCHEMA = "foodallo.abgleich.retail", ABGLEICH_VERSION = 1;
+  var gemeinsamIds = {}, abgleichKanal = null;
+  function abgleichEintrag(e) {
+    var p = e.payload || {}, b, g;
+    function basis(typ, zeit, ast) { return { ereignis_id: e.ereignis_id, typ: typ, zeit: zeit || e.zeit_ereignis, ausgabestelle_id: ast, kasse: null, quelle: "retail" }; }
+    function bezug(x, buchung) {
+      g = buchung.gutschein_id ? zustand.gutscheine[buchung.gutschein_id] : null;
+      x.buchung_id = buchung.buchung_id; x.gutschein_id = buchung.gutschein_id || null; x.rezept_id = buchung.rezept_id || null;
+      x.papierkarte_id = g && g.papierkarte_id ? g.papierkarte_id : null; x.haushalt_id = buchung.haushalt_id || (g && g.haushalt_id) || null;
+      x.periode_id = g ? g.periode_id : null; x.weg = buchung.rezept_id ? "rezept" : (buchung.kanal === "papier_abgleich" ? "lebensmittelkarte" : "gutschein");
+      x.positionen = [{ artikel_id: buchung.artikel_id, menge: buchung.menge, einheit: buchung.einheit }];
+      x.demo = !!(buchung.gutschein_id && DEMO_GUTSCHEIN.test(buchung.gutschein_id));
+      return x;
+    }
+    if (e.typ === "REDEMPTION_POSTED") { b = p.ausgabebuchung; return bezug(basis("ausgabe", b.zeit, b.ausgabestelle_id), b); }
+    if (e.typ === "REDEMPTION_REVERSED") {
+      b = zustand.buchungen[p.buchung_id]; if (!b) return null;
+      var x = bezug(basis("storno", e.zeit_ereignis, b.ausgabestelle_id), b); x.storno_von = p.buchung_id; return x;
+    }
+    if (e.typ === "STOCK_RECEIPT_POSTED") {
+      var w = p.wareneingang; if (String(w.lieferhinweis || "").indexOf(DEMO_BESTAND) === 0) return null;
+      var y = basis("wareneingang", w.zeit, w.ausgabestelle_id);
+      y.wareneingang_id = w.wareneingang_id; y.gutschein_id = null; y.papierkarte_id = null; y.haushalt_id = null; y.periode_id = null;
+      y.positionen = [{ artikel_id: w.artikel_id, menge: w.menge, einheit: w.einheit }]; y.demo = false; return y;
+    }
+    return null;
+  }
+  function abgleichLesen() {
+    var d = ladeJson(ABGLEICH_SPEICHER, null);
+    return d && d.schema === ABGLEICH_SCHEMA && Array.isArray(d.ereignisse) ? d : { schema: ABGLEICH_SCHEMA, version: ABGLEICH_VERSION, aktualisiert: null, ereignisse: [] };
+  }
+  function abgleichSchreiben() {
+    if (!zustand) return;
+    try {
+      var d = abgleichLesen(), da = {}, neu = [];
+      d.ereignisse.forEach(function (x) { da[x.ereignis_id] = true; });
+      ereignisse.forEach(function (e) {
+        if (da[e.ereignis_id] || gemeinsamIds[e.ereignis_id] || e.quelle_system !== R.QUELLE) return;
+        var x = abgleichEintrag(e); if (!x) return;
+        // Kasse ist nicht Teil des Ereignisses: bei neuen Buchungen aus der laufenden Schicht übernehmen, bei übernommenen Altbuchungen null
+        if (schicht && x.ausgabestelle_id === schicht.ast && Date.parse(x.zeit) >= Date.parse(schicht.beginn)) x.kasse = schicht.kasse;
+        da[e.ereignis_id] = true; neu.push(x);
+      });
+      if (!neu.length) return;
+      d.version = ABGLEICH_VERSION; d.aktualisiert = K.zeitBerlin(); d.ereignisse = d.ereignisse.concat(neu);
+      localStorage.setItem(ABGLEICH_SPEICHER, JSON.stringify(d));
+      if (typeof BroadcastChannel === "function") {
+        abgleichKanal = abgleichKanal || new BroadcastChannel(ABGLEICH_KANAL);
+        abgleichKanal.postMessage({ schema: ABGLEICH_SCHEMA, version: ABGLEICH_VERSION, schluessel: ABGLEICH_SPEICHER, neu: neu, anzahl: d.ereignisse.length });
+      }
+    } catch (err) { /* Speicher voll o. Ä.: Retail bucht trotzdem weiter */ }
+  }
 
   /* ---------- Demonstrationskarte Familie Becker ---------- */
   /* Montag der laufenden Woche nach dem Kalenderdatum in Europe/Berlin, als JJJJMMTT */
@@ -851,7 +909,7 @@
       if (!r.ok) throw new Error("offline");
       return r.text();
     }).then(function (t) {
-      var liste = K.ausJsonl(t).map(function (e) { return inLaufendeWoche(e); }), abgelehnt = 0;
+      var liste = K.ausJsonl(t).map(function (e) { gemeinsamIds[e.ereignis_id] = true; return inLaufendeWoche(e); }), abgelehnt = 0;
       liste.forEach(function (ev) { var r = uebernimmAlle([ev], true); if (!r.ok) abgelehnt++; });
       speichere();
       localStorage.setItem(ABGLEICH, K.zeitBerlin());
@@ -1058,7 +1116,7 @@
       register = listeAus(x[6]).concat(listeAus(x[7])); zuordnung = listeAus(x[7]); namenNeu();
       // Gespeicherte Kopien gemeinsamer Demo-Ereignisse (gleiche ereignis_id) durch die Fassung der laufenden Woche ersetzen
       var gemeinsam = {};
-      K.ausJsonl(x[9] || "").concat(K.ausJsonl(x[10] || "")).forEach(function (e) { gemeinsam[e.ereignis_id] = inLaufendeWoche(e); });
+      K.ausJsonl(x[9] || "").concat(K.ausJsonl(x[10] || "")).forEach(function (e) { gemeinsam[e.ereignis_id] = inLaufendeWoche(e); gemeinsamIds[e.ereignis_id] = true; });
       // Eigene Buchungen mit IDs der Bezugswoche (FA-V-20261116-…, FA-PER-20261116) werden wie bei Customer und Desktop ebenfalls
       // abgebildet und zählen gegen den Gutschein der laufenden Woche; spätere eigene Buchungen bleiben unverändert.
       ereignisse = ohneAlteDemo(ladeJson(SPEICHER, [])).map(function (e) { return gemeinsam[e.ereignis_id] || inLaufendeWoche(e); });
