@@ -80,7 +80,13 @@ input { display: block; width: 100%; font: inherit; font-size: 1.05rem; padding:
 .gross-eingabe { font-size: 1.25rem; min-height: 3.6rem; letter-spacing: .02em; }
 .haken { display: flex; gap: .7rem; align-items: flex-start; font-weight: 600; background: var(--orange-soft); border-radius: .8rem; padding: .8rem; }
 .haken input { width: 1.6rem; min-height: 1.6rem; height: 1.6rem; flex: 0 0 auto; margin: 0; accent-color: var(--olive-deep); }
-.kamera { margin: .5rem 0; } .kamera video { width: 100%; border-radius: .8rem; background: #000; max-height: 50vh; object-fit: cover; }
+.kamera { margin: .5rem 0; }
+.kamera-bild { position: relative; border-radius: .8rem; overflow: hidden; background: #000; }
+.kamera video { display: block; width: 100%; max-height: 50vh; object-fit: cover; }
+.kamera-band { position: absolute; left: 6%; right: 6%; top: 32%; bottom: 32%; border: 3px solid rgba(255,255,255,.9); border-radius: .5rem; box-shadow: 0 0 0 999px rgba(0,0,0,.28); pointer-events: none; }
+.kamera-hinweis { margin: .5rem 0; font-size: .95rem; }
+.kamera-diagnose { font-size: .78rem; }
+.kamera-knoepfe { display: flex; flex-wrap: wrap; gap: .5rem; } .kamera-knoepfe button { flex: 1 1 10rem; }
 
 /* Stepper */
 .stepper { display: flex; align-items: stretch; }
@@ -150,11 +156,18 @@ input { display: block; width: 100%; font: inherit; font-size: 1.05rem; padding:
 .grund[aria-pressed="true"] { border-color: var(--orange); background: var(--orange-soft); box-shadow: inset 0 0 0 1.5px var(--orange); }
 
 /* Journal */
-.j-zeile { display: grid; grid-template-columns: 3.2rem 1fr; gap: .3rem .6rem; background: var(--card); border: 1px solid var(--border); border-radius: .85rem; padding: .65rem .8rem; }
-.j-zeit { font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.j-text { display: flex; flex-direction: column; } .j-text span { font-size: .9rem; }
-.j-zeile button { grid-column: 1 / -1; }
-.j-zeile.storniert { opacity: .7; } .j-zeile.storniert .j-text > span:first-of-type { text-decoration: line-through; }
+.j-zeile { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: start; gap: .3rem .7rem; background: var(--card); border: 1px solid var(--border); border-radius: .85rem; padding: .65rem .8rem; }
+.j-zeit { display: flex; flex-direction: column; font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.3; }
+.j-datum { font-size: .78rem; font-weight: 600; }
+.j-zeile { grid-template-areas: "zeit text menge" "knopf knopf knopf"; }
+.j-zeit { grid-area: zeit; } .j-text { grid-area: text; } .j-menge { grid-area: menge; } .j-zeile button { grid-area: knopf; }
+.j-text { display: flex; flex-direction: column; min-width: 0; overflow-wrap: break-word; hyphens: auto; line-height: 1.3; } .j-text span { font-size: .9rem; }
+.j-menge { font-weight: 800; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* schmale Handys: Menge in eigener Zeile unter dem Text, weiter rechtsbündig – der Text behält die volle Breite */
+@media (max-width: 30rem) {
+  .j-zeile { grid-template-columns: max-content minmax(0, 1fr); grid-template-areas: "zeit text" "zeit menge" "knopf knopf"; }
+}
+.j-zeile.storniert { opacity: .7; } .j-zeile.storniert .j-menge, .j-zeile.storniert .j-artikel { text-decoration: line-through; }
 .badge { align-self: flex-start; font-size: .75rem; font-weight: 800; background: var(--danger-soft); color: var(--danger); padding: .05rem .5rem; border-radius: 999px; margin-top: .2rem; text-decoration: none !important; }
 
 /* Einstellungen */

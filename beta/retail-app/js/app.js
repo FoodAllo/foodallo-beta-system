@@ -73,6 +73,7 @@
     offline: ["Abgleich gerade nicht möglich.", "Die Daten für den Abgleich sind nicht erreichbar. Buchungen bleiben auf dem Gerät gespeichert. Später erneut abgleichen."],
     nurZusatz: ["Trinkwasser gibt es nur mit dem Zusatzgutschein Trinkwasser.", "Die Versorgungsstörung ist gemeldet. Bitte den Zusatzgutschein bzw. die Zusatzkarte für Trinkwasser scannen. In der App der Kundin bzw. des Kunden heißt er „Zusätzlicher Gutschein wegen einer Versorgungsstörung“."],
     zusatzVerfallen: ["Der Zusatzgutschein für Trinkwasser ist abgelaufen.", "Die Versorgungsstörung ist beendet, damit verfällt der Rest. Bitte kein Trinkwasser mehr darauf ausgeben."],
+    kameraFehlt: ["Kamera nicht verfügbar.", "Bitte die Nummer eintippen oder den Handscanner verwenden."],
     allgemein: ["Buchung nicht möglich.", "Bitte erneut versuchen. Passiert es wieder, die Marktleitung informieren."]
   };
 
@@ -96,7 +97,7 @@
       [/Apotheke/, ["Dieser Artikel wird nur in der Apotheke abgegeben.", "Bitte die Kundin oder den Kunden an eine Apotheke verweisen."]],
       [/hier nicht (abgegeben|geführt)/, ["Dieser Artikel wird hier nicht geführt.", "Bitte einen anderen Artikel wählen."]],
       [/Gutschein ist storniert/, M.gesperrt],
-      [/abgelaufen|Periode.*geschlossen/, ["Gutschein ist abgelaufen.", "Keine Ausgabe auf diesen Gutschein. Für die laufende Woche gibt es einen neuen Gutschein."]],
+      [/abgelaufen|Periode.*geschlossen/, ["Dieser Gutschein gilt nicht für diese Woche.", "Keine Ausgabe auf diesen Gutschein."]],
       [/Gutschein.*unbekannt/, M.nichtGefunden],
       [/Grundquote.*ausgeschöpft|übersteigt Gutscheinrest/, M.allesAbgeholt],
       [/Restbestand/, ["Nicht genug im Bestand.", "Menge verringern oder Wareneingang buchen."]],
@@ -166,6 +167,35 @@
     d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7);
     return d.toISOString().slice(0, 10).replace(/-/g, "");
   }
+  /* Wochensprung (Entscheidung David, 27.11.2026: „alle Systeme springen in die aktuelle Woche“). Die Demodaten (Gutscheine aus
+     daten/demo-gutscheine.json, Ereignisse aus ../data/ereignislog.jsonl und daten/anfangsbestand.jsonl) sind für die Woche ab
+     Montag 16.11.2026 geschrieben. Beim Laden werden sie – nur im Speicher, die Dateien bleiben unverändert – um ganze Wochen in die
+     laufende Woche Mo–So (Europe/Berlin) verschoben: Versatz = Montag der laufenden Woche − 16.11.2026.
+     Regel: FA-PER-20261116 → FA-PER-<Montag>, FA-V-20261116-NNNNNN → FA-V-<Montag>-NNNNNN, Zeitstempel 16.–22.11.2026 → gleiche Uhrzeit
+     am entsprechenden Tag der laufenden Woche (UTC-Versatz neu für Europe/Berlin). Gleiches Schema wie Customer (js/woche.js) und
+     Desktop (assets/woche.js): nur das Datum in FA-PER-/FA-V- wird ersetzt, die laufende Nummer bleibt; FA-PK/FA-HH/FA-P/FA-R bleiben. */
+  var BASIS_MONTAG = "20261116";
+  function utcTag(s) { return Date.UTC(Number(s.slice(0, 4)), Number(s.slice(4, 6)) - 1, Number(s.slice(6, 8))); }
+  function wochenVersatzTage(jetzt) { return Math.round((utcTag(montagBerlin(jetzt)) - utcTag(BASIS_MONTAG)) / 864e5); }
+  function zwei(n) { return (n < 10 ? "0" : "") + n; }
+  function berlinVersatz(d) {
+    try {
+      var t = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Berlin", timeZoneName: "longOffset" }).formatToParts(d)
+        .filter(function (x) { return x.type === "timeZoneName"; })[0].value, m = /GMT([+-]\d{2}:\d{2})/.exec(t);
+      return m ? m[1] : "+00:00";
+    } catch (e) { return null; }
+  }
+  function wocheText(text, jetzt) {
+    var tage = wochenVersatzTage(jetzt); if (!tage) return text;
+    var mo = montagBerlin(jetzt);
+    return String(text).replace(/FA-(PER|V)-20261116/g, function (_, a) { return "FA-" + a + "-" + mo; })
+      .replace(/2026-11-(1[6-9]|2[0-2])T(\d{2}):(\d{2}):(\d{2})(\.\d+)?([+-]\d{2}:\d{2}|Z)/g, function (_, tag, hh, mi, ss, ms, off) {
+        var d = new Date(Date.UTC(2026, 10, Number(tag) + tage)), y = d.getUTCFullYear(), mo2 = d.getUTCMonth() + 1, t = d.getUTCDate();
+        if (off !== "Z") { var neu = berlinVersatz(new Date(Date.UTC(y, mo2 - 1, t, Number(hh) - 1, Number(mi)))); if (neu) off = neu; }
+        return y + "-" + zwei(mo2) + "-" + zwei(t) + "T" + hh + ":" + mi + ":" + ss + (ms || "") + off;
+      });
+  }
+  function inLaufendeWoche(obj) { return wochenVersatzTage() ? JSON.parse(wocheText(JSON.stringify(obj))) : obj; }
   /* Aus der Demo-Datei einen Gutschein der laufenden Woche (Papierweg) und die bestätigten Personen bilden */
   function baueDemo(d) {
     if (!d || !/^FA-PK-\d{8}-\d{6}$/.test(d.papierkarte_id || "") || !/^FA-HH-\d{8}-\d{6}$/.test(d.haushalt_id || "")) return null;
@@ -200,7 +230,7 @@
     });
     return t;
   }
-  function demoBestandHinweis() { return DEMO_BESTAND + " (" + demo.periode_id + ")"; }
+  function demoBestandHinweis() { var m = /(\d{4})(\d{2})(\d{2})$/.exec(demo.periode_id); return DEMO_BESTAND + ", Woche ab " + m[3] + "." + m[2] + "." + m[1]; }
   /* Demo-Einlösungen und Demo-Anfangsbestand früherer Wochen verwerfen: am Montag ist die Karte wieder voll */
   function ohneAlteDemo(liste) {
     var alt = {};
@@ -374,7 +404,7 @@
   function findeGutschein(eingabe) {
     var s = String(eingabe || "").trim(), gs = zustand.gutscheine;
     var voll = /FA-V-\d{8}-\d{6}/i.exec(s);
-    if (voll) { var id = voll[0].toUpperCase(); return gs[id] ? { id: id } : { m: M.nichtGefunden }; }
+    if (voll) { var id = wocheText(voll[0].toUpperCase()); return gs[id] ? { id: id } : { m: M.nichtGefunden }; }
     if (/^\d{1,6}$/.test(s)) {
       var nr = ("000000" + s).slice(-6);
       var t = Object.keys(gs).filter(function (k) { return k.slice(-6) === nr && gueltigJetzt(gs[k]); });
@@ -413,7 +443,7 @@
     if (g.status === "storniert") return meldung("scan-meldung", M.gesperrt);
     if (istZusatz(g) && K.stoerungsgutscheinVerfallen(zustand, g, K.zeitBerlin())) return meldung("scan-meldung", M.zusatzVerfallen);
     if (g.status === "abgelaufen" || zustand.perioden_geschlossen[g.periode_id] || (z && jetzt > z.bis.getTime()))
-      return meldung("scan-meldung", ["Gutschein ist abgelaufen" + (z ? " (gültig bis " + datum(z.bis) + ")" : "") + ".", "Keine Ausgabe auf diesen Gutschein. Für die laufende Woche gibt es einen neuen Gutschein."]);
+      return meldung("scan-meldung", ["Dieser Gutschein gilt nicht für diese Woche.", (z ? "Er galt bis " + datum(z.bis) + ". " : "") + "Keine Ausgabe auf diesen Gutschein."]);
     if (z && jetzt < z.von.getTime()) return meldung("scan-meldung", ["Gutschein gilt erst ab " + datum(z.von) + ".", "Bitte ab diesem Tag wiederkommen lassen."]);
     var offen = g.positionen.some(function (p) { return p.rest !== null && p.rest > 0.0005; });
     if (g.status === "ausgeschoepft" || !offen) return meldung("scan-meldung", vorgang.modus === "karte" ? ["Lebensmittelkarte bereits vollständig eingelöst.", "Diese Woche ist keine weitere Ausgabe möglich. Die nächste Karte gilt ab Montag."] : M.eingeloest);
@@ -738,9 +768,11 @@
       var a = art(e.artikel_id), li = document.createElement("li"), e2 = a ? a.einheit : e.einheit;
       var was = e.art === "wareneingang" ? "+" + menge(e.menge, e2) : (e.art === "korrektur" || e.art === "startbestand" ? "auf " + menge(e.menge, e2) : menge(e.menge, e2));
       li.className = "j-zeile" + (e.storniert ? " storniert" : "");
-      li.innerHTML = "<div class='j-zeit'>" + esc(journalAlle && !heute(e.zeit) ? datumLang(e.zeit) + " " : "") + esc(uhrzeit(e.zeit)) + "</div><div class='j-text'><strong>" + esc(JOURNAL_TEXT[e.art]) + "</strong><span>" +
-        esc(was + " " + (a ? a.bezeichnung_de : "")) + (e.buchung_id ? " · Beleg " + esc(belegNr(e.buchung_id)) : "") + "</span>" +
-        (e.storniert ? "<span class='badge'>storniert</span>" : "") + (e.hinweis && e.art !== "startbestand" ? "<span class='leise'>" + esc(e.hinweis) + "</span>" : "") + "</div>";
+      // Raster: Uhrzeit (bei älteren Buchungen mit Datum darüber) | Art, Artikel, Beleg, Hinweis | Menge rechtsbündig
+      li.innerHTML = "<div class='j-zeit'>" + (journalAlle && !heute(e.zeit) ? "<span class='j-datum'>" + esc(datumLang(e.zeit)) + "</span>" : "") + "<span>" + esc(uhrzeit(e.zeit)) + "</span></div>" +
+        "<div class='j-text'><strong>" + esc(JOURNAL_TEXT[e.art]) + "</strong><span class='j-artikel'>" + esc(a ? a.bezeichnung_de : "") + (e.buchung_id ? " · Beleg " + esc(belegNr(e.buchung_id)) : "") + "</span>" +
+        (e.storniert ? "<span class='badge'>storniert</span>" : "") + (e.hinweis && e.art !== "startbestand" ? "<span class='leise j-hinweis'>" + esc(e.hinweis) + "</span>" : "") + "</div>" +
+        "<div class='j-menge'>" + esc(was) + "</div>";
       if (e.buchung_id && !e.storniert) {
         var b = document.createElement("button"); b.type = "button"; b.className = "zweit klein-knopf"; b.textContent = "Stornieren";
         b.addEventListener("click", function () { stornoStarten(e); });
@@ -789,7 +821,7 @@
       if (!r.ok) throw new Error("offline");
       return r.text();
     }).then(function (t) {
-      var liste = K.ausJsonl(t), abgelehnt = 0;
+      var liste = K.ausJsonl(t).map(function (e) { return inLaufendeWoche(e); }), abgelehnt = 0;
       liste.forEach(function (ev) { var r = uebernimmAlle([ev], true); if (!r.ok) abgelehnt++; });
       speichere();
       localStorage.setItem(ABGLEICH, K.zeitBerlin());
@@ -862,7 +894,7 @@
   /* Startbestände (Szenario) einmalig je Ausgabestelle und Artikel, wenn noch kein Bestand vorhanden ist */
   function startbestandSicherstellen() {
     return fetch("daten/anfangsbestand.jsonl").then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
-      var evs = K.ausJsonl(t).filter(function (e) { return !zustand.angewendet[e.ereignis_id] && !zustand.bestand[K.bestandId(e.payload.ausgabestelle_id, e.payload.artikel_id)]; });
+      var evs = K.ausJsonl(t).map(function (e) { return inLaufendeWoche(e); }).filter(function (e) { return !zustand.angewendet[e.ereignis_id] && !zustand.bestand[K.bestandId(e.payload.ausgabestelle_id, e.payload.artikel_id)]; });
       evs.forEach(function (e) { uebernimmAlle([e], true); });
       demoBestandSicherstellen();
       speichere();
@@ -870,26 +902,44 @@
   }
 
   /* ---------- Kamera (wo der Browser Codes erkennen kann) ---------- */
+  /* Kamera: hohe Auflösung, Rückkamera, Dauerfokus wo möglich. Erkennung in js/scanner.js (BarcodeDetector nur mit
+     unterstützten Formaten, sonst bzw. nach ~2 s ohne Treffer zxing aus js/vendor). */
+  var kameraStopScan = null;
   function kameraStart(zielInput, absenden, meldeId) {
-    if (!("BarcodeDetector" in window) || !navigator.mediaDevices) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.FAScanner) return meldung(meldeId, M.kameraFehlt);
+    kameraStop();
     kameraZiel = { input: zielInput, absenden: absenden };
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (strom) {
+    var box = $("kamera"); zielInput.parentNode.insertBefore(box, zielInput.nextSibling); box.hidden = false;
+    $("kamera-status").textContent = "Kamera wird gestartet …"; $("kamera-diagnose").textContent = "";
+    navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } } }).then(function (strom) {
+      if (box.hidden) { strom.getTracks().forEach(function (t) { t.stop(); }); return; }
       kameraStrom = strom;
-      var v = $("kamera-video"); v.srcObject = strom; v.play();
-      var box = $("kamera"); zielInput.parentNode.insertBefore(box, zielInput.nextSibling); box.hidden = false;
-      var det = new window.BarcodeDetector({ formats: ["qr_code", "code_128", "code_39", "data_matrix", "ean_13"] });
-      (function suche() {
-        if (!kameraStrom) return;
-        det.detect(v).then(function (c) {
-          if (c.length) { var w = c[0].rawValue, z = kameraZiel; kameraStop(); z.input.value = w; z.absenden(w); }
-          else setTimeout(suche, 250);
-        }).catch(function () { setTimeout(suche, 500); });
-      })();
-    }).catch(function () { meldung(meldeId, ["Kamera nicht verfügbar.", "Nummer bitte eintippen oder den Handscanner verwenden."]); });
+      var spur = strom.getVideoTracks()[0], kann = spur && spur.getCapabilities ? spur.getCapabilities() : {};
+      var extra = {};
+      if (kann.focusMode && kann.focusMode.indexOf("continuous") >= 0) extra.focusMode = "continuous";
+      if (kann.zoom && kann.zoom.max >= 1.5) extra.zoom = Math.max(kann.zoom.min || 1, Math.min(1.5, kann.zoom.max));
+      if (extra.focusMode || extra.zoom) spur.applyConstraints({ advanced: [extra] }).catch(function () {});
+      var v = $("kamera-video"); v.srcObject = strom; var pl = v.play(); if (pl && pl.catch) pl.catch(function () {});
+      $("kamera-status").textContent = "Suche Strichcode …";
+      kameraStopScan = window.FAScanner.starte(v, function (w) {
+        var z = kameraZiel; kameraStop(); z.input.value = w; z.absenden(w);
+      }, function (st, wert) {
+        if (st === "zxing-fehlt") $("kamera-status").textContent = "Erkennung nicht verfügbar – bitte Nummer eintippen.";
+        if (st === "erkennung") kameraDiagnose(spur, v, wert, extra);
+      });
+    }).catch(function () { kameraStop(); meldung(meldeId, M.kameraFehlt); });
+  }
+  /* Kleine Diagnosezeile für Tests am echten Telefon: Erkennungsweg, Bildgröße, Fokus/Zoom */
+  function kameraDiagnose(spur, v, weg, extra) {
+    var s = spur && spur.getSettings ? spur.getSettings() : {}, d = $("kamera-diagnose"); if (!d) return;
+    var g = (s.width && s.height) ? s.width + "×" + s.height : (v.videoWidth ? v.videoWidth + "×" + v.videoHeight : "");
+    d.textContent = "Erkennung: " + weg + (g ? " · Bild " + g : "") + (extra.focusMode ? " · Dauerfokus" : "") + (extra.zoom ? " · Zoom " + extra.zoom : "");
   }
   function kameraStop() {
+    if (kameraStopScan) { kameraStopScan(); kameraStopScan = null; }
     if (kameraStrom) kameraStrom.getTracks().forEach(function (t) { t.stop(); });
     kameraStrom = null; var k = $("kamera"); if (k) k.hidden = true;
+    var v = $("kamera-video"); if (v) v.srcObject = null;
   }
 
   /* ---------- Stepper ---------- */
@@ -946,12 +996,13 @@
     $("e-einwohner").addEventListener("change", einwohnerLaden);
     $("e-testdaten").addEventListener("click", testdatenLaden);
     $("e-loeschen").addEventListener("click", loeschen);
-    if ("BarcodeDetector" in window) {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.FAScanner) {
       $("scan-kamera").hidden = false; $("rezept-kamera").hidden = false;
       $("scan-kamera").addEventListener("click", function () { kameraStart($("scan-eingabe"), verarbeiteScan, "scan-meldung"); });
       $("rezept-kamera").addEventListener("click", function () { kameraStart($("rezept-eingabe"), rezeptPruefen, "rezept-meldung"); });
     }
     $("kamera-stop").addEventListener("click", kameraStop);
+    $("kamera-tippen").addEventListener("click", function () { var z = kameraZiel; kameraStop(); if (z) z.input.focus(); });
     window.addEventListener("online", netz); window.addEventListener("offline", netz);
     window.addEventListener("popstate", function (e) {
       var s = e.state && e.state.s;
@@ -963,15 +1014,21 @@
   function start() {
     function j(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); }); }
     function optional(u) { return fetch(u, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+    function optionalText(u) { return fetch(u, { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).catch(function () { return ""; }); }
     Promise.all([j("../kern/stammdaten-ausgabestellen.json"), j("daten/artikel.json"), j("daten/demo-gutscheine.json"), j(SCHEMA_DATEI),
       optional("daten/demo-rezeptnachweise.json"), j("daten/demo-personen.json"), optional(REGISTER_DATEI), optional(ZUORDNUNG_DATEI),
-      optional(DEMO_DATEI)]).then(function (x) {
+      optional(DEMO_DATEI), optionalText(LOG_DATEI), optionalText("daten/anfangsbestand.jsonl")]).then(function (x) {
       stamm = { ausgabestellen: x[0].ausgabestellen, artikel: x[1].artikel };
-      seedGutscheine = x[2].gutscheine; schema = x[3]; testRezepte = (x[4] && x[4].nachweise) || []; personenSeed = x[5].personen;
+      seedGutscheine = inLaufendeWoche(x[2].gutscheine); schema = x[3]; testRezepte = (x[4] && x[4].nachweise) || []; personenSeed = x[5].personen;
       try { demo = baueDemo(x[8]); } catch (e) { demo = null; }
       if (demo) { seedGutscheine = seedGutscheine.concat([demo.gutschein]); personenSeed = personenSeed.concat(demo.personen); demoNamen = demo.namen; }
       register = listeAus(x[6]).concat(listeAus(x[7])); zuordnung = listeAus(x[7]); namenNeu();
-      ereignisse = ohneAlteDemo(ladeJson(SPEICHER, []));
+      // Gespeicherte Kopien gemeinsamer Demo-Ereignisse (gleiche ereignis_id) durch die Fassung der laufenden Woche ersetzen
+      var gemeinsam = {};
+      K.ausJsonl(x[9] || "").concat(K.ausJsonl(x[10] || "")).forEach(function (e) { gemeinsam[e.ereignis_id] = inLaufendeWoche(e); });
+      // Eigene Buchungen mit IDs der Bezugswoche (FA-V-20261116-…, FA-PER-20261116) werden wie bei Customer und Desktop ebenfalls
+      // abgebildet und zählen gegen den Gutschein der laufenden Woche; spätere eigene Buchungen bleiben unverändert.
+      ereignisse = ohneAlteDemo(ladeJson(SPEICHER, [])).map(function (e) { return gemeinsam[e.ereignis_id] || inLaufendeWoche(e); });
       neuBerechnen();
       verdrahte(); netz();
       schicht = ladeJson(SCHICHT, null);

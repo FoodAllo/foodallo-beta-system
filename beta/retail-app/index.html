@@ -62,7 +62,11 @@
         <label for="scan-eingabe" id="scan-label">Gutscheinnummer</label>
         <input id="scan-eingabe" class="gross-eingabe" inputmode="text" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
         <button type="button" id="scan-kamera" class="gross zweit" hidden>&#128247; Mit Kamera scannen</button>
-        <div id="kamera" class="kamera" hidden><video id="kamera-video" playsinline muted></video><button type="button" id="kamera-stop" class="zweit">Kamera schließen</button></div>
+        <div id="kamera" class="kamera" hidden>
+          <div class="kamera-bild"><video id="kamera-video" playsinline muted autoplay></video><div class="kamera-band" aria-hidden="true"></div></div>
+          <p class="kamera-hinweis"><strong>Strichcode quer ins Feld halten, ca. 15–20 cm Abstand.</strong> <span id="kamera-status" class="leise"></span><br><small id="kamera-diagnose" class="kamera-diagnose leise"></small></p>
+          <div class="kamera-knoepfe"><button type="button" id="kamera-tippen" class="zweit">Nummer eintippen</button><button type="button" id="kamera-stop" class="zweit">Kamera schließen</button></div>
+        </div>
         <div id="scan-meldung" class="meldung" aria-live="polite"></div>
         <button type="submit" class="gross primaer">Weiter</button>
       </form>
@@ -212,6 +216,7 @@
 
   <script src="../kern/foodallo_kern.js"></script>
   <script src="js/retail.js"></script>
+  <script src="js/scanner.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
