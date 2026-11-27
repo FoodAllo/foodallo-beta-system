@@ -12,6 +12,26 @@ const py = process.env.FA_PYTHON || 'python3';
 fs.mkdirSync(out, { recursive: true });
 let fail = 0; const res = [];
 function ok(name, pass, info) { res.push({ name, pass, info: info || '' }); console.log(pass ? 'OK  ' : 'FAIL', name, pass ? '' : (info || '')); if (!pass) fail++; }
+// Strichhöhe im gerenderten PDF (pdftoppm, dpi) messen: Median der senkrechten Schwarzläufe der Striche auf der zxing-Leselinie
+function strichhoehe(bild, dpi) {
+  const py_src = [
+    'import sys,zxingcpp,statistics', 'from PIL import Image',
+    'im=Image.open(sys.argv[1]).convert("L"); dpi=float(sys.argv[2]); w,h=im.size; px=im.load()',
+    'r=[x for x in zxingcpp.read_barcodes(im,formats=zxingcpp.BarcodeFormat.Code39)]',
+    'if not r: print("0 0"); sys.exit()',
+    'q=r[0].position; xs=[q.top_left.x,q.top_right.x,q.bottom_left.x,q.bottom_right.x]; ys=[q.top_left.y,q.top_right.y,q.bottom_left.y,q.bottom_right.y]',
+    'y0=int(sum(ys)/4); runs=[]',
+    'for x in range(max(0,min(xs)),min(w,max(xs)+1)):',
+    '  if px[x,y0]>=128: continue',
+    '  a=y0',
+    '  while a>0 and px[x,a-1]<128: a-=1',
+    '  b=y0',
+    '  while b<h-1 and px[x,b+1]<128: b+=1',
+    '  runs.append(b-a+1)',
+    'm=statistics.median(runs); print("%.2f %d" % (m/dpi*25.4, len(runs)))'].join('\n');
+  const [mm] = execFileSync(py, ['-c', py_src, bild, String(dpi)]).toString().trim().split(' ').map(Number);
+  return mm;
+}
 function lies(bild) {
   const r = execFileSync(py, ['-c', 'import sys,zxingcpp\nfrom PIL import Image\nr=zxingcpp.read_barcodes(Image.open(sys.argv[1]),formats=zxingcpp.BarcodeFormat.Code39)\nprint("|".join(x.text for x in r))', bild]).toString().trim();
   return r;
@@ -90,6 +110,10 @@ const BECKER = 'FAPK1472914090000177';
         await p.emulateMedia({ media: 'screen' });
         execFileSync("pdftoppm", ['-r', '300', '-png', '-singlefile', pdf, pdf.replace(/\.pdf$/, "-pdf")], { stdio: "ignore" });
         const tp = lies(pdf.replace(/\.pdf$/, '-pdf.png')); pdfs++;
+        const mm = strichhoehe(pdf.replace(/\.pdf$/, '-pdf.png'), 300), minMm = fmt === 'a4' ? 25 : 13;
+        ok(`PDF Karte ${i} ${fmt}: Strichhöhe ${mm} mm (mindestens ${minMm} mm)`, mm >= minMm, `${mm} mm`);
+        const seiten = Number((execFileSync('pdfinfo', [pdf]).toString().match(/Pages:\s+(\d+)/) || [])[1]);
+        ok(`PDF Karte ${i} ${fmt}: genau 1 Seite`, seiten === 1, `${seiten} Seiten`);
         ok(`PDF Karte ${i} ${fmt} (300 dpi): zxing liest ${soll}`, tp === soll, `gelesen: "${tp}"`);
       }
     }

@@ -141,9 +141,9 @@ dl.daten dd { margin: 0; }
 .karten-fuss { font-size: 9px; color: #555; margin: 8px 0 0; text-align: right; }
 .kartenblatt.a6 .karten-fuss { font-size: 7px; margin-top: 3px; }
 .barcode-wrap { text-align: center; margin: 8px 0 6px; }
-.barcode-wrap svg { max-width: 100%; height: 48px; }
+.barcode-wrap svg { max-width: 100%; height: 26mm; } /* Strichhöhe A4 mindestens 25 mm; Breite unverändert (preserveAspectRatio none) */
 .kartenblatt.a6 .barcode-wrap { margin: 4px 0; }
-.kartenblatt.a6 .barcode-wrap svg { height: 26px; }
+.kartenblatt.a6 .barcode-wrap svg { height: 14mm; } /* Strichhöhe A6 mindestens 13 mm */
 
 @media print {
   .skip, .kopf, nav.reiter, .fuss, .no-print, .anmeldung { display: none !important; }

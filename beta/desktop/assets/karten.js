@@ -53,7 +53,7 @@
       if (c < payload.length - 1) x += narrow; /* Lücke zwischen Zeichen: 1 Modul */
     }
     var width = x + ruhe;
-    return '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strichcode ' + escapeHtml(ok) + '" viewBox="0 0 ' + width + ' ' + high + '" width="' + width + '" height="' + high + '">' + bars + "</svg>";
+    return '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strichcode ' + escapeHtml(ok) + '" viewBox="0 0 ' + width + ' ' + high + '" width="' + width + '" height="' + high + '" preserveAspectRatio="none">' + bars + "</svg>";
   }
 
   function pruefeCode(anzeige) {
