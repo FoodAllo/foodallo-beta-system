@@ -13,6 +13,7 @@
   var A = window.FOODALLO_AMTLICH;
   var Z = window.FOODALLO_ZUGRIFF;
   var K = window.FOODALLO_KARTEN;
+  var W = window.FOODALLO_WOCHE || { datum: function (x) { return x; }, zeit: function (x) { return x; } }; /* laufende Woche (assets/woche.js) */
   var REG = window.MELDEREGISTER || { eintraege: [], platzhalter: true };
 
   if (!D || !A || !Z || !K) {
@@ -136,7 +137,7 @@
     for (var i = 0; i < D.perioden.length; i++) if (D.perioden[i].periode_id === id) return D.perioden[i];
     return D.perioden[D.perioden.length - 1];
   }
-  function periodeText(p) { return datum(p.beginn) + " – " + datum(p.ende) + (p.status === "offen" ? " (Demonstrationszeitraum)" : ""); }
+  function periodeText(p) { return datum(p.beginn) + " – " + datum(p.ende) + (p.status === "offen" ? " (aktuelle Woche)" : ""); }
   function letztePeriodeGeschlossen() {
     var g = D.perioden.filter(function (p) { return p.status === "geschlossen"; });
     return g.length ? g[g.length - 1].periode_id : PERIODE_LAUFEND;
@@ -205,8 +206,8 @@
      online_ausweis = in der Oberfläche als bestätigt geführt, bis das IDENTITY_VERIFIED im gemeinsamen Log steht;
      schalter_erfassung = Erfassung am Schalter, Bezug über die Lebensmittelkarte (Papier). */
   var PRUEFWEG = {
-    "FA-HH-14729140-000122": { weg: "schalter", antrag_zeit: "2026-11-17T08:42:00+01:00" },
-    "FA-HH-14729140-000123": { weg: "online_ausweis", antrag_zeit: "2026-11-16T18:05:00+01:00", pruef_zeit: "2026-11-16T18:07:00+01:00" },
+    "FA-HH-14729140-000122": { weg: "schalter", antrag_zeit: W.zeit("2026-11-17T08:42:00+01:00") },
+    "FA-HH-14729140-000123": { weg: "online_ausweis", antrag_zeit: W.zeit("2026-11-16T18:05:00+01:00"), pruef_zeit: W.zeit("2026-11-16T18:07:00+01:00") },
     "FA-HH-14729140-000124": { weg: "schalter_erfassung" }
   };
   var PRUEFWEG_DE = { schalter: "Prüfung am Schalter", online_ausweis: "Online-Ausweis", schalter_erfassung: "Erfassung am Schalter" };
@@ -285,7 +286,7 @@
     var hw = e.wohnungsstatus !== "Nebenwohnsitz";
     z.push({ pruef: "Hauptwohnsitz", erg: hw ? "ok" : "nein", text: hw ? "ja" : "nur Nebenwohnsitz" });
     if (a) {
-      var alter = alterAm(e.geburtsdatum, "2026-11-17"), pa = passtAlter(a.altersgruppe, alter);
+      var alter = alterAm(e.geburtsdatum, W.datum("2026-11-17")), pa = passtAlter(a.altersgruppe, alter);
       z.push({ pruef: "Altersangabe im Antrag", erg: pa == null ? "offen" : (pa ? "ok" : "nein"), text: pa == null ? "nicht prüfbar" : (alter + " Jahre laut Register, " + (pa ? "passt" : "passt nicht") + " zur Angabe „" + (ALTER_DE[a.altersgruppe] || "") + "“") });
     }
     if (e.rolle_im_haushalt === "Haushaltsvorstand") {
@@ -401,7 +402,7 @@
   function bestand(art) { var s = 0; D.bestaende.forEach(function (b) { if (b.artikel_id === art) s += Number(b.menge) || 0; }); return s; }
   function reichweite(art) {
     var s = 0;
-    D.buchungen.forEach(function (b) { var t = String(b.zeit).slice(0, 10); if (b.artikel_id === art && t >= "2026-11-10" && t <= "2026-11-17") s += Number(b.menge); });
+    D.buchungen.forEach(function (b) { var t = String(b.zeit).slice(0, 10); if (b.artikel_id === art && t >= W.datum("2026-11-10") && t <= W.datum("2026-11-17")) s += Number(b.menge); });
     var schnitt = s / 7;
     return schnitt > 0 ? bestand(art) / schnitt : null;
   }
@@ -465,7 +466,8 @@
     if (hh.kanal !== "papier") return [];
     if (hh.demo) return [{ art: "regulaer", berechtigt: hh.person_ids.slice(),
       karte: { papierkarte_id: BECKER.papierkarte_id, haushalt_id: BECKER.haushalt_id, code_anzeige: BECKER.code_anzeige, code_barcode: BECKER.code_barcode, status: "ausgestellt" },
-      gutschein: { haushalt_id: BECKER.haushalt_id, kanal: "papier", papierkarte_id: BECKER.papierkarte_id, positionen: BECKER.positionen } }];
+      gutschein: { gutschein_id: BECKER.gutschein_id_vorlage.replace("{MONTAG_YYYYMMDD}", PERIODE_LAUFEND.slice(7)), periode_id: PERIODE_LAUFEND,
+        haushalt_id: BECKER.haushalt_id, kanal: "papier", papierkarte_id: BECKER.papierkarte_id, positionen: BECKER.positionen } }];
     var gs = gutscheineHH(hh.haushalt_id), out = [];
     var berechtigt = hh.person_ids.filter(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; });
     if (gs.regulaer && gs.regulaer.papierkarte_id) {
@@ -710,7 +712,7 @@
     var p = periodeObj(PERIODE_LAUFEND);
     var html = seitenTitel("Haushaltsübersicht", "Musterstadt, Pass- und Meldebehörde · Zuteilungszeitraum " + periodeText(p));
     html += "<div class='werkzeug'><input id='hh-suche' type='search' placeholder='Name oder Anschrift' value='" + esc(state.suche) + "' style='min-width:320px'><span class='klein'>" + HAUSHALTE.length + " Haushalte, " + PERSONEN.length + " Personen</span></div>";
-    html += "<div class='karte'><table id='hh-tabelle'><thead><tr><th>Haushalt</th><th>Anschrift</th><th>Personen</th><th>Bezugsweg</th><th>Zuteilung im Demonstrationszeitraum</th></tr></thead><tbody>";
+    html += "<div class='karte'><table id='hh-tabelle'><thead><tr><th>Haushalt</th><th>Anschrift</th><th>Personen</th><th>Bezugsweg</th><th>Zuteilung in der aktuellen Woche</th></tr></thead><tbody>";
     var q = (state.suche || "").toLowerCase();
     HAUSHALTE.forEach(function (hh) {
       var v = PERS[hh.vorstand];
@@ -771,7 +773,7 @@
       if (!l.length) html += "<tr class='wahl" + (h.haushalt_id === state.haushalt ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='regulaer'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + h.groesse + " Personen</span></td><td>—</td><td><span class='status grau'>Identität noch nicht bestätigt</span></td></tr>";
       l.forEach(function (kk) {
         var stt = kartenStatus(kk), aktiv = h.haushalt_id === state.haushalt && k && kk.art === k.art;
-        html += "<tr class='wahl" + (aktiv ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='" + kk.art + "'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + esc(kk.berechtigt.map(personName).join(", ")) + "</span></td><td>" + esc(KARTENART_DE[kk.art]) + "<br><span class='kartenart'>" + (kk.art === "stoerung" ? fmtZahl(wasserMenge(kk.gutschein)) + " Liter Trinkwasser" : "Zuteilung im Demonstrationszeitraum") + "</span></td><td><span class='status " + (/zu drucken/.test(stt) ? "offen" : "grau") + "'>" + esc(stt) + "</span></td></tr>";
+        html += "<tr class='wahl" + (aktiv ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='" + kk.art + "'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + esc(kk.berechtigt.map(personName).join(", ")) + "</span></td><td>" + esc(KARTENART_DE[kk.art]) + "<br><span class='kartenart'>" + (kk.art === "stoerung" ? fmtZahl(wasserMenge(kk.gutschein)) + " Liter Trinkwasser" : "Zuteilung in der aktuellen Woche") + "</span></td><td><span class='status " + (/zu drucken/.test(stt) ? "offen" : "grau") + "'>" + esc(stt) + "</span></td></tr>";
       });
     });
     html += "</tbody></table><p class='klein'>Je Haushalt eine Lebensmittelkarte für den Zuteilungszeitraum und während einer Versorgungsstörung eine eigene Zusatzkarte Trinkwasser.</p></div><div>";
@@ -867,7 +869,7 @@
     else if (darfAggregat(null, "land")) A.laender.forEach(function (l) { html += zeile(l.name, l.code === "14" ? A.land.einwohner : null, l.code === "14" ? "14" : null); });
     html += "</tbody></table><p class='hinweis'>Fallzahlen unter " + Z.KLEINZAHL_STANDARD + " werden nicht ausgewiesen. Einwohnerzahlen angelehnt an amtliche Daten (Statistisches Landesamt Sachsen), Stand 31.12.2025.</p></div>";
 
-    html += "<div class='spalten'><div class='karte'><h2>Bestands- und Ausgabeübersicht</h2><table><thead><tr><th>Ware</th><th class='num'>Ausgegeben im Demonstrationszeitraum</th><th class='num'>Bestand</th><th class='num'>Reichweite</th></tr></thead><tbody>";
+    html += "<div class='spalten'><div class='karte'><h2>Bestands- und Ausgabeübersicht</h2><table><thead><tr><th>Ware</th><th class='num'>Ausgegeben in der aktuellen Woche</th><th class='num'>Bestand</th><th class='num'>Reichweite</th></tr></thead><tbody>";
     var lauf = buchungen(PERIODE_LAUFEND);
     ["wheat_flour", "rice", "oil", "toilet_paper", "insulin"].forEach(function (id) {
       var a = artikel(id), rw = reichweite(id);
@@ -948,7 +950,7 @@
     var r = Z.rolle(state.rolle), d = ds();
     var html = seitenTitel("Bestände", esc(d.name) + " · " + d.gebiet + " · Szenariodaten");
     var gebiet = r.aggregationsebene === "gemeinde" ? "Musterstadt" : r.aggregationsebene === "kreis" ? "Landkreis Leipzig" : "Freistaat Sachsen";
-    html += "<div class='karte'><table id='bestand-tabelle'><thead><tr><th>Gebiet</th><th>Ware</th><th class='num'>Bestand</th><th class='num'>Ausgegeben im Demonstrationszeitraum</th><th class='num'>Reichweite</th></tr></thead><tbody>";
+    html += "<div class='karte'><table id='bestand-tabelle'><thead><tr><th>Gebiet</th><th>Ware</th><th class='num'>Bestand</th><th class='num'>Ausgegeben in der aktuellen Woche</th><th class='num'>Reichweite</th></tr></thead><tbody>";
     var lauf = buchungen(PERIODE_LAUFEND);
     BESTAND_ARTIKEL.forEach(function (id) {
       var a = artikel(id), rw = reichweite(id);
