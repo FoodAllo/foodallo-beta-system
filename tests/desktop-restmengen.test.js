@@ -62,7 +62,7 @@ async function drucken(d, br, format, datei) {
     ok(`${br} voll A4-Druck: alles abgeholt`, /Für diese Woche ist alles abgeholt/.test(p) && zeile(p, 'Reis', '3,6 kg', '3,6 kg', '0 kg') && DRUCKSTAND.test(p), p.slice(0, 1500));
     p = await drucken(d, br, 'a6', `${out}/${label}-becker-a6-voll.pdf`);
     ok(`${br} voll A6-Druck: alles abgeholt`, /Für diese Woche ist alles abgeholt/.test(p) && zeile(p, 'Toilettenpapier', '3 Rollen', '3 Rollen', '0 Rollen') && DRUCKSTAND.test(p), p.slice(0, 1500));
-    if (br === 'chrome') { await d.selectOption('#kformat', 'a4'); await d.locator('.kartenblatt').screenshot({ path: `${out}/${label}-becker-karte-voll.png` }); }
+    if (br === 'chrome') execFileSync('pdftoppm', ['-r', '110', '-png', '-singlefile', `${out}/${label}-becker-a4-voll.pdf`, `${out}/${label}-becker-karte-voll`]); // PNG der gedruckten Karte
     // 3) Storno Weizenmehl über die Retail-Oberfläche
     await r.bringToFront(); await r.click('#s-start [data-geh="journal"]');
     await r.locator('#journal-liste li', { hasText: 'Weizenmehl' }).filter({ has: r.locator('button', { hasText: 'Stornieren' }) }).first().locator('button', { hasText: 'Stornieren' }).click();
