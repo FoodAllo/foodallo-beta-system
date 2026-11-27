@@ -1,5 +1,5 @@
 /* FoodAllo Customer App — lokaler Service Worker, App-Shell und lokale Daten. */
-const CACHE = "foodallo-customer-app-public-4";
+const CACHE = "foodallo-customer-app-public-5";
 const ASSETS = [
   "./",
   "./index.html",

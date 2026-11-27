@@ -130,6 +130,9 @@
 
   function adresseText(s) {
     if (!s || !s.adresse) return "";
+    if (typeof window !== "undefined" && window.FAKern && typeof window.FAKern.formatiereOrt === "function") {
+      return window.FAKern.formatiereOrt(s);
+    }
     var a = s.adresse;
     var line = [a.strasse, a.hausnummer].filter(Boolean).join(" ");
     var plz = a.plz == null ? "" : String(a.plz).trim();
