@@ -5,20 +5,20 @@
 (function (global) {
   "use strict";
 
-  /* Code 39: n = schmal, w = breit; Start/Stop = * */
+  /* Code 39 nach ISO/IEC 16388: n = schmal, w = breit (3:1); Start/Stop = * */
   var C39 = {
-    "0": "nnnwwnwnn", "1": "wnnnwnnnw", "2": "nwnnwnnnw", "3": "wwnnwnnnn",
-    "4": "nnwnwnnnw", "5": "wnwnwnnnn", "6": "nwwnwnnnn", "7": "nnnwwwnnw",
-    "8": "wnnwwnnnn", "9": "nwnwwnnnn",
-    "A": "wnnnnwnnw", "B": "nwnnnwnnw", "C": "wwnnnwnnn", "D": "nnwnnwnnw",
-    "E": "wnwnnwnnn", "F": "nwwnnwnnn", "G": "nnnnwwnnw", "H": "wnnnwwnnn",
-    "I": "nwnnwwnnn", "J": "nnwnwwnnn", "K": "wnnnnnwnw", "L": "nwnnnnwnw",
-    "M": "wwnnnnwnn", "N": "nnwnnnwnw", "O": "wnwnnnwnn", "P": "nwwnnnwnn",
-    "Q": "nnnnwnwnw", "R": "wnnnwnwnn", "S": "nwnnwnwnn", "T": "nnwnwnwnn",
-    "U": "wnnnnnnww", "V": "nwnnnnnww", "W": "wwnnnnnwn", "X": "nnwnnnnww",
-    "Y": "wnwnnnnwn", "Z": "nwwnnnnwn",
-    "-": "nnnnwnnww", ".": "wnnnwnnwn", " ": "nwnnwnnwn", "$": "nnwnwnwnn",
-    "/": "nnwnwnnwn", "+": "nnwnnwnwn", "%": "nnnwnwnwn", "*": "nwnnwnwnn"
+    "0": "nnnwwnwnn", "1": "wnnwnnnnw", "2": "nnwwnnnnw", "3": "wnwwnnnnn",
+    "4": "nnnwwnnnw", "5": "wnnwwnnnn", "6": "nnwwwnnnn", "7": "nnnwnnwnw",
+    "8": "wnnwnnwnn", "9": "nnwwnnwnn",
+    "A": "wnnnnwnnw", "B": "nnwnnwnnw", "C": "wnwnnwnnn", "D": "nnnnwwnnw",
+    "E": "wnnnwwnnn", "F": "nnwnwwnnn", "G": "nnnnnwwnw", "H": "wnnnnwwnn",
+    "I": "nnwnnwwnn", "J": "nnnnwwwnn", "K": "wnnnnnnww", "L": "nnwnnnnww",
+    "M": "wnwnnnnwn", "N": "nnnnwnnww", "O": "wnnnwnnwn", "P": "nnwnwnnwn",
+    "Q": "nnnnnnwww", "R": "wnnnnnwwn", "S": "nnwnnnwwn", "T": "nnnnwnwwn",
+    "U": "wwnnnnnnw", "V": "nwwnnnnnw", "W": "wwwnnnnnn", "X": "nwnnwnnnw",
+    "Y": "wwnnwnnnn", "Z": "nwwnwnnnn",
+    "-": "nwnnnnwnw", ".": "wwnnnnwnn", " ": "nwwnnnwnn", "$": "nwnwnwnnn",
+    "/": "nwnwnnnwn", "+": "nwnnnwnwn", "%": "nnnwnwnwn", "*": "nwnnwnwnn"
   };
 
   function escapeHtml(s) {
@@ -37,7 +37,8 @@
     var payload = "*" + ok + "*";
     var narrow = opts.narrow || 2;
     var high = opts.height || 48;
-    var x = 0;
+    var ruhe = 10 * narrow; /* Ruhezone links und rechts: 10 Module */
+    var x = ruhe;
     var bars = "";
     for (var c = 0; c < payload.length; c++) {
       var pat = C39[payload[c]];
@@ -49,9 +50,9 @@
         }
         x += w;
       }
-      x += narrow; /* gap */
+      if (c < payload.length - 1) x += narrow; /* Lücke zwischen Zeichen: 1 Modul */
     }
-    var width = x;
+    var width = x + ruhe;
     return '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strichcode ' + escapeHtml(ok) + '" viewBox="0 0 ' + width + ' ' + high + '" width="' + width + '" height="' + high + '">' + bars + "</svg>";
   }
 
