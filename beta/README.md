@@ -5,13 +5,13 @@ Musterstadt und Musterdorf sind fiktive Ortsnamen, die Postleitzahl 12345 ist fi
 
 ## Starten
 
-Den Ordner `retail-public-5` entpacken. Im entpackten Ordner einen lokalen HTTP-Server starten:
+Im Hauptordner des Repositorys `foodallo-beta-system` einen lokalen HTTP-Server starten:
 
 ```
-python3 -m http.server 8760
+python3 -m http.server 8000
 ```
 
-Danach im Browser `http://127.0.0.1:8760/retail-app/` öffnen. Die App läuft auch über `file://` (`retail-app/index.html`).
+Danach im Browser `http://127.0.0.1:8000/beta/retail-app/` öffnen.
 
 Schicht an einer Ausgabestelle beginnen und einen Übungs-Gutschein oder eine Papierkarte einlösen. Nach dem ersten Laden auch offline nutzbar.
 

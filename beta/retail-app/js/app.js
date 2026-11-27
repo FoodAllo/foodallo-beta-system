@@ -35,18 +35,18 @@
   var STORNO_GRUENDE = ["Falsche Menge gebucht", "Falscher Artikel gebucht", "Ware zurückgegeben", "Falscher Gutschein oder falsche Person"];
 
   var M = {
-    leer: ["Bitte Code scannen oder Nummer eintippen.", "Der Code steht in der App der Kundin oder des Kunden unter „Mein Gutschein“."],
+    leer: ["Bitte Code scannen oder Nummer eintippen.", "Der Code steht in der App der Kundin oder des Kunden unter „Gutschein für Ihren Haushalt“ (Ihre Gutscheinnummer)."],
     karteLeer: ["Bitte Kartennummer eintippen oder Strichcode scannen.", "Die Nummer steht unten auf der Lebensmittelkarte."],
-    nichtGefunden: ["Gutschein nicht gefunden.", "Nummer prüfen oder Code erneut scannen. Bleibt es dabei, die Kundin oder den Kunden an die Gemeindeverwaltung verweisen."],
-    karteNichtGefunden: ["Lebensmittelkarte nicht gefunden.", "Kartennummer prüfen und erneut eintippen. Bleibt es dabei, an die Gemeindeverwaltung verweisen."],
-    karteMehrdeutig: ["Diese Lebensmittelkarte ist nicht eindeutig zugeordnet.", "Bitte keine Ware ausgeben und an die Gemeindeverwaltung verweisen."],
+    nichtGefunden: ["Gutschein nicht gefunden.", "Nummer prüfen oder Code erneut scannen. Bleibt es dabei, die Kundin oder den Kunden an die Pass- und Meldebehörde der Musterstadt verweisen."],
+    karteNichtGefunden: ["Lebensmittelkarte nicht gefunden.", "Kartennummer prüfen und erneut eintippen. Bleibt es dabei, an die Pass- und Meldebehörde der Musterstadt verweisen."],
+    karteMehrdeutig: ["Diese Lebensmittelkarte ist nicht eindeutig zugeordnet.", "Bitte keine Ware ausgeben und an die Pass- und Meldebehörde der Musterstadt verweisen."],
     mehrdeutig: ["Die Nummer passt zu mehreren Gutscheinen.", "Bitte den Code scannen oder die vollständige Nummer eintippen."],
     eingeloest: ["Gutschein bereits vollständig eingelöst.", "Diese Woche ist keine weitere Ausgabe möglich. Der nächste Gutschein gilt ab Montag."],
-    gesperrt: ["Dieser Gutschein ist gesperrt.", "Bitte keine Ware ausgeben. Die Kundin oder den Kunden an die Gemeindeverwaltung verweisen."],
+    gesperrt: ["Dieser Gutschein ist storniert und nicht mehr gültig.", "Bitte keine Ware ausgeben. Die Kundin oder den Kunden an die Pass- und Meldebehörde der Musterstadt verweisen."],
     rezeptStattGutschein: ["Das ist ein Rezeptnachweis, kein Gutschein.", "Insulin gibt es nur in der Apotheke. Bitte die Kundin oder den Kunden dorthin verweisen."],
     nichtImHaushalt: ["Diese Person gehört nicht zum Haushalt – bitte Ausweis prüfen.", "Abholen dürfen nur Personen aus dem Haushalt. Andere Personen brauchen einen eigenen Gutschein."],
-    nichtBestaetigt: ["Identität dieser Person ist noch nicht bestätigt.", "Bitte keine Ware ausgeben. Die Person kann sich bei der Gemeindeverwaltung bestätigen lassen."],
-    keinMitglied: ["Für diesen Haushalt ist noch niemand bestätigt.", "Bitte keine Ware ausgeben und an die Gemeindeverwaltung verweisen."],
+    nichtBestaetigt: ["Identität dieser Person ist noch nicht bestätigt.", "Bitte keine Ware ausgeben. Die Person kann sich bei der Pass- und Meldebehörde der Musterstadt bestätigen lassen."],
+    keinMitglied: ["Für diesen Haushalt ist noch niemand bestätigt.", "Bitte keine Ware ausgeben und an die Pass- und Meldebehörde der Musterstadt verweisen."],
     wasser: ["Trinkwasser ist nur während einer gemeldeten Versorgungsstörung erhältlich.", "Derzeit ist keine Störung gemeldet. Bitte kein Trinkwasser über den Gutschein ausgeben."],
     nichtsGewaehlt: ["Noch keine Menge gewählt.", "Mit + die Menge je Artikel eintragen, dann „Ausgabe buchen“ tippen."],
     allesAbgeholt: ["Für diesen Haushalt ist diese Woche nichts mehr frei.", "Keine weitere Ausgabe möglich. Der nächste Gutschein gilt ab Montag."],
@@ -62,8 +62,8 @@
     mengeFehlt: ["Bitte eine Menge größer als 0 eintragen.", "Mit + oder über die Tastatur eintragen."],
     sonstigesNotiz: ["Bitte eine Bemerkung eintragen.", "Bei „Sonstiges“ kurz notieren, warum korrigiert wird."],
     grundFehlt: ["Bitte einen Grund wählen.", "Den passenden Grund antippen, dann erneut buchen."],
-    offline: ["Zentrale gerade nicht erreichbar.", "Buchungen bleiben auf dem Gerät gespeichert. Später erneut abgleichen."],
-    nurZusatz: ["Trinkwasser gibt es nur mit dem Zusatzgutschein Trinkwasser.", "Die Versorgungsstörung ist gemeldet. Bitte den Zusatzgutschein bzw. die Zusatzkarte für Trinkwasser scannen."],
+    offline: ["Abgleich gerade nicht möglich.", "Die Daten für den Abgleich sind nicht erreichbar. Buchungen bleiben auf dem Gerät gespeichert. Später erneut abgleichen."],
+    nurZusatz: ["Trinkwasser gibt es nur mit dem Zusatzgutschein Trinkwasser.", "Die Versorgungsstörung ist gemeldet. Bitte den Zusatzgutschein bzw. die Zusatzkarte für Trinkwasser scannen. In der App der Kundin bzw. des Kunden heißt er „Zusätzlicher Gutschein wegen einer Versorgungsstörung“."],
     zusatzVerfallen: ["Der Zusatzgutschein für Trinkwasser ist abgelaufen.", "Die Versorgungsstörung ist beendet, damit verfällt der Rest. Bitte kein Trinkwasser mehr darauf ausgeben."],
     allgemein: ["Buchung nicht möglich.", "Bitte erneut versuchen. Passiert es wieder, die Marktleitung informieren."]
   };
@@ -271,7 +271,7 @@
 
   function schichtBeenden() {
     var offen = offeneBuchungen().length;
-    if (offen && !confirm(offen + " Buchungen sind noch nicht übertragen. Sie bleiben auf dem Gerät gespeichert. Schicht trotzdem beenden?")) return;
+    if (offen && !confirm(offen + " Buchungen sind noch nicht als Datei gespeichert. Sie bleiben auf dem Gerät gespeichert. Schicht trotzdem beenden?")) return;
     localStorage.removeItem(SCHICHT); schicht = null; wahl = { ast: null, kasse: null };
     zeigeSchicht(); geh("schicht");
   }
@@ -501,7 +501,7 @@
       return meldung("rezept-meldung", M.rezeptUngueltig);
     }
     var r = pr.rezept, ins = insulinArtikel(), rest = K.rezeptRest(zustand, r), b = bestand(ins.artikel_id);
-    if (!K.personBestaetigt(zustand, r.person_id)) return meldung("rezept-meldung", ["Identität der Rezeptinhaberin bzw. des Rezeptinhabers ist noch nicht bestätigt.", "Bitte kein Insulin abgeben. Die Person kann sich bei der Gemeindeverwaltung bestätigen lassen."]);
+    if (!K.personBestaetigt(zustand, r.person_id)) return meldung("rezept-meldung", ["Identität der Rezeptinhaberin bzw. des Rezeptinhabers ist noch nicht bestätigt.", "Bitte kein Insulin abgeben. Die Person kann sich bei der Pass- und Meldebehörde der Musterstadt bestätigen lassen."]);
     if (rest <= 0) return meldung("rezept-meldung", M.rezeptBeliefert);
     meldung("rezept-meldung", null);
     $("rezept-eingabe").value = "";
@@ -703,7 +703,7 @@
     var a = ast(), ab = localStorage.getItem(ABGLEICH), offen = offeneBuchungen().length, n = Object.keys(namen).length;
     $("e-ast").innerHTML = "<strong>" + esc(stellenName(a)) + "</strong> · Kasse " + esc(schicht.kasse);
     $("e-adresse").textContent = (TYP[a.typ] || "Ausgabestelle") + " · " + adresse(a) + " · Schicht seit " + uhrzeit(schicht.beginn) + " Uhr";
-    $("e-sync").textContent = (ab ? "Letzter Abgleich: " + zeitText(ab) : "Noch nicht abgeglichen") + " · " + (offen ? offen + (offen === 1 ? " Buchung" : " Buchungen") + " noch nicht übertragen" : "alle Buchungen übertragen");
+    $("e-sync").textContent = (ab ? "Letzter Abgleich: " + zeitText(ab) : "Noch nicht abgeglichen") + " · " + (offen ? offen + (offen === 1 ? " Buchung" : " Buchungen") + " noch nicht als Datei gespeichert" : "alle Buchungen als Datei gespeichert");
     $("e-einwohner-stand").textContent = register.length ? "Melderegister: " + register.length + " Einträge, davon " + n + " einem Haushalt zugeordnet." : "Kein Melderegister geladen – Namen erscheinen als „Name nicht hinterlegt“.";
   }
 
@@ -716,14 +716,14 @@
       liste.forEach(function (ev) { var r = uebernimmAlle([ev], true); if (!r.ok) abgelehnt++; });
       speichere();
       localStorage.setItem(ABGLEICH, K.zeitBerlin());
-      if (!still) { meldung("e-meldung", ["Abgleich abgeschlossen.", abgelehnt ? "Einige Daten konnten nicht übernommen werden. Bitte die Zentrale informieren." : "Alle Daten sind aktuell."], abgelehnt ? "hinweis" : "ok"); zeigeEinstellungen(); }
+      if (!still) { meldung("e-meldung", ["Abgleich abgeschlossen.", abgelehnt ? "Einige Daten konnten nicht übernommen werden. Bitte die Marktleitung informieren." : "Alle Daten sind aktuell."], abgelehnt ? "hinweis" : "ok"); zeigeEinstellungen(); }
       if (schicht) kopf();
     }).catch(function () { if (!still) meldung("e-meldung", M.offline); });
   }
 
   function exportieren() {
     var offen = offeneBuchungen();
-    if (!offen.length) return meldung("e-meldung", ["Keine neuen Buchungen.", "Alle Buchungen dieses Geräts sind bereits übertragen."], "ok");
+    if (!offen.length) return meldung("e-meldung", ["Keine neuen Buchungen.", "Alle Buchungen dieses Geräts sind bereits als Datei gespeichert."], "ok");
     var blob = new Blob([K.zuJsonl(offen)], { type: "application/x-ndjson" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -734,7 +734,7 @@
     offen.forEach(function (e) { exp[e.ereignis_id] = true; });
     localStorage.setItem(EXPORTIERT, JSON.stringify(exp));
     zeigeEinstellungen();
-    meldung("e-meldung", [offen.length + (offen.length === 1 ? " Buchung" : " Buchungen") + " als Datei gespeichert.", "Die Datei bitte an die Zentrale weitergeben."], "ok");
+    meldung("e-meldung", [offen.length + (offen.length === 1 ? " Buchung" : " Buchungen") + " als Datei gespeichert.", "In dieser Beta wird die Datei von keiner anderen Stelle eingelesen. Die Buchungen bleiben zusätzlich auf diesem Gerät gespeichert."], "ok");
   }
 
   function einwohnerLaden(evt) {
@@ -746,7 +746,7 @@
         if (!liste.length) throw new Error("leer");
         localStorage.setItem(NAMEN, JSON.stringify(liste)); namenNeu();
         meldung("e-meldung", ["Liste geladen: " + liste.length + " Einträge.", "Zugeordnete Namen erscheinen ab sofort bei „Wer holt ab?“."], "ok");
-      } catch (e) { meldung("e-meldung", ["Die Liste konnte nicht gelesen werden.", "Bitte die Datei der Zentrale unverändert verwenden."]); }
+      } catch (e) { meldung("e-meldung", ["Die Liste konnte nicht gelesen werden.", "Bitte die bereitgestellte Datei unverändert verwenden."]); }
       evt.target.value = ""; zeigeEinstellungen();
     };
     rd.readAsText(f);
@@ -778,7 +778,7 @@
   }
 
   function loeschen() {
-    if (!confirm("Alle Buchungen auf diesem Gerät löschen? Bereits übertragene Buchungen in der Zentrale bleiben erhalten.")) return;
+    if (!confirm("Alle Buchungen auf diesem Gerät löschen? Bereits als Datei gespeicherte Buchungen bleiben in dieser Datei erhalten.")) return;
     zuruecksetzen().then(function () { $("e-testcodes").innerHTML = ""; zeigeEinstellungen(); meldung("e-meldung", ["Buchungen auf diesem Gerät gelöscht.", "Startbestände sind neu eingelesen."], "ok"); });
   }
 
