@@ -1,0 +1,115 @@
+{
+  "hinweis": "Gemeinsamer Demonstrationsdatensatz Lebensmittelkarte Familie Becker für Customer App und Retail App. Fiktive Familie, nur zum Vorzeigen. Steht weder im Melderegister noch im gemeinsamen Ereignislog. Einlösungen nur lokal im Gerät (Retail), nie im gemeinsamen Log. Spezifikation: beta/data/DEMO-BECKER-RETAIL.md",
+  "demo": true,
+  "version": 1,
+  "familie": "Becker",
+  "haushalt_id": "FA-HH-14729140-900001",
+  "papierkarte_id": "FA-PK-14729140-900001",
+  "code_anzeige": "FA-PK-14729140-900001-77",
+  "code_barcode": "FAPK1472914090000177",
+  "barcode_symbologie": "code39",
+  "pruefziffer_verfahren": "ISO 7064 Mod 97-10 über AGS (8) + laufende Nummer (6), wie Kern papierkartenCode",
+  "gueltigkeit": "laufende_woche_mo_so_berlin",
+  "gueltigkeit_hinweis": "Gilt immer für die laufende Woche Montag 00:00 bis Sonntag 23:59 in Europe/Berlin, wie customer-app/js/voucher.js periodFromDate. Nur für diese Demonstrationsfamilie.",
+  "periode_id_vorlage": "FA-PER-{MONTAG_YYYYMMDD}",
+  "gutschein_id_vorlage": "FA-V-{MONTAG_YYYYMMDD}-900001",
+  "kanal": "papier",
+  "ags": "14729140",
+  "anschrift": {
+    "strasse": "Musterstraße",
+    "hausnummer": "4",
+    "plz": "12345",
+    "ort": "Musterstadt",
+    "ortsteil": "Musterstadt"
+  },
+  "personen": [
+    {
+      "person_id": "FA-P-14729140-900001",
+      "vornamen": "Anna",
+      "familienname": "Becker",
+      "altersgruppe": "adult",
+      "rolle_im_haushalt": "Haushaltsvorstand",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-900002",
+      "vornamen": "Jonas",
+      "familienname": "Becker",
+      "altersgruppe": "adult",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-900003",
+      "vornamen": "Mia",
+      "familienname": "Becker",
+      "altersgruppe": "child",
+      "rolle_im_haushalt": "Kind unter 18 Jahren",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    }
+  ],
+  "positionen": [
+    {
+      "artikel_id": "wheat_flour",
+      "einheit": "kg",
+      "je_person": 2.0,
+      "bedarf": 6.0,
+      "basiskontingent": 6.0,
+      "zugeteilt_max": 6.0,
+      "eingeloest": 0,
+      "rest": 6.0,
+      "personen_anzahl": 3
+    },
+    {
+      "artikel_id": "rice",
+      "einheit": "kg",
+      "je_person": 1.2,
+      "bedarf": 3.6,
+      "basiskontingent": 3.6,
+      "zugeteilt_max": 3.6,
+      "eingeloest": 0,
+      "rest": 3.6,
+      "personen_anzahl": 3
+    },
+    {
+      "artikel_id": "oil",
+      "einheit": "L",
+      "je_person": 0.35,
+      "bedarf": 1.05,
+      "basiskontingent": 1.05,
+      "zugeteilt_max": 1.05,
+      "eingeloest": 0,
+      "rest": 1.05,
+      "personen_anzahl": 3
+    },
+    {
+      "artikel_id": "toilet_paper",
+      "einheit": "rolle",
+      "je_person": 1,
+      "bedarf": 3,
+      "basiskontingent": 3,
+      "zugeteilt_max": 3,
+      "eingeloest": 0,
+      "rest": 3,
+      "personen_anzahl": 3
+    }
+  ],
+  "trinkwasser": "nur während einer Versorgungsstörung auf einer eigenen Zusatzkarte; für die Demonstrationskarte nicht vorgesehen",
+  "ausgabestellen": [
+    "FA-R-14729140-0001",
+    "FA-R-14729140-0002",
+    "FA-R-14729140-0003",
+    "FA-R-14729140-0004",
+    "FA-R-14729140-0005",
+    "FA-R-14729140-0006"
+  ],
+  "ausgabestellen_hinweis": "Kern-Ausgabestellen mit abgabekanal einzelhandel laut kern/stammdaten-ausgabestellen.json (rolle kern)."
+}

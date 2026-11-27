@@ -206,7 +206,8 @@
     state.sharedVouchers = pack[8] || [];
     state.demoDesktopSim = [];
     try {
-      state.demoKarte = await loadJson("data/demo-karte.json");
+      // Gemeinsamer Datensatz mit der Retail App; Rückfall auf die Kopie im Customer-Paket.
+      state.demoKarte = (await loadFirst(["../data/demo-becker.json", "data/demo-karte.json"], "json")).data;
     } catch (e) {
       state.demoKarte = null;
     }

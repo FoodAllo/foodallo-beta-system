@@ -1,5 +1,5 @@
 /* FoodAllo Customer App — lokaler Service Worker, App-Shell und lokale Daten. */
-const CACHE = "foodallo-customer-app-public-6";
+const CACHE = "foodallo-customer-app-public-7";
 const ASSETS = [
   "./",
   "./index.html",
@@ -61,7 +61,7 @@ self.addEventListener("activate", function (event) {
 
 function istDynamischeQuelle(url) {
   var path = url.pathname || "";
-  return /\/(ereignislog\.(jsonl|js)|referenz\.json|melderegister\.js)$/.test(path);
+  return /\/(ereignislog\.(jsonl|js)|referenz\.json|melderegister\.js|demo-becker\.json|demo-karte\.json)$/.test(path);
 }
 
 self.addEventListener("fetch", function (event) {

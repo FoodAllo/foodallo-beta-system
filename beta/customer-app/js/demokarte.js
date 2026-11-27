@@ -3,6 +3,9 @@
  * Nur Customer App: liest data/demo-karte.json, schreibt nichts in den gemeinsamen Log.
  * Kartennummer und Strichcode wie in der Desktopversion (Kern papierkartenCode, Code 39).
  * Gültigkeit: immer die laufende Woche (Montag bis Sonntag), nur für diese Demonstrationsfamilie.
+ * Datensatz: ../data/demo-becker.json (gemeinsam mit der Retail App), Rückfall data/demo-karte.json.
+ * „Bereits abgeholt“: nur aus lokalen Einlösungen der Retail App im selben Browser
+ * (localStorage foodallo.retail.ereignisse.v1), nie aus dem gemeinsamen Log.
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
@@ -59,8 +62,48 @@
     return { code_anzeige: pkId + "-" + pz, code_barcode: "FAPK" + z + pz };
   }
 
+  var RETAIL_SPEICHER = "foodallo.retail.ereignisse.v1";
+
+  /** Gutschein-Kennung der Demonstrationskarte für die laufende Woche (Vorlage aus dem Datensatz). */
+  function gutscheinIdFuer(demo, periode) {
+    var ymd = String(periode && periode.start_ymd || "");
+    var vorlage = (demo && demo.gutschein_id_vorlage) || "FA-V-{MONTAG_YYYYMMDD}-900001";
+    return vorlage.replace("{MONTAG_YYYYMMDD}", ymd);
+  }
+
+  /** Lokale Einlösungen der Retail App (gleicher Browser) für diese Karte und Woche, Stornos abgezogen. */
+  function lokalEingeloest(demo, periode) {
+    var summe = {};
+    var evs;
+    try { evs = JSON.parse(localStorage.getItem(RETAIL_SPEICHER) || "[]"); } catch (e) { evs = []; }
+    if (!Array.isArray(evs)) return summe;
+    var gid = gutscheinIdFuer(demo, periode), buchungen = {}, storniert = {};
+    evs.forEach(function (ev) {
+      if (!ev || !ev.payload) return;
+      if (ev.typ === "REDEMPTION_REVERSED" && ev.payload.buchung_id) storniert[ev.payload.buchung_id] = true;
+      if (ev.typ !== "REDEMPTION_POSTED") return;
+      var b = ev.payload.ausgabebuchung;
+      if (!b || b.gutschein_id !== gid || b.status === "storniert") return;
+      buchungen[b.buchung_id || ev.ereignis_id] = b;
+    });
+    Object.keys(buchungen).forEach(function (id) {
+      if (storniert[id]) return;
+      var b = buchungen[id];
+      summe[b.artikel_id] = Math.round(((summe[b.artikel_id] || 0) + Number(b.menge || 0)) * 1000) / 1000;
+    });
+    return summe;
+  }
+
   /** Mengen je Woche für den Haushalt nach den bestehenden Regeln (Basis je Person, ohne Trinkwasser und Insulin). */
-  function positionen(artikel, personenZahl) {
+  function positionen(artikel, personenZahl, demo) {
+    if (demo && Array.isArray(demo.positionen) && demo.positionen.length) {
+      var namen = {};
+      (artikel || []).forEach(function (a) { namen[a.artikel_id] = a.bezeichnung_de; });
+      return demo.positionen.map(function (p) {
+        return { artikel_id: p.artikel_id, bezeichnung: namen[p.artikel_id] || p.artikel_id, einheit: p.einheit, je_person: p.je_person,
+          zugeteilt_max: p.zugeteilt_max, eingeloest: 0, rest: p.zugeteilt_max };
+      });
+    }
     return (artikel || []).filter(function (a) {
       return a.periode_basis_vorschlag && a.artikel_id !== "water" && a.artikel_id !== "insulin" && !a.nur_bei_stoerung;
     }).map(function (a) {
@@ -85,7 +128,16 @@
     var personen = d.personen || [];
     var n = personen.length;
     var code = papierCode(d.papierkarte_id) || { code_anzeige: "", code_barcode: "" };
-    var pos = positionen(opts.artikel, n);
+    var pos = positionen(opts.artikel, n, d);
+    var abgeholt = lokalEingeloest(d, periode);
+    var irgendwas = false;
+    pos.forEach(function (p) {
+      var e = Math.min(Number(abgeholt[p.artikel_id] || 0), Number(p.zugeteilt_max));
+      if (e > 0) irgendwas = true;
+      p.eingeloest = e;
+      p.rest = Math.round((Number(p.zugeteilt_max) - e) * 1000) / 1000;
+    });
+    var alles = pos.length && pos.every(function (p) { return p.rest <= 0.0005; });
     var fm = function (v, e) {
       if ((e === "rolle" || e === "Rollen") && Number(v) === 1) return "1\u00a0Rolle";
       return UI ? UI.formatMenge(v, e) : String(v);
@@ -97,7 +149,8 @@
     html += '<h2 id="lk-titel">Lebensmittelkarte <span class="lk-vermerk">Demonstration</span></h2>';
     html += '<p class="lk-amt">Musterstadt · Pass- und Meldebehörde</p>';
     html += "</header>";
-    html += '<p class="lk-status">Status: <span class="pill status-gueltig">Gültig</span></p>';
+    html += '<p class="lk-status">Status: <span class="pill status-gueltig">Gültig</span>' +
+      (alles ? ' <span class="pill status-ausgeschoepft">Alles abgeholt</span>' : (irgendwas ? ' <span class="pill status-teilweise_eingeloest">Teilweise abgeholt</span>' : "")) + "</p>";
     html += '<p class="lk-gueltig">Gültig diese Woche: Montag, ' + esc(dat(periode.start_iso_date)) +
       " bis Sonntag, " + esc(dat(periode.ende_iso_date)) + ".</p>";
     html += '<p class="hint">In dieser Demonstration gilt die Karte immer für die laufende Woche, von Montag bis Sonntag.</p>';
@@ -116,6 +169,9 @@
     html += "</div>";
 
     html += '<h3 class="lk-h3">Mengen für diese Woche</h3>';
+    if (irgendwas) {
+      html += '<p class="hint">„Bereits abgeholt“ zeigt die Abholungen, die in diesem Browser in der Retail App gebucht wurden.</p>';
+    }
     html += '<table class="lk-tabelle"><thead><tr><th scope="col">Artikel</th><th scope="col" class="num">Sie dürfen abholen</th>' +
       '<th scope="col" class="num">Bereits abgeholt</th><th scope="col" class="num">Es bleibt noch</th></tr></thead><tbody>';
     pos.forEach(function (p) {
@@ -128,10 +184,10 @@
     html += '<p class="hint">Die Mengen gelten für den ganzen Haushalt und je Woche, zum Beispiel eine Rolle Toilettenpapier je Person. ' +
       "Trinkwasser gibt es nur während einer Versorgungsstörung: 2 Liter je Person und Tag (14 Liter je Person und Woche), auf einer zusätzlichen Karte.</p>";
     html += "<p>So nutzen Sie die Karte: Zeigen Sie die Karte im Geschäft vor. Das Geschäft scannt den Strichcode oder tippt die Kartennummer ein.</p>";
-    html += '<p class="hint">Diese Karte gehört zu einer erfundenen Familie und dient nur zum Vorzeigen. In der Retail App ist sie nicht hinterlegt und kann dort nicht eingelöst werden.</p>';
+    html += '<p class="hint">Diese Karte gehört zu einer erfundenen Familie und dient nur zur Demonstration. Abholungen auf diese Karte bucht die Retail App nur auf dem jeweiligen Gerät, nicht im gemeinsamen Datenbestand.</p>';
     html += "</section>";
     return html;
   }
 
-  return { render: render, positionen: positionen, papierCode: papierCode, code39Svg: code39Svg };
+  return { render: render, positionen: positionen, gutscheinIdFuer: gutscheinIdFuer, lokalEingeloest: lokalEingeloest, papierCode: papierCode, code39Svg: code39Svg };
 });
