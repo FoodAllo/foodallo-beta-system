@@ -4,6 +4,15 @@
   --ink: #1c1a16;
   --muted: #3f3b34;
   --line: #d7d0c4;
+  /* Grundton Customer App: FoodAllo-Orange (aus dem Logo bzw. der Markenfarbe #e8963c).
+     --orange nur als Fläche/Linie ohne Text; Text und Knöpfe mit weißer Schrift in --orange-dark (WCAG AA). */
+  --orange: #e8963c;
+  --orange-dark: #a65300;
+  --orange-darker: #8a4300;
+  --orange-soft: #fdebd6;
+  --orange-soft-hover: #fbdcb8;
+  --orange-line: #e9b27a;
+  /* Grün nur noch für Status „Gültig“ / „Bereit“ (Bedeutung), nicht als Grundton */
   --green: #1b5e3b;
   --green-dark: #123f28;
   --green-soft: #e4f0e8;
@@ -51,7 +60,7 @@ body {
   padding: 8px 24px;
   background: #fff;
   color: var(--ink);
-  border-bottom: 3px solid #e8963c;
+  border-bottom: 4px solid var(--orange);
 }
 .app-header .logo-header {
   height: 48px;
@@ -108,7 +117,8 @@ input, select { min-height: 44px; }
 .app-foot .beta { font-weight: 650; margin: 0 0 0.25rem; color: var(--ink); }
 .app-foot .demo-hinweis { margin: 0 0 0.25rem; }
 .app-foot .osm { margin: 0; }
-.app-foot a { color: var(--green-dark); }
+.app-foot a { color: var(--orange-darker); }
+a { color: var(--orange-darker); }
 .noscript { padding: 1rem; }
 .help h3 { margin-top: 1.15rem; }
 .login-card { text-align: left; }
@@ -126,11 +136,11 @@ input, select { min-height: 44px; }
 .besucher-zugang .btn {
   width: 100%;
   margin: 0 0 0.45rem;
-  background: var(--green-soft);
-  border: 1px solid #c5ddd0;
+  background: var(--orange-soft);
+  border: 1px solid var(--orange-line);
   text-align: left;
 }
-.besucher-zugang .btn:hover { background: #d7eadc; }
+.besucher-zugang .btn:hover { background: var(--orange-soft-hover); }
 
 
 .header-actions { margin-left: auto; display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.45rem; }
@@ -164,7 +174,7 @@ input, select {
   color: var(--ink);
 }
 input:focus, select:focus, button:focus-visible {
-  outline: 3px solid #8fcaaa;
+  outline: 3px solid var(--orange-dark);
   outline-offset: 1px;
 }
 
@@ -179,16 +189,17 @@ input:focus, select:focus, button:focus-visible {
   color: var(--ink);
 }
 .btn.primary {
-  background: var(--green);
+  background: var(--orange-dark);
   color: #fff;
   width: 100%;
   margin-top: 1rem;
   padding: 0.75rem 1rem;
 }
-.btn.primary:hover { background: var(--green-dark); }
-.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.primary:hover { background: var(--orange-darker); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--orange-dark); }
+.btn.ghost:hover { background: var(--orange-soft); }
 .btn.small { font-size: 0.85rem; padding: 0.4rem 0.75rem; }
-.btn.linkish { background: none; color: var(--green); padding: 0.4rem 0; text-decoration: underline; width: auto; }
+.btn.linkish { background: none; color: var(--orange-dark); padding: 0.4rem 0; text-decoration: underline; width: auto; }
 
 .error {
   background: var(--rose-bg);
@@ -204,8 +215,8 @@ input:focus, select:focus, button:focus-visible {
   width: 100%;
   text-align: left;
   font: inherit;
-  background: var(--green-soft);
-  border: 1px solid #c5ddd0;
+  background: var(--orange-soft);
+  border: 1px solid var(--orange-line);
   border-radius: 12px;
   padding: 0.7rem 0.8rem;
   cursor: pointer;
@@ -274,7 +285,7 @@ code {
   overflow: hidden;
   margin-top: 0.4rem;
 }
-.bar > span { display: block; height: 100%; background: var(--green); }
+.bar > span { display: block; height: 100%; background: var(--orange-dark); }
 
 .stellen-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.55rem; }
 .stellen-list li {
@@ -283,7 +294,7 @@ code {
   padding: 0.65rem 0.75rem;
   font-size: 0.92rem;
 }
-.stellen-list li.hl { border-color: var(--green); background: var(--green-soft); }
+.stellen-list li.hl { border-color: var(--orange-dark); background: var(--orange-soft); }
 .typ { color: var(--muted); font-size: 0.8rem; margin-left: 0.3rem; }
 
 footer.app-foot {
@@ -318,7 +329,7 @@ footer.app-foot {
 .haushalt-liste li { margin: 0.25rem 0; }
 
 /* Lebensmittelkarte zum Vorzeigen (Demonstration, Familie Becker) */
-.lebensmittelkarte { border: 2px solid var(--green); }
+.lebensmittelkarte { border: 2px solid var(--orange); }
 .lk-kopf h2 { margin-bottom: 0.15rem; }
 .lk-vermerk { display: inline-block; font-size: 0.8rem; font-weight: 650; background: var(--amber-bg); color: var(--amber); border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: middle; }
 .lk-amt { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.9rem; }
@@ -336,7 +347,8 @@ footer.app-foot {
 .lk-strichcode-platz { display: flex; justify-content: center; box-sizing: border-box; margin: 0.4rem 0 0; background: #fff; width: 100%; max-width: 100%; min-width: 0; overflow: hidden; }
 .karte-strichcode { display: block; flex: 0 0 auto; background: #fff; max-width: none; }
 .lk-strichcode-platz[data-gross-anzeigen] { cursor: zoom-in; }
-.lk-gross-knopf { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; width: 100%; max-width: 24rem; margin: 0.5rem auto 0.3rem; font-weight: 700; border: 2px solid var(--green-dark); background: var(--green-dark); color: #fff; padding: 0.6rem 0.8rem; }
+.lk-gross-knopf { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; width: 100%; max-width: 24rem; margin: 0.5rem auto 0.3rem; font-weight: 700; border: 2px solid var(--orange-dark); background: var(--orange-dark); color: #fff; padding: 0.6rem 0.8rem; }
+.lk-gross-knopf:hover { background: var(--orange-darker); border-color: var(--orange-darker); }
 .lk-gross-knopf-titel { font-size: 1.1rem; }
 .lk-scan-hinweis { font-size: 0.85rem; font-weight: 600; }
 /* Vollbild-Strichcode zum Scannen: reines Schwarz auf reinem Weiß */
