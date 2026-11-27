@@ -1,5 +1,5 @@
 /* FoodAllo Customer App — lokaler Service Worker, App-Shell und lokale Daten. */
-const CACHE = "foodallo-customer-app-public-5";
+const CACHE = "foodallo-customer-app-public-6";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const ASSETS = [
   "./js/voucher.js",
   "./js/store.js",
   "./js/ui.js",
+  "./js/demokarte.js",
   "./js/melderegister.js",
   "./desktop/assets/melderegister.js",
   "./js/app.js",
@@ -30,6 +31,7 @@ const ASSETS = [
   "./data/demo-auth.json",
   "./data/einloesung-vorlage.json",
   "./data/gutscheine-shared.json",
+  "./data/demo-karte.json",
   "./schema/foodallo-core.schema.json",
   "./kern/foodallo_kern.js",
   "./kern/stammdaten-ausgabestellen.json",

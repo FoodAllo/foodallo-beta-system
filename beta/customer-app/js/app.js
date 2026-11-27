@@ -11,6 +11,7 @@
   var Store = window.FoodAlloStore;
   var UI = window.FoodAlloUI;
   var Reg = window.FoodAlloMelderegister;
+  var DemoKarte = window.FoodAlloDemoKarte;
   var state = {
     artikel: [],
     stellen: [],
@@ -27,6 +28,7 @@
     logQuelle: null,
     datenHinweis: [],
     melderegister: null,
+    demoKarte: null,
     ready: false
   };
 
@@ -203,6 +205,11 @@
     state.einloesungVorlage = Array.isArray(vorlage) ? vorlage : (vorlage.buchungen || []);
     state.sharedVouchers = pack[8] || [];
     state.demoDesktopSim = [];
+    try {
+      state.demoKarte = await loadJson("data/demo-karte.json");
+    } catch (e) {
+      state.demoKarte = null;
+    }
 
     try {
       var stellen = await loadFirst(STELLEN_PFAde, "json");
@@ -685,8 +692,35 @@
     await renderVoucher(person);
   }
 
+  /* Lebensmittelkarte zum Vorzeigen: Demonstrationsfamilie Becker (nur Customer App, kein Log-Eintrag).
+     Gültigkeit immer die laufende Woche; die Wochenlogik aller anderen Familien bleibt unverändert. */
+  function zeigeDemoKarte() {
+    if (!state.demoKarte || !DemoKarte) {
+      setFormError("#login-error", UI.datenFehler());
+      showView("login");
+      return;
+    }
+    Store.setSession({ demo_karte: "becker", zeit: Store.nowIso() });
+    showView("app");
+    var who = $("#who");
+    who.hidden = false;
+    who.textContent = "Guten Tag, Familie " + state.demoKarte.familie;
+    var html = DemoKarte.render({
+      demo: state.demoKarte,
+      artikel: state.artikel,
+      periode: periodNow(),
+      UI: UI
+    });
+    html += renderStellen(false, { ags_wohnsitz: konfigurierteAgs() });
+    $("#voucher-root").innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
   function logout() {
     Store.setSession(null);
+    if (location.hash === "#lebensmittelkarte" && history.replaceState) {
+      history.replaceState(null, "", location.pathname + location.search);
+    }
     $("#pin").value = "";
     var who = $("#who");
     if (who) {
@@ -806,6 +840,8 @@
     if (btnMeier) btnMeier.addEventListener("click", function () { starteBesucherZugang("meier"); });
     var btnMueller = $("#btn-besucher-mueller");
     if (btnMueller) btnMueller.addEventListener("click", function () { starteBesucherZugang("mueller"); });
+    var btnBecker = $("#btn-besucher-becker");
+    if (btnBecker) btnBecker.addEventListener("click", function () { zeigeDemoKarte(); });
     $("#login-form").addEventListener("submit", function (ev) {
       ev.preventDefault();
       login($("#person-id").value, $("#pin").value);
@@ -878,6 +914,11 @@
       loadLocalPins();
       bind();
       var session = Store.getSession();
+      if (location.hash === "#lebensmittelkarte" || (session && session.demo_karte === "becker")) {
+        zeigeDemoKarte();
+        registerSw();
+        return;
+      }
       if (session && session.person_id) {
         var person = findPerson(session.person_id);
         if (person) {

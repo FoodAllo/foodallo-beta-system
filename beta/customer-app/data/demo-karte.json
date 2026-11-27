@@ -1,0 +1,12 @@
+{
+  "hinweis": "Nur für die Customer App. Fiktive Demonstrationsfamilie zum Vorzeigen der Lebensmittelkarte. Steht weder im Melderegister noch im gemeinsamen Ereignislog.",
+  "familie": "Becker",
+  "haushalt_id": "FA-HH-14729140-900001",
+  "papierkarte_id": "FA-PK-14729140-900001",
+  "anschrift": { "strasse": "Musterstraße", "hausnummer": "4", "plz": "12345", "ort": "Musterstadt", "ortsteil": "Musterstadt" },
+  "personen": [
+    { "person_id": "FA-P-14729140-900001", "vornamen": "Anna", "familienname": "Becker", "altersgruppe": "adult" },
+    { "person_id": "FA-P-14729140-900002", "vornamen": "Jonas", "familienname": "Becker", "altersgruppe": "adult" },
+    { "person_id": "FA-P-14729140-900003", "vornamen": "Mia", "familienname": "Becker", "altersgruppe": "child" }
+  ]
+}

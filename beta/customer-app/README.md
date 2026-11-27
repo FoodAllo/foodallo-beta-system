@@ -20,6 +20,7 @@ Auf dem Anmeldebildschirm gibt es einen Besucherzugang:
 
 - **Als Familie Meier ausprobieren** — Identität bestätigt; der Haushaltsgutschein gilt für den Demonstrationszeitraum 16.–22.11.2026 und erscheint in der App nur in diesem Zeitraum
 - **Als Familie Müller ausprobieren** — Wartebildschirm, Identität wird noch geprüft
+- **Als Familie Becker ausprobieren (Lebensmittelkarte)** — zeigt sofort eine gültige Lebensmittelkarte zum Vorzeigen (Kartennummer, Strichcode, Mengen der laufenden Woche). Die Karte gilt in dieser Demonstration immer für die laufende Woche, Montag bis Sonntag. Direkter Link: `…/customer-app/#lebensmittelkarte`. Familie Becker ist erfunden und steht nur in `data/demo-karte.json` der Customer App, nicht im Melderegister und nicht im gemeinsamen Ereignislog; die Retail App kann diese Karte deshalb nicht einlösen.
 
 Dafür müssen Sie nichts eingeben. Der Zugang gilt nur in diesem Browser.
 

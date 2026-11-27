@@ -313,3 +313,35 @@ footer.app-foot {
 
 .haushalt-liste { margin: 0.4rem 0 0; padding-left: 1.3rem; }
 .haushalt-liste li { margin: 0.25rem 0; }
+
+/* Lebensmittelkarte zum Vorzeigen (Demonstration, Familie Becker) */
+.lebensmittelkarte { border: 2px solid var(--green); }
+.lk-kopf h2 { margin-bottom: 0.15rem; }
+.lk-vermerk { display: inline-block; font-size: 0.8rem; font-weight: 650; background: var(--amber-bg); color: var(--amber); border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: middle; }
+.lk-amt { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.9rem; }
+.lk-status { margin: 0.4rem 0; }
+.pill.status-gueltig { background: var(--green); color: #fff; font-size: 0.95rem; padding: 0.15rem 0.75rem; }
+.lk-gueltig { font-weight: 600; margin: 0.4rem 0 0.2rem; }
+.lk-meta { display: grid; gap: 0.35rem; margin: 0.8rem 0; }
+.lk-meta > div { display: grid; grid-template-columns: 11rem 1fr; gap: 0.4rem; }
+.lk-meta dt { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+.lk-meta dd { margin: 0; }
+.lk-code { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem; text-align: center; margin: 0.8rem 0; }
+.lk-code-label { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.lk-nummer { margin: 0.2rem 0 0.5rem; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; word-break: break-all; }
+.karte-strichcode { display: block; width: 100%; max-width: 30rem; height: 56px; margin: 0 auto; }
+.lk-h3 { margin: 1rem 0 0.4rem; }
+.lk-tabelle { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.lk-tabelle th, .lk-tabelle td { border-bottom: 1px solid var(--line); padding: 0.45rem 0.3rem; text-align: left; vertical-align: top; }
+.lk-tabelle thead th { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+.lk-tabelle .num { text-align: right; white-space: nowrap; }
+.lk-je { display: block; font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+@media (max-width: 520px) {
+  .lk-meta > div { grid-template-columns: 1fr; gap: 0.05rem; }
+  .lk-tabelle { font-size: 0.85rem; }
+  .lk-tabelle th, .lk-tabelle td { padding: 0.4rem 0.15rem; }
+  .lk-tabelle th:nth-child(3), .lk-tabelle td:nth-child(3) { display: none; }
+  .lk-tabelle .num { white-space: normal; }
+  .app-header { padding: 8px 12px; gap: 0.5rem; }
+  .header-actions { display: flex; flex: 1 1 auto; min-width: 0; justify-content: flex-end; }
+}
