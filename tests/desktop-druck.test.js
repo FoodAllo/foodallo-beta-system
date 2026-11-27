@@ -52,6 +52,8 @@ async function zurKarte(b, br, format) {
       ok('chrome', `${format}: PDF genau 1 Seite`, seiten === 1, `${seiten} Seiten`);
       ok('chrome', `${format}: PDF enthält Kartennummer`, !!code && norm(txt).includes(norm(code)), code);
       ok('chrome', `${format}: PDF enthält Musterstadt und 12345`, txt.includes('Musterstadt') && txt.includes('12345'));
+      // Karte des Haushalts Schulze (Ortsteil Musterdorf): Anschrift im Format von formatiereOrt im Kern
+      ok('chrome', `${format}: Musterdorf-Karte mit „12345 Musterstadt (Musterdorf)“`, norm(txt).includes(norm('12345 Musterstadt (Musterdorf)')) && !norm(txt).includes(norm('12345 Musterdorf')), (txt.match(/Musterstraße[^\n]*/) || [''])[0]);
       ok('chrome', `${format}: PDF enthält Haushalt`, /Haushalt/.test(txt));
       ok('chrome', `${format}: PDF ohne Bedienelemente`, !/Abmelden|Lebensmittelkarten drucken/.test(txt));
       await p.emulateMedia({ media: 'print' }); await p.screenshot({ path: `${out}/${label}-chrome-${format}-druckansicht.png`, fullPage: true });

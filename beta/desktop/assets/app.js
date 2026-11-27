@@ -177,8 +177,8 @@
   function vollerName(e) { return e ? (e.vornamen + " " + e.familienname) : ""; }
   function anschrift(e) {
     if (!e) return "";
-    /* „Straße Nr, 12345 Musterstadt“ bzw. „12345 Musterdorf“ */
-    return ((e.strasse || "") + " " + (e.hausnummer || "")).trim() + ", " + ((e.plz || "") + " " + ((e.ortsteil && e.ortsteil !== e.ort) ? e.ortsteil : (e.ort || ""))).trim();
+    /* wie formatiereOrt im Kern: „Straße Nr, 12345 Musterstadt“ bzw. „Straße Nr, 12345 Musterstadt (Musterdorf)“ */
+    return ((e.strasse || "") + " " + (e.hausnummer || "")).trim() + ", " + ((e.plz || "") + " " + (e.ort || "") + ((e.ortsteil && e.ortsteil !== e.ort) ? " (" + e.ortsteil + ")" : "")).trim();
   }
   function personName(pid) { var e = PERS[pid]; return e ? vollerName(e) : "unbekannte Person"; }
   function ergaenztTag(e) { return e && e.ergaenzt ? " <span class='ergaenzt' title='Angabe ergänzt, nicht aus der Einwohnermeldeliste'>ergänzt</span>" : ""; }
@@ -898,7 +898,7 @@
       html += "<div class='karte'><table id='stellen-tabelle'><thead><tr><th>Ausgabestelle</th><th>Art</th><th>Anschrift</th><th>Ausgabe</th>" +
         BESTAND_ARTIKEL.map(function (id) { return "<th class='num'>" + esc(artikel(id).bezeichnung_de) + "</th>"; }).join("") + "</tr></thead><tbody>";
       liste.slice().sort(function (a, b) { return (istKern(b) ? 1 : 0) - (istKern(a) ? 1 : 0) || stelleName(a).localeCompare(stelleName(b), "de"); }).forEach(function (st) {
-        var adr = st.adresse ? ((st.adresse.strasse || "") + " " + (st.adresse.hausnummer || "")).trim() + (st.adresse.plz ? ", " + st.adresse.plz + " " + ((st.adresse.ortsteil && st.adresse.ortsteil !== st.adresse.ort) ? st.adresse.ortsteil : (st.adresse.ort || "")) : "") : "";
+        var adr = st.adresse ? ((st.adresse.strasse || "") + " " + (st.adresse.hausnummer || "")).trim() + (st.adresse.plz ? ", " + st.adresse.plz + " " + (st.adresse.ort || "") + ((st.adresse.ortsteil && st.adresse.ortsteil !== st.adresse.ort) ? " (" + st.adresse.ortsteil + ")" : "") : "") : "";
         html += "<tr" + (istKern(st) ? "" : " class='ohne'") + "><td>" + esc(stelleName(st)) + "</td><td>" + esc(typLabel(st.typ)) + "</td><td>" + esc(adr || "—") + "</td><td>" + (st.rolle === "kern_insulin" ? "Insulin" : istKern(st) ? "Lebensmittel und Hygieneartikel" : "nicht eingebunden") + "</td>" +
           BESTAND_ARTIKEL.map(function (id) {
             var b = D.bestaende.filter(function (x) { return x.ausgabestelle_id === st.ausgabestelle_id && x.artikel_id === id; })[0];
