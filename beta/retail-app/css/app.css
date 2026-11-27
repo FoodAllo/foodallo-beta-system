@@ -4,7 +4,7 @@
      Das FoodAllo-Logo ist ein Bild in Originalfarbe und wird hier nicht eingefärbt. Belege bleiben schwarz-weiß. */
   --ink: #14211a; --ink-soft: #2b3b31; --muted: #4d5e53;
   --gruen: #2e7d32; --gruen-tief: #1b5e20; --gruen-hell: #e3f2e4; --gruen-akzent: #8fd694;
-  --paper: #eef6ef; --paper-deep: #d9e9db; --card: #fbfefb; --weiss: #fff;
+  --paper: #eef6ef; --paper-deep: #d9e9db; --card: #fbfefb; --weiss: #fff; --logo-grund: #fff;
   --border: #c3d9c6; --rand-stark: #6f8f74;
   --dunkel-text: #f1f8f1; --dunkel-leise: #cfe6d1; --dunkel-flaeche: rgba(255,255,255,.09); --dunkel-rand: #8fbf93;
   --fokus: #1b5e20; --fokus-dunkel: #8fd694;
@@ -30,7 +30,7 @@ p { margin: .3rem 0; }
 button { font: inherit; cursor: pointer; }
 
 /* Kopfzeile */
-.kopf { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: .6rem; padding: .55rem .9rem; background: var(--card); border-bottom: 1px solid var(--border); }
+.kopf { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: .6rem; padding: .55rem .9rem; background: var(--logo-grund); border-bottom: 1px solid var(--border); }
 .kopf-logo { border: 0; background: none; padding: 0; display: flex; }
 .kopf-logo img { height: 28px; width: auto; display: block; }
 .kopf-ort { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: right; line-height: 1.2; }
@@ -43,7 +43,7 @@ button { font: inherit; cursor: pointer; }
 /* Bildschirme */
 .screen { padding: 1rem .9rem; }
 .screen.dunkel { background: var(--gruen-tief); color: var(--dunkel-text); min-height: 100vh; padding-top: 1.6rem; }
-.logo-dunkel-grund { display: block; width: 220px; height: auto; margin: 0 0 1.2rem; }
+.logo-dunkel-grund { display: block; width: 220px; height: auto; margin: 0 0 1.2rem; background: var(--logo-grund); padding: .55rem .8rem; border-radius: .8rem; }   /* Logo in Originalfarbe auf heller Fläche */
 .dunkel .schritt { color: var(--dunkel-leise); }
 .schritt { font-weight: 700; margin: 1rem 0 .5rem; font-size: .95rem; }
 .zurueck { border: 0; background: none; color: var(--gruen); font-weight: 700; padding: .4rem 0; min-height: 2.75rem; margin-bottom: .2rem; }

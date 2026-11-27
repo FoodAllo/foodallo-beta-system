@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var K = window.FAKern, R = window.FARetail;
-  var APP_VERSION = "v26";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
+  var APP_VERSION = "v27";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
   var SPEICHER = "foodallo.retail.ereignisse.v1";
   var EXPORTIERT = "foodallo.retail.exportiert.v1";
   var SCHICHT = "foodallo.retail.schicht.v2";
@@ -666,7 +666,7 @@
   /* ---------- Beleg ---------- */
   function zeigeBeleg(b) {
     var a = ast();
-    var html = "<div class='beleg-kopf'><img src='icons/logo-dunkel-900.png' alt='FoodAllo' width='180' height='39'>" +
+    var html = "<div class='beleg-kopf'><img src='icons/logo-farbe-900.png' alt='FoodAllo' width='180' height='39'>" +
       "<p><strong>" + esc(stellenName(a)) + "</strong><br>" + esc(adresse(a)) + "<br>Kasse " + esc(schicht.kasse) + " · " + esc(datumLang(b.zeit)) + ", " + esc(uhrzeit(b.zeit)) + " Uhr</p></div>" +
       "<h1 class='beleg-titel'><span class='haken-ok' aria-hidden='true'>&#10003;</span> " + esc(b.titel) + "</h1><ul class='beleg-posten'>" +
       b.posten.map(function (p) { return "<li><span>" + esc(art(p.artikel_id).bezeichnung_de) + "</span><strong>" + esc((p.plus ? "+" : "") + menge(p.menge, p.einheit)) + "</strong></li>"; }).join("") + "</ul>" +
