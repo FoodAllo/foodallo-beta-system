@@ -95,6 +95,15 @@ const BECKER = 'FAPK1472914090000177';
     }
   }
   ok(`Alle Papierkarten (Screenshot): ${gelesen}/${geprueft} gelesen`, geprueft > 0 && gelesen === geprueft);
+  // Becker als Papierkarte der Desktopversion (assets/demo_becker.js), A4 und A6
+  const bRow = p.locator('#karten-tabelle tr[data-haushalt="FA-HH-14729140-900001"]');
+  ok('Becker in der Kartenliste', (await bRow.count()) === 1);
+  if (await bRow.count()) for (const fmt of ['a4', 'a6']) {
+    await bRow.click(); await p.selectOption('#kformat', fmt); await p.waitForSelector('.kartenblatt.' + fmt);
+    const nr = ((await p.textContent('.kartenblatt .karten-code')) || '').trim();
+    const bild = `${out}/${label}-becker-karte-${fmt}.png`; await p.locator('.barcode-wrap').screenshot({ path: bild });
+    const t = lies(bild); ok(`Becker-Karte ${fmt}: ${nr}, zxing liest ${t}`, nr === 'FA-PK-14729140-900001-77' && t === BECKER, `Nummer "${nr}", gelesen "${t}"`);
+  }
   ok('keine Seitenfehler', errs.length === 0, errs.join(' || '));
   await b.close();
   fs.writeFileSync(`${out}/${label}-ergebnis.json`, JSON.stringify({ url, fail, res }, null, 1));

@@ -146,6 +146,21 @@
   var HH = {}, PERS = {}, PERSONEN = [], HAUSHALTE = [];
   (REG.haushalte || []).forEach(function (h) { HH[h.haushalt_id] = h; HAUSHALTE.push(h); });
   (REG.eintraege || []).forEach(function (e) { PERS[e.person_id] = e; PERSONEN.push(e); });
+  /* Demonstrationshaushalt Becker (assets/demo_becker.js, 1:1 aus beta/data/demo-becker.json): nur Haushaltsliste und
+     Lebensmittelkarte, nicht im Melderegister, nicht am Schalter, nie im gemeinsamen Log. */
+  var BECKER = window.FOODALLO_DEMO_BECKER;
+  if (BECKER && BECKER.demo) {
+    var ba = BECKER.anschrift;
+    var bhh = { haushalt_id: BECKER.haushalt_id, ags: BECKER.ags, groesse: BECKER.personen.length, kanal: BECKER.kanal, demo: true,
+      person_ids: BECKER.personen.map(function (p) { return p.person_id; }), vorstand: BECKER.personen[0].person_id,
+      strasse: ba.strasse, hausnummer: ba.hausnummer, plz: ba.plz, ort: ba.ort, ortsteil: ba.ortsteil };
+    BECKER.personen.forEach(function (p) {
+      PERS[p.person_id] = { person_id: p.person_id, haushalt_id: BECKER.haushalt_id, vornamen: p.vornamen, familienname: p.familienname,
+        rolle_im_haushalt: p.rolle_im_haushalt, altersgruppe: p.altersgruppe, kanal: BECKER.kanal, ergaenzt: true, demo_status: p.verifikation.status,
+        strasse: ba.strasse, hausnummer: ba.hausnummer, plz: ba.plz, ort: ba.ort, ortsteil: ba.ortsteil };
+    });
+    HH[bhh.haushalt_id] = bhh; HAUSHALTE.push(bhh);
+  }
 
   function ausgabestellen() {
     var s = window.FOODALLO_AUSGABESTELLEN;
@@ -236,6 +251,7 @@
     return v;
   }
   function aktuellerStatus(pid) {
+    if (PERS[pid] && PERS[pid].demo_status) return { status: PERS[pid].demo_status, zeit: null, lokal: false, quelle: "demo" };
     var v = statusVerlauf(pid).filter(function (x) { return x.art === "status"; });
     if (v.length) return { status: v[v.length - 1].status, zeit: v[v.length - 1].zeit, lokal: v[v.length - 1].quelle === "lokal", quelle: v[v.length - 1].quelle };
     var a = antrag(pid);
@@ -447,6 +463,9 @@
   /* Alle Lebensmittelkarten eines Papierhaushalts: reguläre Karte (aus dem Log oder als Entwurf) und je Störung eine Zusatzkarte */
   function kartenHH(hh) {
     if (hh.kanal !== "papier") return [];
+    if (hh.demo) return [{ art: "regulaer", berechtigt: hh.person_ids.slice(),
+      karte: { papierkarte_id: BECKER.papierkarte_id, haushalt_id: BECKER.haushalt_id, code_anzeige: BECKER.code_anzeige, code_barcode: BECKER.code_barcode, status: "ausgestellt" },
+      gutschein: { haushalt_id: BECKER.haushalt_id, kanal: "papier", papierkarte_id: BECKER.papierkarte_id, positionen: BECKER.positionen } }];
     var gs = gutscheineHH(hh.haushalt_id), out = [];
     var berechtigt = hh.person_ids.filter(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; });
     if (gs.regulaer && gs.regulaer.papierkarte_id) {
@@ -637,8 +656,8 @@
   /* ---------- Erfassung am Schalter ---------- */
   function renderSchalter(host) {
     if (!darfFaelle()) { host.innerHTML = seitenTitel(ANSICHT_TITEL.schalter) + sperre(NUR_MB); return; }
-    var papier = HAUSHALTE.filter(function (h) { return h.kanal === "papier"; });
-    if (!state.haushalt || !HH[state.haushalt] || HH[state.haushalt].kanal !== "papier") state.haushalt = papier.length ? papier[0].haushalt_id : null;
+    var papier = HAUSHALTE.filter(function (h) { return h.kanal === "papier" && !h.demo; });
+    if (!state.haushalt || !HH[state.haushalt] || HH[state.haushalt].kanal !== "papier" || HH[state.haushalt].demo) state.haushalt = papier.length ? papier[0].haushalt_id : null;
     var html = seitenTitel("Person am Schalter erfassen", "Musterstadt, Pass- und Meldebehörde · Antrag für Personen ohne Smartphone, Bezug über die Lebensmittelkarte (Papier)");
     html += exportMeldung();
     html += "<div class='korb'><div class='karte'><h2>Haushalte ohne Smartphone</h2><table id='schalter-tabelle'><thead><tr><th>Haushalt</th><th>Anschrift</th><th>Status</th></tr></thead><tbody>";
@@ -699,7 +718,7 @@
       if (q && txt.indexOf(q) === -1) return;
       var pers = hh.person_ids.map(function (pid) {
         var e = PERS[pid];
-        return "<a href='#arbeitskorb' data-person='" + esc(pid) + "'>" + esc(vollerName(e)) + "</a>" + ergaenztTag(e) + " <span class='klein'>" + esc(e.rolle_im_haushalt || "") + "</span> " + statusPill(aktuellerStatus(pid).status);
+        return (e.demo_status ? esc(vollerName(e)) : "<a href='#arbeitskorb' data-person='" + esc(pid) + "'>" + esc(vollerName(e)) + "</a>") + ergaenztTag(e) + " <span class='klein'>" + esc(e.rolle_im_haushalt || "") + "</span> " + statusPill(aktuellerStatus(pid).status);
       }).join("<br>");
       var ks = kartenHH(hh), gsh = gutscheineHH(hh.haushalt_id), zut;
       var zusatz = gsh.stoerung.map(function (g) { return "Zusatz Trinkwasser: " + fmtZahl(wasserMenge(g)) + " Liter" + (stoerungAktiv(g.stoerung_id) ? "" : " (verfallen mit Ende der Störung)"); });
