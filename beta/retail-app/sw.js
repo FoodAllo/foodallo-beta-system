@@ -1,5 +1,5 @@
 /* FoodAllo Retail App – Service Worker: App-Hülle offline aus dem Cache, Log-Datei immer frisch versuchen. */
-var CACHE = "foodallo-retail-v21";   // v21: Demonstrationskarte Familie Becker einlösbar, Strichcode Code 39; v20: v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
+var CACHE = "foodallo-retail-v22";   // v22: Demo-Anfangsbestand Becker bei Netto (nur lokal); v21: v21: Demonstrationskarte Familie Becker einlösbar, Strichcode Code 39; v20: v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
 var HUELLE = [
   "./", "./index.html", "./manifest.webmanifest", "./css/app.css", "./js/retail.js", "./js/app.js",
   "./daten/artikel.json", "../kern/stammdaten-ausgabestellen.json", "./daten/demo-gutscheine.json", "./daten/anfangsbestand.jsonl", "./daten/demo-rezeptnachweise.json", "./daten/demo-personen.json", "./daten/melderegister-zuordnung.json",

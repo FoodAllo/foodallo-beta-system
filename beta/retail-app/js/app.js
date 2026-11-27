@@ -18,6 +18,8 @@
      liegen nur in SPEICHER auf diesem Gerät (die Customer App liest sie dort) und gehen nicht in die Datei „Buchungen als Datei speichern“. */
   var DEMO_DATEI = "../data/demo-becker.json";
   var DEMO_GUTSCHEIN = /^FA-V-\d{8}-900001$/;
+  var DEMO_AST = "FA-R-14729140-0003";                                          // Netto Marken-Discount: Demo-Anfangsbestand für die Becker-Karte
+  var DEMO_BESTAND = "Demo-Anfangsbestand Lebensmittelkarte Becker";            // Kennzeichen im Lieferhinweis, nur lokal, nicht im Export
 
   var stamm = null, seedGutscheine = [], personenSeed = [], schema = null, testRezepte = [], ereignisse = [], zustand = null;
   var schicht = null, wahl = { ast: null, kasse: null }, namen = {};
@@ -191,17 +193,36 @@
     var t = { normal: [], demo: [], buchungen: {} };
     (liste || []).forEach(function (e) {
       var p = e.payload || {}, b = p.ausgabebuchung;
-      var ist = (e.typ === "REDEMPTION_POSTED" && b && DEMO_GUTSCHEIN.test(b.gutschein_id || "")) || (e.typ === "REDEMPTION_REVERSED" && !!t.buchungen[p.buchung_id]);
+      var ist = (e.typ === "REDEMPTION_POSTED" && b && DEMO_GUTSCHEIN.test(b.gutschein_id || "")) || (e.typ === "REDEMPTION_REVERSED" && !!t.buchungen[p.buchung_id]) ||
+        (e.typ === "STOCK_RECEIPT_POSTED" && p.wareneingang && String(p.wareneingang.lieferhinweis || "").indexOf(DEMO_BESTAND) === 0);
       if (ist && b) t.buchungen[b.buchung_id] = true;
       (ist ? t.demo : t.normal).push(e);
     });
     return t;
   }
-  /* Demo-Einlösungen früherer Wochen verwerfen: am Montag ist die Karte wieder voll */
+  function demoBestandHinweis() { return DEMO_BESTAND + " (" + demo.periode_id + ")"; }
+  /* Demo-Einlösungen und Demo-Anfangsbestand früherer Wochen verwerfen: am Montag ist die Karte wieder voll */
   function ohneAlteDemo(liste) {
     var alt = {};
-    teileDemo(liste).demo.forEach(function (e) { var b = e.payload.ausgabebuchung; if (b && (!demo || b.gutschein_id !== demo.gutschein_id)) alt[b.buchung_id] = true; });
-    return liste.filter(function (e) { var p = e.payload || {}, b = p.ausgabebuchung; return !alt[b ? b.buchung_id : (e.typ === "REDEMPTION_REVERSED" ? p.buchung_id : "")]; });
+    teileDemo(liste).demo.forEach(function (e) {
+      var b = e.payload.ausgabebuchung, w = e.payload.wareneingang;
+      if (b && (!demo || b.gutschein_id !== demo.gutschein_id)) alt[b.buchung_id] = true;
+      if (w && (!demo || w.lieferhinweis !== demoBestandHinweis())) alt[e.ereignis_id] = true;
+    });
+    return liste.filter(function (e) { var p = e.payload || {}, b = p.ausgabebuchung; return !alt[b ? b.buchung_id : (e.typ === "REDEMPTION_REVERSED" ? p.buchung_id : e.ereignis_id)]; });
+  }
+  /* Einmal je Woche: Wareneingang in Höhe der Becker-Mengen bei Netto (nur lokal, nicht im Export, im Lieferhinweis als Demo gekennzeichnet) */
+  function demoBestandSicherstellen() {
+    if (!demo || !zustand.ausgabestellen[DEMO_AST]) return;
+    var hinweis = demoBestandHinweis();
+    if (ereignisse.some(function (e) { return e.typ === "STOCK_RECEIPT_POSTED" && e.payload.wareneingang && e.payload.wareneingang.lieferhinweis === hinweis; })) return;
+    var evs = [];
+    demo.gutschein.positionen.forEach(function (p) {
+      if (!(p.zugeteilt_max > 0) || !zustand.bestand[K.bestandId(DEMO_AST, p.artikel_id)]) return;
+      var w = R.erzeugeWareneingang(zustand, { ausgabestelle_id: DEMO_AST, artikel_id: p.artikel_id, menge: p.zugeteilt_max, lieferhinweis: hinweis });
+      if (w.ok) evs = evs.concat(w.ereignisse);
+    });
+    if (evs.length) uebernimmAlle(evs, true);
   }
   function neuBerechnen() { zustand = K.nachspielen(stamm, seedGutscheine, personenSeed, ereignisse, { v12: true }).zustand; }
 
@@ -843,6 +864,7 @@
     return fetch("daten/anfangsbestand.jsonl").then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
       var evs = K.ausJsonl(t).filter(function (e) { return !zustand.angewendet[e.ereignis_id] && !zustand.bestand[K.bestandId(e.payload.ausgabestelle_id, e.payload.artikel_id)]; });
       evs.forEach(function (e) { uebernimmAlle([e], true); });
+      demoBestandSicherstellen();
       speichere();
     }).catch(function () {});
   }
