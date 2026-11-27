@@ -485,6 +485,37 @@
     return out;
   }
   var KARTENART_DE = { regulaer: "Lebensmittelkarte", stoerung: "Zusatz Trinkwasser" };
+  /* ---------- Abgleich Retail App (assets/abgleich.js): nur zur Laufzeit, nur auf diesem Gerät ---------- */
+  var ABG = window.FOODALLO_ABGLEICH || null, ABG_HINWEIS = "Demo: Abgleich nur auf diesem Gerät";
+  function retailAusgaben() {
+    if (!ABG) return [];
+    var zuHH = {}, mo = PERIODE_LAUFEND.slice(7);
+    log().forEach(function (ev) { var g = ev.typ === "VOUCHER_ISSUED" && ev.payload && ev.payload.gutschein; if (g) { zuHH[g.gutschein_id] = g.haushalt_id; if (g.papierkarte_id) zuHH[g.papierkarte_id] = g.haushalt_id; } });
+    if (BECKER) zuHH[BECKER.papierkarte_id] = BECKER.haushalt_id;
+    return ABG.lies().ausgaben.map(function (x) {
+      x.hh = x.haushalt_id || zuHH[x.gutschein_id] || zuHH[x.papierkarte_id] || null; return x;
+    }).filter(function (x) { /* nur die laufende Woche (woche.js) */
+      var m = /^FA-V-(\d{8})-/.exec(x.gutschein_id || ""), per = x.periode_id || (m ? "FA-PER-" + m[1] : null), p = periodeObj(PERIODE_LAUFEND), t = String(x.zeit || "").slice(0, 10);
+      return per ? per === PERIODE_LAUFEND : (t >= p.beginn && t <= p.ende);
+    });
+  }
+  /* „abgeholt am …, … Uhr bei <Filiale>: Mengen“, je Ausgabestelle und Minute zusammengefasst */
+  function abholungenText(hid) {
+    var gruppen = {}, reihe = [];
+    retailAusgaben().forEach(function (x) {
+      if (x.hh !== hid) return;
+      var k = (x.ausgabestelle_id || "") + "|" + String(x.zeit || "").slice(0, 16);
+      if (!gruppen[k]) { gruppen[k] = { zeit: x.zeit, st: x.ausgabestelle_id, mengen: {} }; reihe.push(k); }
+      x.positionen.forEach(function (q) { var m = gruppen[k].mengen; m[q.artikel_id] = m[q.artikel_id] || { menge: 0, einheit: q.einheit }; m[q.artikel_id].menge = Math.round((m[q.artikel_id].menge + q.menge) * 1000) / 1000; });
+    });
+    reihe.sort(function (a, b) { return gruppen[a].zeit < gruppen[b].zeit ? -1 : 1; });
+    return reihe.map(function (k) {
+      var g = gruppen[k];
+      return "<div class='abholung'>abgeholt am " + esc(datumZeit(g.zeit)) + " bei " + esc(stelleName(stelleById(g.st))) + ": " +
+        Object.keys(g.mengen).map(function (a) { return esc(K.fmtMenge(g.mengen[a].menge, g.mengen[a].einheit || artikel(a).einheit) + " " + artikel(a).bezeichnung_de); }).join(", ") +
+        " <span class='klein'>(" + ABG_HINWEIS + ")</span></div>";
+    }).join("");
+  }
   function karteEntwurf(hh) {
     if (hh.kanal !== "papier") return null;
     var berechtigt = hh.person_ids.filter(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; });
@@ -726,9 +757,9 @@
       var zusatz = gsh.stoerung.map(function (g) { return "Zusatz Trinkwasser: " + fmtZahl(wasserMenge(g)) + " Liter" + (stoerungAktiv(g.stoerung_id) ? "" : " (verfallen mit Ende der Störung)"); });
       if (hh.kanal === "papier") zut = ks.length ? ks.map(function (k) { return esc(KARTENART_DE[k.art]) + ": " + esc(kartenStatus(k)); }).join("<br>") + "<br><span class='klein'>" + ks[0].berechtigt.length + " bezugsberechtigte Person" + (ks[0].berechtigt.length === 1 ? "" : "en") + "</span>" : "<span class='klein'>noch keine Karte (keine bestätigte Person)</span>";
       else zut = hh.person_ids.some(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; }) ? "Gutschein in der FoodAllo-App" + (zusatz.length ? "<br>" + zusatz.join("<br>") : "") : "<span class='klein'>noch keine Zuteilung (keine bestätigte Person)</span>";
-      html += "<tr><td>" + esc(haushaltName(hh)) + "<br><span class='klein'>" + hh.groesse + " Personen</span></td><td>" + esc(anschrift(v)) + "</td><td>" + pers + "</td><td>" + esc(KANAL_DE[hh.kanal] || "") + "</td><td>" + zut + "</td></tr>";
+      html += "<tr><td>" + esc(haushaltName(hh)) + "<br><span class='klein'>" + hh.groesse + " Personen</span></td><td>" + esc(anschrift(v)) + "</td><td>" + pers + "</td><td>" + esc(KANAL_DE[hh.kanal] || "") + "</td><td>" + zut + abholungenText(hh.haushalt_id) + "</td></tr>";
     });
-    html += "</tbody></table></div>";
+    html += "</tbody></table><p class='klein'>Abholungen aus der Retail App erscheinen hier, wenn sie im selben Browser gebucht wurden. " + ABG_HINWEIS + ".</p></div>";
     host.innerHTML = html;
     sucheBinden("hh-suche");
     personLinksBinden(host);
@@ -875,7 +906,12 @@
       var a = artikel(id), rw = reichweite(id);
       html += "<tr><td>" + esc(a.bezeichnung_de) + "</td><td class='num'>" + esc(K.fmtMenge(summe(lauf, id), a.einheit)) + "</td><td class='num'>" + esc(K.fmtMenge(bestand(id), a.einheit)) + "</td><td class='num'>" + (rw == null ? "—" : fmtZahl(rw, 1) + " Tage") + "</td></tr>";
     });
-    html += "</tbody></table><p class='hinweis'>Szenariodaten aus synthetischen Haushalten, nicht die Personen und Haushalte oben. Buchungen, Wareneingänge und Bestandskorrekturen der Retail-App sind nicht eingerechnet. Reichweite: Bestand geteilt durch die durchschnittliche Tagesausgabe vom 10. bis 17.11.2026.</p></div>";
+    var ra = {}, rn = 0;
+    retailAusgaben().forEach(function (x) { rn++; x.positionen.forEach(function (q) { ra[q.artikel_id] = Math.round(((ra[q.artikel_id] || 0) + q.menge) * 1000) / 1000; }); });
+    html += "<tr class='retail-kopf'><td colspan='4'><strong>Retail App, Ausgaben auf diesem Gerät</strong> <span class='klein'>(" + ABG_HINWEIS + ")</span></td></tr>";
+    if (!rn) html += "<tr class='retail-zeile'><td colspan='4' class='klein'>Noch keine Ausgaben aus der Retail App in diesem Browser.</td></tr>";
+    Object.keys(ra).forEach(function (id) { var a = artikel(id); html += "<tr class='retail-zeile'><td>" + esc(a.bezeichnung_de) + " (Retail App)</td><td class='num'>" + esc(K.fmtMenge(ra[id], a.einheit)) + "</td><td class='num'>—</td><td class='num'>—</td></tr>"; });
+    html += "</tbody></table><p class='hinweis'>Szenariodaten aus synthetischen Haushalten, nicht die Personen und Haushalte oben. Ausgaben der Retail App aus diesem Browser stehen als eigene Zeilen darunter; im Szenario-Bestand sind sie nicht abgezogen. Reichweite: Bestand geteilt durch die durchschnittliche Tagesausgabe vom 10. bis 17.11.2026.</p></div>";
     html += "<div class='karte'><h2>Ausgaben je Tag</h2>" + (darfKennzahl(Z.AGS_FROHBURG, r.aggregationsebene) ? chart(zeitreihe()) + "<p class='hinweis'>Szenariodaten.</p>" : "<p class='klein'>Nicht verfügbar.</p>") + "</div></div>";
 
     var hinw = [];
@@ -1067,6 +1103,7 @@
     if (q.filter) state.filter = q.filter;
     var hash = location.hash.replace("#", "") || q.ansicht || null;
     $("btn-abmelden").onclick = abmelden;
+    if (ABG) ABG.beobachte(function () { if (state.rolle) render(); });
     window.addEventListener("hashchange", function () { var h = location.hash.replace("#", ""); if (state.rolle && h && h !== state.ansicht) { state.ansicht = h; render(); } });
     var s = null;
     if (q.rolle && DIENSTSTELLEN[q.rolle]) s = { rolle: q.rolle, arbeitsplatz: q.arbeitsplatz || "", kennung: q.kennung || "" };
