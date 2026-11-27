@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   var K = window.FAKern, R = window.FARetail;
-  var APP_VERSION = "v25";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
+  var APP_VERSION = "v26";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
   var SPEICHER = "foodallo.retail.ereignisse.v1";
   var EXPORTIERT = "foodallo.retail.exportiert.v1";
   var SCHICHT = "foodallo.retail.schicht.v2";
