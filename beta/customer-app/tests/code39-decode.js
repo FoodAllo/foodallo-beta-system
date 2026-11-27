@@ -47,7 +47,7 @@ for (const zoom of (schnell ? [0.8] : [0.8, 1, 1.25])) {
       const p = await c.newPage(); const errs = [];
       p.on("pageerror", e => errs.push(String(e)));
       await p.goto(basis + KARTE.pfad, { waitUntil: "load" });
-      if (KARTE.knopf) { await p.waitForSelector(KARTE.knopf, { timeout: 20000 }); await p.click(KARTE.knopf); }
+      if (KARTE.knopf) { await p.waitForLoadState("networkidle").catch(() => {}); await p.waitForSelector(KARTE.knopf, { timeout: 20000 }); await p.click(KARTE.knopf); }
       await p.waitForSelector(".lk-strichcode-platz .karte-strichcode[data-geraetepx]", { timeout: 20000 });
       await p.$eval(".lk-code", e => e.scrollIntoView({ block: "center" }));
       await p.waitForTimeout(250);
