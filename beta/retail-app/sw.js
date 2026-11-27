@@ -1,5 +1,5 @@
 /* FoodAllo Retail App – Service Worker: App-Hülle offline aus dem Cache, Log-Datei immer frisch versuchen. */
-var CACHE = "foodallo-retail-v20";   // v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
+var CACHE = "foodallo-retail-v21";   // v21: Demonstrationskarte Familie Becker einlösbar, Strichcode Code 39; v20: v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
 var HUELLE = [
   "./", "./index.html", "./manifest.webmanifest", "./css/app.css", "./js/retail.js", "./js/app.js",
   "./daten/artikel.json", "../kern/stammdaten-ausgabestellen.json", "./daten/demo-gutscheine.json", "./daten/anfangsbestand.jsonl", "./daten/demo-rezeptnachweise.json", "./daten/demo-personen.json", "./daten/melderegister-zuordnung.json",
@@ -8,9 +8,13 @@ var HUELLE = [
   "./icons/logo-header.png", "./icons/logo-farbe-900.png", "./icons/logo-weiss-900.png", "./icons/logo-dunkel-900.png",
   "../schema/foodallo-core.schema.v1.2.json"
 ];
+var OPTIONAL = ["../data/demo-becker.json"];
 
 self.addEventListener("install", function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(HUELLE); }).then(function () { return self.skipWaiting(); }));
+  e.waitUntil(caches.open(CACHE).then(function (c) {
+    // Demo-Karte Familie Becker: nur vorab speichern, wenn die Datei vorhanden ist
+    return c.addAll(HUELLE).then(function () { return Promise.all(OPTIONAL.map(function (u) { return c.add(u).catch(function () {}); })); });
+  }).then(function () { return self.skipWaiting(); }));
 });
 
 self.addEventListener("activate", function (e) {

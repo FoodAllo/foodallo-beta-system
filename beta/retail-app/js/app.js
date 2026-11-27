@@ -13,11 +13,17 @@
   var LOG_DATEI = "../data/ereignislog.jsonl";
   var REGISTER_DATEI = "../data/melderegister/melderegister_musterstadt.json";   // fiktives Melderegister (nur lesen)
   var ZUORDNUNG_DATEI = "daten/melderegister-zuordnung.json";                 // Export der Desktop-Zuordnung (Herkunft in der Datei)
+  /* Demonstrationskarte Familie Becker (gemeinsamer Datensatz, Spezifikation ../data/DEMO-BECKER-RETAIL.md): gilt immer für die
+     laufende Woche (Mo–So, Datum in Europe/Berlin). Sie steht weder im Melderegister noch im gemeinsamen Log. Ihre Einlösungen
+     liegen nur in SPEICHER auf diesem Gerät (die Customer App liest sie dort) und gehen nicht in die Datei „Buchungen als Datei speichern“. */
+  var DEMO_DATEI = "../data/demo-becker.json";
+  var DEMO_GUTSCHEIN = /^FA-V-\d{8}-900001$/;
 
   var stamm = null, seedGutscheine = [], personenSeed = [], schema = null, testRezepte = [], ereignisse = [], zustand = null;
   var schicht = null, wahl = { ast: null, kasse: null }, namen = {};
   var vorgang = null, rezeptVorgang = null, wePositionen = [], weArtikel = null, korrektur = null, stornoBuchung = null, journalAlle = false;
   var kameraStrom = null, kameraZiel = null;
+  var demo = null, demoNamen = [];
 
   /* ---------- Texte ---------- */
   var EINHEIT = { kg: "kg", L: "Liter", rolle: "Rollen", IE: "Einheiten", pack: "Packungen" };
@@ -149,6 +155,54 @@
   /* ---------- Speicher / Ereignisse ---------- */
   function ladeJson(k, d) { try { return JSON.parse(localStorage.getItem(k) || "") || d; } catch (e) { return d; } }
   function speichere() { localStorage.setItem(SPEICHER, JSON.stringify(ereignisse)); }
+
+  /* ---------- Demonstrationskarte Familie Becker ---------- */
+  /* Montag der laufenden Woche nach dem Kalenderdatum in Europe/Berlin, als JJJJMMTT */
+  function montagBerlin(jetzt) {
+    var t = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(jetzt || Date.now()));
+    var d = new Date(Date.UTC(Number(t.slice(0, 4)), Number(t.slice(5, 7)) - 1, Number(t.slice(8, 10))));
+    d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7);
+    return d.toISOString().slice(0, 10).replace(/-/g, "");
+  }
+  /* Aus der Demo-Datei einen Gutschein der laufenden Woche (Papierweg) und die bestätigten Personen bilden */
+  function baueDemo(d) {
+    if (!d || !/^FA-PK-\d{8}-\d{6}$/.test(d.papierkarte_id || "") || !/^FA-HH-\d{8}-\d{6}$/.test(d.haushalt_id || "")) return null;
+    var personen = (d.personen || (d.haushalt && d.haushalt.personen) || []).filter(function (p) { return p && p.person_id; });
+    if (!personen.length) return null;
+    var mo = montagBerlin(), n = personen.length, mengen = {}, reihe = [];
+    (d.positionen || []).forEach(function (p) {
+      var m = p.menge != null ? p.menge : (p.zugeteilt_max != null ? p.zugeteilt_max : p.rest);
+      if (p.artikel_id && m != null && isFinite(Number(m))) { if (!(p.artikel_id in mengen)) reihe.push(p.artikel_id); mengen[p.artikel_id] = Number(m); }
+    });
+    if (!reihe.length) stamm.artikel.forEach(function (a) {
+      if (a.periode_basis_vorschlag && !a.nur_bei_stoerung && !a.rezeptpflicht) { reihe.push(a.artikel_id); mengen[a.artikel_id] = K.r3(a.periode_basis_vorschlag * n); }
+    });
+    var g = { gutschein_id: "FA-V-" + mo + "-" + d.haushalt_id.slice(-6), periode_id: "FA-PER-" + mo, bezug: "haushalt", person_id: null,
+      haushalt_id: d.haushalt_id, kanal: "papier", status: "ausgestellt", papierkarte_id: d.papierkarte_id, ausstellungsort: "FA-AUTH-FROHBURG-MELDEBEHOERDE",
+      positionen: reihe.map(function (k) { var m = mengen[k]; return { artikel_id: k, bedarf: m, basiskontingent: m, zugeteilt_max: m, eingeloest: 0, rest: m, personen_anzahl: n }; }) };
+    return {
+      gutschein: g, gutschein_id: g.gutschein_id, periode_id: g.periode_id,
+      personen: personen.map(function (p) { return { person_id: p.person_id, haushalt_id: d.haushalt_id, verifikation: p.verifikation || { status: "bestaetigt", verfahren: "synthetisch" } }; }),
+      namen: personen.map(function (p) { return { person_id: p.person_id, vornamen: p.vornamen || p.vorname || "", familienname: p.familienname || p.nachname || d.familie || "" }; })
+    };
+  }
+  /* Ereignisse in normale und Demo-Ereignisse (Einlösungen auf die Demo-Karte FA-V-…-900001 und deren Stornos) trennen */
+  function teileDemo(liste) {
+    var t = { normal: [], demo: [], buchungen: {} };
+    (liste || []).forEach(function (e) {
+      var p = e.payload || {}, b = p.ausgabebuchung;
+      var ist = (e.typ === "REDEMPTION_POSTED" && b && DEMO_GUTSCHEIN.test(b.gutschein_id || "")) || (e.typ === "REDEMPTION_REVERSED" && !!t.buchungen[p.buchung_id]);
+      if (ist && b) t.buchungen[b.buchung_id] = true;
+      (ist ? t.demo : t.normal).push(e);
+    });
+    return t;
+  }
+  /* Demo-Einlösungen früherer Wochen verwerfen: am Montag ist die Karte wieder voll */
+  function ohneAlteDemo(liste) {
+    var alt = {};
+    teileDemo(liste).demo.forEach(function (e) { var b = e.payload.ausgabebuchung; if (b && (!demo || b.gutschein_id !== demo.gutschein_id)) alt[b.buchung_id] = true; });
+    return liste.filter(function (e) { var p = e.payload || {}, b = p.ausgabebuchung; return !alt[b ? b.buchung_id : (e.typ === "REDEMPTION_REVERSED" ? p.buchung_id : "")]; });
+  }
   function neuBerechnen() { zustand = K.nachspielen(stamm, seedGutscheine, personenSeed, ereignisse, { v12: true }).zustand; }
 
   /* Ereignisse prüfen (Schema v1.2 + Kernregeln) und nur gemeinsam übernehmen – alles oder nichts */
@@ -165,7 +219,7 @@
 
   function offeneBuchungen() {
     var exp = ladeJson(EXPORTIERT, {});
-    return R.eigeneEreignisse(ereignisse).filter(function (e) { return !e.zeit_empfang && !exp[e.ereignis_id]; });
+    return R.eigeneEreignisse(teileDemo(ereignisse).normal).filter(function (e) { return !e.zeit_empfang && !exp[e.ereignis_id]; });
   }
 
   /* ---------- Personen / Melderegister ----------
@@ -312,7 +366,9 @@
   /* Papierkarte: Kartennummer, aufgedruckter Code oder Strichcode -> genau ein Gutschein (Kern gutscheinZurPapierkarte) */
   function findeKarte(eingabe) {
     var s = String(eingabe || "").trim().toUpperCase().replace(/\s+/g, "");
-    if (/^\d{16}$/.test(s)) s = "FAPK" + s;
+    // Kartennummer mit oder ohne Bindestriche (FA-PK-…-PZ) bzw. Strichcode FAPK + 16 Ziffern, Groß-/Kleinschreibung egal
+    var kompakt = s.replace(/[^0-9A-Z]/g, "");
+    if (/^\d{16}$/.test(kompakt)) s = "FAPK" + kompakt; else if (/^FAPK\d{16}$/.test(kompakt)) s = kompakt;
     var r = K.gutscheinZurPapierkarte(zustand, s);
     if (r.gutschein_id) return { id: r.gutschein_id, karte: s };
     if (/mehreren/.test(r.fehler || "")) return { m: M.karteMehrdeutig };
@@ -348,7 +404,7 @@
   /* ---------- Wer holt ab? ---------- */
   function zeigePersonen() {
     var g = zustand.gutscheine[vorgang.gutschein_id], z = zeitraum(g), ms = mitglieder(g.haushalt_id);
-    $("person-info").innerHTML = "<strong>" + esc(haushaltName(g.haushalt_id)) + "</strong><span>" + esc(gutscheinWort(g) + (z ? " · gültig bis " + datum(z.bis) : "")) + "</span>";
+    $("person-info").innerHTML = "<strong>" + esc(haushaltName(g.haushalt_id)) + "</strong><span>" + esc(gutscheinWort(g) + (z ? " · gültig bis " + datum(z.bis) : "") + (demo && g.gutschein_id === demo.gutschein_id ? " · Demonstrationskarte, Einlösung nur auf diesem Gerät" : "")) + "</span>";
     var box = $("person-liste"); box.innerHTML = ""; meldung("person-meldung", null);
     if (!ms.length) { meldung("person-meldung", M.keinMitglied); return; }
     ms.forEach(function (pid, i) {
@@ -463,7 +519,7 @@
         [gutscheinWort(gn), "Nr. " + kurzNr(karte ? gn.papierkarte_id : gn.gutschein_id)],
         ["Beleg", belegNr(posten[0].buchung_id)]],
       fuss: rest.length ? "Diese Woche noch frei: " + rest.join(", ") + "." : "Für diese Woche ist alles abgeholt.",
-      hinweis: karte ? "Bitte die ausgegebenen Mengen auf der Lebensmittelkarte abzeichnen." : null,
+      hinweis: demo && gn.gutschein_id === demo.gutschein_id ? "Demonstrationskarte: Die Einlösung ist nur auf diesem Gerät gespeichert." : (karte ? "Bitte die ausgegebenen Mengen auf der Lebensmittelkarte abzeichnen." : null),
       weiter: ["Nächste Kundin / nächster Kunde", function () { scanStarten(karte ? "karte" : "gutschein"); }]
     });
   }
@@ -697,7 +753,7 @@
 
   /* ---------- Einstellungen ---------- */
   var register = [], zuordnung = [];
-  function namenNeu() { var imp = ladeJson(NAMEN, []); namen = baueNamen(register.concat(imp), zuordnung.concat(imp)); }
+  function namenNeu() { var imp = ladeJson(NAMEN, []); namen = baueNamen(register.concat(imp).concat(demoNamen), zuordnung.concat(imp)); }
 
   function zeigeEinstellungen() {
     var a = ast(), ab = localStorage.getItem(ABGLEICH), offen = offeneBuchungen().length, n = Object.keys(namen).length;
@@ -799,7 +855,7 @@
       kameraStrom = strom;
       var v = $("kamera-video"); v.srcObject = strom; v.play();
       var box = $("kamera"); zielInput.parentNode.insertBefore(box, zielInput.nextSibling); box.hidden = false;
-      var det = new window.BarcodeDetector({ formats: ["qr_code", "code_128", "data_matrix", "ean_13"] });
+      var det = new window.BarcodeDetector({ formats: ["qr_code", "code_128", "code_39", "data_matrix", "ean_13"] });
       (function suche() {
         if (!kameraStrom) return;
         det.detect(v).then(function (c) {
@@ -886,11 +942,14 @@
     function j(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); }); }
     function optional(u) { return fetch(u, { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
     Promise.all([j("../kern/stammdaten-ausgabestellen.json"), j("daten/artikel.json"), j("daten/demo-gutscheine.json"), j(SCHEMA_DATEI),
-      optional("daten/demo-rezeptnachweise.json"), j("daten/demo-personen.json"), optional(REGISTER_DATEI), optional(ZUORDNUNG_DATEI)]).then(function (x) {
+      optional("daten/demo-rezeptnachweise.json"), j("daten/demo-personen.json"), optional(REGISTER_DATEI), optional(ZUORDNUNG_DATEI),
+      optional(DEMO_DATEI)]).then(function (x) {
       stamm = { ausgabestellen: x[0].ausgabestellen, artikel: x[1].artikel };
       seedGutscheine = x[2].gutscheine; schema = x[3]; testRezepte = (x[4] && x[4].nachweise) || []; personenSeed = x[5].personen;
+      try { demo = baueDemo(x[8]); } catch (e) { demo = null; }
+      if (demo) { seedGutscheine = seedGutscheine.concat([demo.gutschein]); personenSeed = personenSeed.concat(demo.personen); demoNamen = demo.namen; }
       register = listeAus(x[6]).concat(listeAus(x[7])); zuordnung = listeAus(x[7]); namenNeu();
-      ereignisse = ladeJson(SPEICHER, []);
+      ereignisse = ohneAlteDemo(ladeJson(SPEICHER, []));
       neuBerechnen();
       verdrahte(); netz();
       schicht = ladeJson(SCHICHT, null);
