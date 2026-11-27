@@ -51,10 +51,10 @@ async function beckerText(p) { await p.click('nav.reiter a[data-view="haushalte"
     { const c = await b.newContext({ locale: 'de-DE', viewport: { width: 1366, height: 900 } }); const d = await c.newPage(); const errs = []; d.on('pageerror', e => errs.push(String(e)));
       await desktopAnmelden(d);
       const mo = await d.evaluate(() => window.FOODALLO_WOCHE.montag); const per = 'FA-PER-' + mo.replace(/-/g, ''), gs = 'FA-V-' + mo.replace(/-/g, '') + '-900001';
-      const aus = (id, zeit, art, menge, einheit) => ({ ereignis_id: id, typ: 'REDEMPTION_POSTED', zeit: mo + 'T' + zeit + ':00+01:00', ausgabestelle_id: 'FA-R-14729140-0003', kasse: 1,
-        papierkarte_id: 'FA-PK-14729140-900001', gutschein_id: gs, haushalt_id: 'FA-HH-14729140-900001', periode_id: per, positionen: [{ artikel_id: art, menge, einheit }] });
-      const daten = { schema_version: 1, ereignisse: [aus('E1', '09:15', 'wheat_flour', 2, 'kg'), aus('E1', '09:15', 'wheat_flour', 2, 'kg'), aus('E2', '09:15', 'rice', 1.2, 'kg'), aus('E3', '10:00', 'oil', 0.5, 'L'),
-        { ereignis_id: 'E4', typ: 'REDEMPTION_REVERSED', zeit: mo + 'T10:05:00+01:00', bezug_ereignis_id: 'E3' }] };
+      const aus = (id, buchung, zeit, art, menge, einheit) => ({ ereignis_id: id, typ: 'ausgabe', zeit: mo + 'T' + zeit + ':00+01:00', ausgabestelle_id: 'FA-R-14729140-0003', kasse: 1, quelle: 'retail',
+        buchung_id: buchung, gutschein_id: gs, rezept_id: null, papierkarte_id: 'FA-PK-14729140-900001', haushalt_id: 'FA-HH-14729140-900001', periode_id: per, weg: 'lebensmittelkarte', positionen: [{ artikel_id: art, menge, einheit }], demo: true });
+      const daten = { schema: 'foodallo.abgleich.retail', version: 1, ereignisse: [aus('E1', 'X1', '09:15', 'wheat_flour', 2, 'kg'), aus('E1', 'X1', '09:15', 'wheat_flour', 2, 'kg'), aus('E2', 'X2', '09:15', 'rice', 1.2, 'kg'), aus('E3', 'X3', '10:00', 'oil', 0.5, 'L'),
+        Object.assign(aus('E4', 'X3', '10:05', 'oil', 0.5, 'L'), { typ: 'storno', storno_von: 'X3' })] };
       const andere = await c.newPage(); await andere.goto(base + '/beta/desktop/', { waitUntil: 'networkidle' });
       await andere.evaluate(([k, v]) => localStorage.setItem(k, v), [KEY, JSON.stringify(daten)]); // storage-Event im ersten Tab
       await d.waitForTimeout(500); const t = (await beckerText(d)).replace(/\u00a0/g, ' ');

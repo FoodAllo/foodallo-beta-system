@@ -487,23 +487,14 @@
   var KARTENART_DE = { regulaer: "Lebensmittelkarte", stoerung: "Zusatz Trinkwasser" };
   /* ---------- Abgleich Retail App (assets/abgleich.js): nur zur Laufzeit, nur auf diesem Gerät ---------- */
   var ABG = window.FOODALLO_ABGLEICH || null, ABG_HINWEIS = "Demo: Abgleich nur auf diesem Gerät";
-  function retailAusgaben() {
-    if (!ABG) return [];
-    var zuHH = {}, mo = PERIODE_LAUFEND.slice(7);
-    log().forEach(function (ev) { var g = ev.typ === "VOUCHER_ISSUED" && ev.payload && ev.payload.gutschein; if (g) { zuHH[g.gutschein_id] = g.haushalt_id; if (g.papierkarte_id) zuHH[g.papierkarte_id] = g.haushalt_id; } });
-    if (BECKER) zuHH[BECKER.papierkarte_id] = BECKER.haushalt_id;
-    return ABG.lies().ausgaben.map(function (x) {
-      x.hh = x.haushalt_id || zuHH[x.gutschein_id] || zuHH[x.papierkarte_id] || null; return x;
-    }).filter(function (x) { /* nur die laufende Woche (woche.js) */
-      var m = /^FA-V-(\d{8})-/.exec(x.gutschein_id || ""), per = x.periode_id || (m ? "FA-PER-" + m[1] : null), p = periodeObj(PERIODE_LAUFEND), t = String(x.zeit || "").slice(0, 10);
-      return per ? per === PERIODE_LAUFEND : (t >= p.beginn && t <= p.ende);
-    });
+  function retailAusgaben() { /* Ausgaben der laufenden Woche (woche.js), Format laut beta/data/ABGLEICH-RETAIL-DESKTOP.md */
+    return ABG ? ABG.lies().ausgaben.filter(function (x) { return x.periode_id === PERIODE_LAUFEND; }) : [];
   }
   /* „abgeholt am …, … Uhr bei <Filiale>: Mengen“, je Ausgabestelle und Minute zusammengefasst */
   function abholungenText(hid) {
     var gruppen = {}, reihe = [];
     retailAusgaben().forEach(function (x) {
-      if (x.hh !== hid) return;
+      if (x.haushalt_id !== hid) return;
       var k = (x.ausgabestelle_id || "") + "|" + String(x.zeit || "").slice(0, 16);
       if (!gruppen[k]) { gruppen[k] = { zeit: x.zeit, st: x.ausgabestelle_id, mengen: {} }; reihe.push(k); }
       x.positionen.forEach(function (q) { var m = gruppen[k].mengen; m[q.artikel_id] = m[q.artikel_id] || { menge: 0, einheit: q.einheit }; m[q.artikel_id].menge = Math.round((m[q.artikel_id].menge + q.menge) * 1000) / 1000; });
