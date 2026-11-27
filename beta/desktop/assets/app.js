@@ -507,6 +507,30 @@
         " <span class='klein'>(" + ABG_HINWEIS + ")</span></div>";
     }).join("");
   }
+  /* Abholungen einer Karte in der laufenden Woche: Retail-Abgleich (dieses Gerät) und, wo vorhanden, Ereignislog */
+  function abholungenKarte(k) {
+    var gid = k.gutschein.gutschein_id, pk = k.karte.papierkarte_id, liste = [], storno = {};
+    log().forEach(function (ev) {
+      var b = ev.payload && ev.payload.ausgabebuchung;
+      if (ev.typ === "REDEMPTION_POSTED" && b && b.gutschein_id === gid) liste.push({ buchung_id: b.buchung_id, zeit: b.zeit || ev.zeit_ereignis, ausgabestelle_id: b.ausgabestelle_id, positionen: [{ artikel_id: b.artikel_id, menge: b.menge }] });
+      if (ev.typ === "REDEMPTION_REVERSED" && ev.payload) storno[ev.payload.buchung_id] = true;
+    });
+    liste = liste.filter(function (x) { return !storno[x.buchung_id]; });
+    retailAusgaben().forEach(function (x) { if (x.gutschein_id === gid || (pk && x.papierkarte_id === pk)) liste.push(x); });
+    var summe = {}, letzte = null;
+    liste.forEach(function (x) {
+      x.positionen.forEach(function (q) { summe[q.artikel_id] = Math.round(((summe[q.artikel_id] || 0) + Number(q.menge)) * 1000) / 1000; });
+      if (!letzte || x.zeit > letzte.zeit) letzte = x;
+    });
+    var pos = (k.gutschein.positionen || []).map(function (p) {
+      var e = Math.min(Number(p.zugeteilt_max) || 0, summe[p.artikel_id] || 0);
+      return Object.assign({}, p, { eingeloest: e, rest: Math.round(((Number(p.zugeteilt_max) || 0) - e) * 1000) / 1000 });
+    });
+    var mitMenge = pos.filter(function (p) { return Number(p.zugeteilt_max) > 0; });
+    return { gutschein: Object.assign({}, k.gutschein, { positionen: pos }),
+      letzte: letzte ? datumZeit(letzte.zeit) + " bei " + stelleName(stelleById(letzte.ausgabestelle_id)) : "",
+      alles: mitMenge.length > 0 && mitMenge.every(function (p) { return p.rest <= 0.0005; }) };
+  }
   function karteEntwurf(hh) {
     if (hh.kanal !== "papier") return null;
     var berechtigt = hh.person_ids.filter(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; });
@@ -771,14 +795,16 @@
     document.body.classList.toggle("format-a6", state.format === "a6");
   }
   function karteHtml(hh, k) {
-    var zusatz = k.art === "stoerung";
+    var zusatz = k.art === "stoerung", ab = abholungenKarte(k);
     return K.renderKarte({
+      letzteAbholung: ab.letzte, allesAbgeholt: ab.alles, druckstand: datumZeit(jetztBerlin()),
       vermerk: zusatz ? "Zusatz Trinkwasser" : "", gueltigHinweis: zusatz ? "nur solange die Versorgungsstörung andauert" : "",
-      format: state.format, karte: k.karte, gutschein: k.gutschein, haushalt: hh, periode: periodeObj(PERIODE_LAUFEND), katalog: D.artikel,
+      format: state.format, karte: k.karte, gutschein: ab.gutschein, haushalt: hh, periode: periodeObj(PERIODE_LAUFEND), katalog: D.artikel,
       haushaltName: haushaltName(hh), personen: k.berechtigt.map(personName), anschrift: anschrift(PERS[hh.vorstand]),
       ausgabestellen: ausgabestellen().filter(istKern).map(stelleName), logo: "assets/logos/dark_logo_transparent_background.png"
     });
   }
+  function druckstandSetzen() { document.querySelectorAll("[data-druckstand]").forEach(function (el) { el.textContent = "Druckstand: " + datumZeit(jetztBerlin()); }); }
   function renderKarten(host) {
     if (!darfKarten()) { host.innerHTML = seitenTitel(ANSICHT_TITEL.karten) + sperre("Lebensmittelkarten druckt nur die Pass- und Meldebehörde der Musterstadt."); return; }
     var papier = HAUSHALTE.filter(function (h) { return h.kanal === "papier"; });
@@ -816,6 +842,7 @@
       var id = k.karte.papierkarte_id;
       var nach = function () { window.removeEventListener("afterprint", nach); var v = lesen(SPEICHER.druck, {}); v[id] = jetztBerlin(); schreiben(SPEICHER.druck, v); render(); };
       window.addEventListener("afterprint", nach);
+      druckstandSetzen();
       window.print();
     };
   }
@@ -1095,6 +1122,7 @@
     var hash = location.hash.replace("#", "") || q.ansicht || null;
     $("btn-abmelden").onclick = abmelden;
     if (ABG) ABG.beobachte(function () { if (state.rolle) render(); });
+    window.addEventListener("beforeprint", druckstandSetzen);
     window.addEventListener("hashchange", function () { var h = location.hash.replace("#", ""); if (state.rolle && h && h !== state.ansicht) { state.ansicht = h; render(); } });
     var s = null;
     if (q.rolle && DIENSTSTELLEN[q.rolle]) s = { rolle: q.rolle, arbeitsplatz: q.arbeitsplatz || "", kennung: q.kennung || "" };

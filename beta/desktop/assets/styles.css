@@ -172,3 +172,7 @@ dl.daten dd { margin: 0; }
 /* Abgleich Retail App (nur auf diesem Gerät) */
 .abholung { margin-top: 4px; padding: 3px 6px; border-left: 3px solid #2e7d32; background: #f1f8f2; font-size: 13px; }
 tr.retail-kopf td { background: #f1f8f2; }
+.karten-stand { font-size: 12px; margin: 4px 0 0; }
+.kartenblatt.a6 .karten-stand { font-size: 8px; margin-top: 2px; }
+.karten-alles { font-weight: 700; margin: 6px 0 0; padding: 3px 6px; border: 1.5px solid #000; display: inline-block; }
+.kartenblatt.a6 .karten-alles { font-size: 9px; margin-top: 3px; padding: 1px 4px; }

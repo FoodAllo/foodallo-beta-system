@@ -86,7 +86,7 @@
     var s;
     if (einheit === "rolle" || einheit === "IE") s = String(Math.round(n));
     else s = (Math.round(n * 1000) / 1000).toString().replace(".", ",");
-    var u = einheitLabel(einheit);
+    var u = einheit === "rolle" && Number(v) === 1 ? "Rolle" : einheitLabel(einheit);
     return s + (u ? "\u00a0" + u : "");
   }
 
@@ -144,7 +144,9 @@
         "<div>Anschrift<br><strong>" + escapeHtml(opts.anschrift || "laut Melderegister") + "</strong></div>" +
         "<div class=\"breit\">Bezugsberechtigt<br><strong>" + personen + "</strong></div>" +
       "</div>" +
-      "<table class=\"karten-tabelle\"><thead><tr><th>Ware</th><th class=\"num\">Zuteilung</th><th class=\"num\">Ausgegeben</th><th class=\"num\">Verbleibend</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+      "<table class=\"karten-tabelle\"><thead><tr><th>Ware</th><th class=\"num\">Sie dürfen abholen</th><th class=\"num\">Bereits abgeholt</th><th class=\"num\">Es bleibt noch</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+      (opts.allesAbgeholt ? "<p class=\"karten-alles\">Für diese Woche ist alles abgeholt.</p>" : "") +
+      "<p class=\"karten-stand\">Letzte Abholung: " + escapeHtml(opts.letzteAbholung || "noch keine in dieser Woche") + (opts.druckstand ? "<br><span data-druckstand>Druckstand: " + escapeHtml(opts.druckstand) + "</span>" : "") + "</p>" +
       '<div class="barcode-wrap">' + code39Svg(k.code_barcode, { height: compact ? 28 : 48, narrow: compact ? 1.4 : 2 }) +
       '<div class="klein-druck kartennummer">' + escapeHtml(k.code_barcode) + "</div></div>" +
       "<table class=\"abgabe\"><thead><tr><th>Datum</th><th>Ausgabestelle</th><th>Ware und Menge</th><th>Handzeichen</th></tr></thead><tbody>" + abgabeZeilen + "</tbody></table>" +

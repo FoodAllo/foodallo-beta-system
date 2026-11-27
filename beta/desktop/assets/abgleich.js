@@ -16,7 +16,7 @@
     liste.forEach(function (x) {
       if (!x || !x.ereignis_id || gesehen[x.ereignis_id]) return;
       gesehen[x.ereignis_id] = true;
-      if (x.typ === "storno") storniert[x.buchung_id] = true;
+      if (x.typ === "storno") { storniert[x.storno_von || x.buchung_id] = true; } /* Retail-Oberfläche: storno_von = buchung_id der Ausgabe */
       else if (x.typ === "ausgabe") ausgaben.push(x);
       else if (x.typ === "wareneingang") wareneingaenge.push(x);
     });
