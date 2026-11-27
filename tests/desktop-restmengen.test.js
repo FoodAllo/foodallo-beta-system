@@ -75,6 +75,17 @@ async function drucken(d, br, format, datei) {
     ok(`${br} Storno A4-Druck aktualisiert`, zeile(p, 'Weizenmehl', '6 kg', '0 kg', '6 kg') && !/alles abgeholt/.test(p), p.slice(0, 1500));
     p = await drucken(d, br, 'a6', `${out}/${label}-becker-a6-storno.pdf`);
     ok(`${br} Storno A6-Druck aktualisiert`, zeile(p, 'Weizenmehl', '6 kg', '0 kg', '6 kg'), p.slice(0, 1500));
+    // Meier (App-Haushalt, Karte zum Drucken): Abgleich-Eintrag im Format der Doku unter dem Gutschein des gemeinsamen Logs
+    { const mo = await d.evaluate(() => window.FOODALLO_WOCHE.montag); const m8 = mo.replace(/-/g, '');
+      const roh = JSON.parse(await d.evaluate(() => localStorage.getItem('foodallo.abgleich.retail.v1')) || '{"schema":"foodallo.abgleich.retail","version":1,"ereignisse":[]}');
+      roh.ereignisse.push({ ereignis_id: 'T-MEIER-1', typ: 'ausgabe', zeit: mo + 'T10:30:00+01:00', ausgabestelle_id: 'FA-R-14729140-0003', kasse: 1, quelle: 'retail', buchung_id: 'T-MEIER-B1',
+        gutschein_id: 'FA-V-' + m8 + '-000123', rezept_id: null, papierkarte_id: null, haushalt_id: 'FA-HH-14729140-000123', periode_id: 'FA-PER-' + m8, weg: 'gutschein', positionen: [{ artikel_id: 'wheat_flour', menge: 3, einheit: 'kg' }], demo: false });
+      await r.evaluate(v => localStorage.setItem('foodallo.abgleich.retail.v1', v), JSON.stringify(roh)); // storage-Event im Desktop-Tab
+      await d.bringToFront(); await d.locator('#karten-tabelle tr[data-haushalt="FA-HH-14729140-000123"][data-art="regulaer"]').click(); t = await karteText(d);
+      ok(`${br} Meier: Karte FA-PK-14729140-000123-07, Weizenmehl 8 / 3 / 5 kg aus dem Abgleich`, t.includes('FA-PK-14729140-000123-07') && zeile(t, 'Weizenmehl', '8 kg', '3 kg', '5 kg') && zeile(t, 'Reis', '4,8 kg', '0 kg', '4,8 kg'), t.slice(0, 900));
+      p = await drucken(d, br, 'a4', `${out}/${label}-meier-a4.pdf`);
+      ok(`${br} Meier A4-Druck: Restmengen`, zeile(p, 'Weizenmehl', '8 kg', '3 kg', '5 kg'), p.slice(0, 1200));
+      if (br === 'chrome') execFileSync('pdftoppm', ['-r', '110', '-png', '-singlefile', `${out}/${label}-meier-a4.pdf`, `${out}/${label}-meier-a4`]); }
     ok(`${br} keine Seitenfehler`, errs.length === 0, errs.join(' || '));
     await b.close();
   }

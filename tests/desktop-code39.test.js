@@ -124,6 +124,21 @@ const BECKER = 'FAPK1472914090000177';
     const bild = `${out}/${label}-becker-karte-${fmt}.png`; await p.locator('.barcode-wrap').screenshot({ path: bild });
     const t = lies(bild); ok(`Becker-Karte ${fmt}: ${nr}, zxing liest ${t}`, nr === 'FA-PK-14729140-900001-77' && t === BECKER, `Nummer "${nr}", gelesen "${t}"`);
   }
+  // Meier (Bezug über die App, geprüft): reguläre Karte FA-PK-14729140-000123 und Zusatz Trinkwasser, A4 und A6 (Screenshot + PDF 300 dpi)
+  for (const [art, nrSoll, codeSoll] of [['regulaer', 'FA-PK-14729140-000123-07', 'FAPK1472914000012307'], ['stoerung', 'FA-PK-14729140-000068-75', 'FAPK1472914000006875']]) {
+    const mRow = p.locator(`#karten-tabelle tr[data-haushalt="FA-HH-14729140-000123"][data-art="${art}"]`);
+    ok(`Meier ${art} in der Kartenliste`, (await mRow.count()) === 1);
+    if (await mRow.count()) for (const fmt of ['a4', 'a6']) {
+      await mRow.click(); await p.selectOption('#kformat', fmt); await p.waitForSelector('.kartenblatt.' + fmt);
+      const nr = ((await p.textContent('.kartenblatt .karten-code')) || '').trim();
+      const bild = `${out}/${label}-meier-${art}-${fmt}.png`; await p.locator('.barcode-wrap').screenshot({ path: bild });
+      const t = lies(bild);
+      await p.emulateMedia({ media: 'print' }); const pdf = `${out}/${label}-meier-${art}-${fmt}.pdf`; await p.pdf({ path: pdf, preferCSSPageSize: true, printBackground: true }); await p.emulateMedia({ media: 'screen' });
+      execFileSync('pdftoppm', ['-r', '300', '-png', '-singlefile', pdf, pdf.replace(/\.pdf$/, '-pdf')], { stdio: 'ignore' });
+      const tp = lies(pdf.replace(/\.pdf$/, '-pdf.png'));
+      ok(`Meier ${art} ${fmt}: ${nr}, zxing liest ${t} (Bild) / ${tp} (PDF)`, nr === nrSoll && t === codeSoll && tp === codeSoll, `Nummer "${nr}", gelesen "${t}" / "${tp}"`);
+    }
+  }
   ok('keine Seitenfehler', errs.length === 0, errs.join(' || '));
   await b.close();
   fs.writeFileSync(`${out}/${label}-ergebnis.json`, JSON.stringify({ url, fail, res }, null, 1));

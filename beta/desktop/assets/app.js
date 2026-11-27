@@ -434,6 +434,20 @@
     (D.meta.reservierte_gutscheine_20261116 || []).forEach(function (x) { gs.push(x); });
     return { pk: maxNr(pk, /^FA-PK-14729140-(\d{6})$/), gs: maxNr(gs, new RegExp("^FA-V-" + per + "-(\\d{6})$")), per: per };
   })();
+  /* Haushalte mit Bezug über die App bekommen auf Wunsch dieselbe Lebensmittelkarte zum Drucken. Kartennummer, wenn der Gutschein
+     der laufenden Woche keine papierkarte_id hat: reguläre Karte = laufende Nummer des Haushalts wie im gemeinsamen Log
+     (Schulze FA-HH-…-000124 → FA-PK-…-000124, Becker 900001 → 900001), also Meier FA-PK-14729140-000123;
+     Zusatz Trinkwasser = nächste freie Nummer nach dem Log (Meier FA-PK-14729140-000068). */
+  var APP_PK = (function () {
+    var stoerung = [], m = {};
+    log().forEach(function (ev) {
+      var g = ev.typ === "VOUCHER_ISSUED" && ev.payload && ev.payload.gutschein, hh = g && HH[g.haushalt_id];
+      if (!g || !hh || hh.kanal !== "app" || hh.demo || g.periode_id !== PERIODE_LAUFEND || g.papierkarte_id) return;
+      if (g.anlass === "stoerung") stoerung.push(g.gutschein_id); else m[g.gutschein_id] = "FA-PK-14729140-" + g.haushalt_id.slice(-6);
+    });
+    stoerung.sort().forEach(function (id, i) { m[id] = "FA-PK-14729140-" + ("00000" + (NUMMERN.pk + i + 1)).slice(-6); });
+    m.anzahl = stoerung.length; return m;
+  })();
   function papierCode(pkId) {
     var m = pkId.match(/^FA-PK-(\d{8})-(\d{6})$/), z = m[1] + m[2], r = 0;
     for (var i = 0; i < z.length; i++) r = (r * 10 + Number(z[i])) % 97;
@@ -463,24 +477,25 @@
   function wasserMenge(g) { var m = 0; (g.positionen || []).forEach(function (q) { if (q.artikel_id === "water") m += Number(q.zugeteilt_max) || 0; }); return m; }
   /* Alle Lebensmittelkarten eines Papierhaushalts: reguläre Karte (aus dem Log oder als Entwurf) und je Störung eine Zusatzkarte */
   function kartenHH(hh) {
-    if (hh.kanal !== "papier") return [];
     if (hh.demo) return [{ art: "regulaer", berechtigt: hh.person_ids.slice(),
       karte: { papierkarte_id: BECKER.papierkarte_id, haushalt_id: BECKER.haushalt_id, code_anzeige: BECKER.code_anzeige, code_barcode: BECKER.code_barcode, status: "ausgestellt" },
       gutschein: { gutschein_id: BECKER.gutschein_id_vorlage.replace("{MONTAG_YYYYMMDD}", PERIODE_LAUFEND.slice(7)), periode_id: PERIODE_LAUFEND,
         haushalt_id: BECKER.haushalt_id, kanal: "papier", papierkarte_id: BECKER.papierkarte_id, positionen: BECKER.positionen } }];
     var gs = gutscheineHH(hh.haushalt_id), out = [];
     var berechtigt = hh.person_ids.filter(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; });
-    if (gs.regulaer && gs.regulaer.papierkarte_id) {
-      var c0 = papierCode(gs.regulaer.papierkarte_id);
-      out.push({ art: "regulaer", karte: { papierkarte_id: gs.regulaer.papierkarte_id, gutschein_id: gs.regulaer.gutschein_id, code_anzeige: c0.code_anzeige, code_barcode: c0.code_barcode, status: "ausgestellt" }, gutschein: gs.regulaer, berechtigt: berechtigt });
+    if (!berechtigt.length) return []; /* Karte nach abgeschlossener Prüfung */
+    var pkVon = function (g) { return g.papierkarte_id || APP_PK[g.gutschein_id] || null; };
+    if (gs.regulaer && pkVon(gs.regulaer)) {
+      var c0 = papierCode(pkVon(gs.regulaer));
+      out.push({ art: "regulaer", karte: { papierkarte_id: pkVon(gs.regulaer), gutschein_id: gs.regulaer.gutschein_id, code_anzeige: c0.code_anzeige, code_barcode: c0.code_barcode, status: "ausgestellt" }, gutschein: gs.regulaer, berechtigt: berechtigt });
     } else {
       var e = karteEntwurf(hh);
       if (e) { e.art = "regulaer"; e.entwurf = true; out.push(e); }
     }
     gs.stoerung.forEach(function (g) {
-      if (!g.papierkarte_id) return;
-      var c = papierCode(g.papierkarte_id);
-      out.push({ art: "stoerung", karte: { papierkarte_id: g.papierkarte_id, gutschein_id: g.gutschein_id, code_anzeige: c.code_anzeige, code_barcode: c.code_barcode, status: "ausgestellt" }, gutschein: g, berechtigt: berechtigt, aktiv: stoerungAktiv(g.stoerung_id) });
+      if (!pkVon(g)) return;
+      var c = papierCode(pkVon(g));
+      out.push({ art: "stoerung", karte: { papierkarte_id: pkVon(g), gutschein_id: g.gutschein_id, code_anzeige: c.code_anzeige, code_barcode: c.code_barcode, status: "ausgestellt" }, gutschein: g, berechtigt: berechtigt, aktiv: stoerungAktiv(g.stoerung_id) });
     });
     return out;
   }
@@ -516,7 +531,9 @@
       if (ev.typ === "REDEMPTION_REVERSED" && ev.payload) storno[ev.payload.buchung_id] = true;
     });
     liste = liste.filter(function (x) { return !storno[x.buchung_id]; });
-    retailAusgaben().forEach(function (x) { if (x.gutschein_id === gid || (pk && x.papierkarte_id === pk)) liste.push(x); });
+    /* Zuordnung über Gutschein, Kartennummer oder Haushalt (Retail/Customer führen Meier unter dem Gutschein des gemeinsamen Logs);
+       es zählen nur die Waren dieser Karte */
+    retailAusgaben().forEach(function (x) { if (x.gutschein_id === gid || (pk && x.papierkarte_id === pk) || (x.haushalt_id && x.haushalt_id === k.gutschein.haushalt_id)) liste.push(x); });
     var summe = {}, letzte = null;
     liste.forEach(function (x) {
       x.positionen.forEach(function (q) { summe[q.artikel_id] = Math.round(((summe[q.artikel_id] || 0) + Number(q.menge)) * 1000) / 1000; });
@@ -532,11 +549,10 @@
       alles: mitMenge.length > 0 && mitMenge.every(function (p) { return p.rest <= 0.0005; }) };
   }
   function karteEntwurf(hh) {
-    if (hh.kanal !== "papier") return null;
     var berechtigt = hh.person_ids.filter(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; });
     if (!berechtigt.length) return null;
-    var idx = HAUSHALTE.filter(function (h) { return h.kanal === "papier"; }).indexOf(hh) + 1;
-    var pkId = "FA-PK-14729140-" + ("00000" + (NUMMERN.pk + idx)).slice(-6);
+    var idx = HAUSHALTE.filter(function (h) { return !h.demo; }).indexOf(hh) + 1;
+    var pkId = "FA-PK-14729140-" + ("00000" + (NUMMERN.pk + APP_PK.anzahl + idx)).slice(-6);
     var gsId = "FA-V-" + NUMMERN.per + "-" + ("00000" + (NUMMERN.gs + idx)).slice(-6);
     var pos = D.artikel.filter(function (a) { return a.periode_basis_vorschlag && a.artikel_id !== "water" && a.artikel_id !== "insulin"; }).map(function (a) {
       var menge = Math.round(a.periode_basis_vorschlag * berechtigt.length * 1000) / 1000;
@@ -545,7 +561,7 @@
     var c = papierCode(pkId);
     return {
       karte: { papierkarte_id: pkId, gutschein_id: gsId, haushalt_id: hh.haushalt_id, periode_id: PERIODE_LAUFEND, code_anzeige: c.code_anzeige, code_barcode: c.code_barcode, status: "entwurf" },
-      gutschein: { gutschein_id: gsId, periode_id: PERIODE_LAUFEND, bezug: "haushalt", haushalt_id: hh.haushalt_id, kanal: "papier", positionen: pos, papierkarte_id: pkId },
+      gutschein: { gutschein_id: gsId, periode_id: PERIODE_LAUFEND, bezug: "haushalt", haushalt_id: hh.haushalt_id, kanal: hh.kanal, positionen: pos, papierkarte_id: pkId },
       berechtigt: berechtigt
     };
   }
@@ -771,7 +787,7 @@
       var ks = kartenHH(hh), gsh = gutscheineHH(hh.haushalt_id), zut;
       var zusatz = gsh.stoerung.map(function (g) { return "Zusatz Trinkwasser: " + fmtZahl(wasserMenge(g)) + " Liter" + (stoerungAktiv(g.stoerung_id) ? "" : " (verfallen mit Ende der Störung)"); });
       if (hh.kanal === "papier") zut = ks.length ? ks.map(function (k) { return esc(KARTENART_DE[k.art]) + ": " + esc(kartenStatus(k)); }).join("<br>") + "<br><span class='klein'>" + ks[0].berechtigt.length + " bezugsberechtigte Person" + (ks[0].berechtigt.length === 1 ? "" : "en") + "</span>" : "<span class='klein'>noch keine Karte (keine bestätigte Person)</span>";
-      else zut = hh.person_ids.some(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; }) ? "Gutschein in der FoodAllo-App" + (zusatz.length ? "<br>" + zusatz.join("<br>") : "") : "<span class='klein'>noch keine Zuteilung (keine bestätigte Person)</span>";
+      else zut = hh.person_ids.some(function (pid) { return aktuellerStatus(pid).status === "bestaetigt"; }) ? "Gutschein in der FoodAllo-App" + (zusatz.length ? "<br>" + zusatz.join("<br>") : "") + (ks.length ? "<br><span class='klein'>Lebensmittelkarte in der App, auf Wunsch zu drucken</span>" : "") : "<span class='klein'>noch keine Zuteilung (keine bestätigte Person) · Karte nach abgeschlossener Prüfung</span>";
       html += "<tr><td>" + esc(haushaltName(hh)) + "<br><span class='klein'>" + hh.groesse + " Personen</span></td><td>" + esc(anschrift(v)) + "</td><td>" + pers + "</td><td>" + esc(KANAL_DE[hh.kanal] || "") + "</td><td>" + zut + abholungenText(hh.haushalt_id) + "</td></tr>";
     });
     html += "</tbody></table><p class='klein'>Abholungen aus der Retail App erscheinen hier, wenn sie im selben Browser gebucht wurden. " + ABG_HINWEIS + ".</p></div>";
@@ -785,6 +801,7 @@
     var v = lesen(SPEICHER.druck, {}), id = k.karte ? k.karte.papierkarte_id : k.papierkarte_id;
     if (v[id]) return "gedruckt am " + datumZeit(v[id]);
     if (k.art === "stoerung" && k.aktiv === false) return "verfallen mit Ende der Störung";
+    if (k.gutschein && k.gutschein.kanal === "app") return "Karte in der App, auf Wunsch zu drucken";
     return k.entwurf ? "Entwurf, zu drucken" : "zu drucken";
   }
   function seitenformat() {
@@ -807,30 +824,31 @@
   function druckstandSetzen() { document.querySelectorAll("[data-druckstand]").forEach(function (el) { el.textContent = "Druckstand: " + datumZeit(jetztBerlin()); }); }
   function renderKarten(host) {
     if (!darfKarten()) { host.innerHTML = seitenTitel(ANSICHT_TITEL.karten) + sperre("Lebensmittelkarten druckt nur die Pass- und Meldebehörde der Musterstadt."); return; }
-    var papier = HAUSHALTE.filter(function (h) { return h.kanal === "papier"; });
-    if (!state.haushalt || !HH[state.haushalt] || HH[state.haushalt].kanal !== "papier") state.haushalt = papier.length ? papier[0].haushalt_id : null;
+    var papier = HAUSHALTE.filter(function (h) { return h.kanal === "papier"; }).concat(HAUSHALTE.filter(function (h) { return h.kanal !== "papier"; }));
+    var mitKarte = papier.filter(function (h) { return kartenHH(h).length; });
+    if (!state.haushalt || !HH[state.haushalt]) state.haushalt = mitKarte.length ? mitKarte[0].haushalt_id : (papier.length ? papier[0].haushalt_id : null);
     var hh = state.haushalt ? HH[state.haushalt] : null, ks = hh ? kartenHH(hh) : [];
     var k = ks.filter(function (x) { return x.art === (state.kartenArt || "regulaer"); })[0] || ks[0] || null;
     seitenformat();
     if (state.druck && k) { host.innerHTML = "<div class='druckbereich'>" + karteHtml(hh, k) + "</div>"; return; }
     var html = seitenTitel("Lebensmittelkarten drucken", "Musterstadt, Pass- und Meldebehörde · Zuteilungszeitraum " + periodeText(periodeObj(PERIODE_LAUFEND)));
     html += "<div class='korb'><div class='karte no-print'><table id='karten-tabelle'><thead><tr><th>Haushalt</th><th>Karte</th><th>Status</th></tr></thead><tbody>";
-    if (!papier.length) html += "<tr><td colspan='3'>Keine Haushalte mit Bezug über die Papierkarte.</td></tr>";
+    if (!papier.length) html += "<tr><td colspan='3'>Keine Haushalte.</td></tr>";
     papier.forEach(function (h) {
       var l = kartenHH(h);
-      if (!l.length) html += "<tr class='wahl" + (h.haushalt_id === state.haushalt ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='regulaer'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + h.groesse + " Personen</span></td><td>—</td><td><span class='status grau'>Identität noch nicht bestätigt</span></td></tr>";
+      if (!l.length) html += "<tr class='wahl" + (h.haushalt_id === state.haushalt ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='regulaer'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + h.groesse + " Personen</span></td><td>—</td><td><span class='status grau'>Karte nach abgeschlossener Prüfung</span></td></tr>";
       l.forEach(function (kk) {
         var stt = kartenStatus(kk), aktiv = h.haushalt_id === state.haushalt && k && kk.art === k.art;
-        html += "<tr class='wahl" + (aktiv ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='" + kk.art + "'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + esc(kk.berechtigt.map(personName).join(", ")) + "</span></td><td>" + esc(KARTENART_DE[kk.art]) + "<br><span class='kartenart'>" + (kk.art === "stoerung" ? fmtZahl(wasserMenge(kk.gutschein)) + " Liter Trinkwasser" : "Zuteilung in der aktuellen Woche") + "</span></td><td><span class='status " + (/zu drucken/.test(stt) ? "offen" : "grau") + "'>" + esc(stt) + "</span></td></tr>";
+        html += "<tr class='wahl" + (aktiv ? " aktiv" : "") + "' data-haushalt='" + esc(h.haushalt_id) + "' data-art='" + kk.art + "'><td>" + esc(haushaltName(h)) + "<br><span class='klein'>" + esc(kk.berechtigt.map(personName).join(", ")) + "</span></td><td>" + esc(KARTENART_DE[kk.art]) + "<br><span class='kartenart'>" + (kk.art === "stoerung" ? fmtZahl(wasserMenge(kk.gutschein)) + " Liter Trinkwasser" : "Zuteilung in der aktuellen Woche") + "</span></td><td><span class='status " + (/^(Entwurf, )?zu drucken/.test(stt) ? "offen" : "grau") + "'>" + esc(stt) + "</span></td></tr>";
       });
     });
-    html += "</tbody></table><p class='klein'>Je Haushalt eine Lebensmittelkarte für den Zuteilungszeitraum und während einer Versorgungsstörung eine eigene Zusatzkarte Trinkwasser.</p></div><div>";
+    html += "</tbody></table><p class='klein'>Je Haushalt eine Lebensmittelkarte für den Zuteilungszeitraum und während einer Versorgungsstörung eine eigene Zusatzkarte Trinkwasser. Haushalte mit der FoodAllo-App haben die Karte in der App und können sie hier auch gedruckt bekommen.</p></div><div>";
     if (k) {
       html += "<div class='werkzeug no-print'><label for='kformat'>Format</label><select id='kformat'><option value='a4'" + (state.format === "a4" ? " selected" : "") + ">A4</option><option value='a6'" + (state.format === "a6" ? " selected" : "") + ">A6</option></select>" +
         "<button type='button' class='primaer' id='btn-druck'>Drucken</button></div><div class='druckbereich'>" + karteHtml(hh, k) + "</div>";
     } else if (hh) {
-      html += "<div class='karte'><p>Für " + esc(haushaltName(hh)) + " kann noch keine Lebensmittelkarte gedruckt werden: Es ist noch keine Person des Haushalts bestätigt.</p>" +
-        "<p><a href='#schalter' id='zur-erfassung'>Zur Erfassung am Schalter</a> · <a href='#arbeitskorb' id='zum-korb'>Zum Arbeitskorb</a></p></div>";
+      html += "<div class='karte'><p>Karte nach abgeschlossener Prüfung: Für " + esc(haushaltName(hh)) + " ist noch keine Person des Haushalts bestätigt.</p>" +
+        "<p>" + (hh.kanal === "papier" ? "<a href='#schalter' id='zur-erfassung'>Zur Erfassung am Schalter</a> · " : "") + "<a href='#arbeitskorb' id='zum-korb'>Zum Arbeitskorb</a></p></div>";
     }
     html += "</div></div>";
     host.innerHTML = html;
