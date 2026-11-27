@@ -222,7 +222,7 @@
     return '<section class="card info" aria-live="polite">' +
       "<h2>Ihr Gutschein ist noch nicht da</h2>" +
       "<p>Ihre Identität ist bestätigt. Der Gutschein für Ihren Haushalt wird noch ausgestellt.</p>" +
-      "<p>In dieser Demonstration gelten die bereits ausgestellten Gutscheine für den Demonstrationszeitraum 16.–22.11.2026.</p>" +
+      "<p>In dieser Demonstration gelten die ausgestellten Gutscheine immer für die laufende Woche, Montag bis Sonntag.</p>" +
       "<p>Schauen Sie später noch einmal nach. Sie müssen nichts weiter tun.</p>" +
       "</section>";
   }
@@ -384,7 +384,7 @@
       "<h3>Warum sehe ich keinen Gutschein?</h3>" +
       "<p>Zuerst prüft die Pass- und Meldebehörde der Musterstadt Ihre Identität. " +
       "Das kann etwas dauern. Danach wird der Gutschein für Ihren Haushalt ausgestellt. Schauen Sie später noch einmal nach.</p>" +
-      "<p>In dieser Demonstration gelten die bereits ausgestellten Gutscheine für den Demonstrationszeitraum 16.–22.11.2026.</p>" +
+      "<p>In dieser Demonstration gelten die ausgestellten Gutscheine immer für die laufende Woche, Montag bis Sonntag.</p>" +
       "<h3>Meine Identität wurde nicht bestätigt. Was kann ich tun?</h3>" +
       "<p>Gehen Sie zur Pass- und Meldebehörde der Musterstadt, Markt 13–15, 12345 Musterstadt. Nehmen Sie ein Ausweisdokument mit.</p>" +
       "<h3>Wo hole ich Lebensmittel ab?</h3>" +

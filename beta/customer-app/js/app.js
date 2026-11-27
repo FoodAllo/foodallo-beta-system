@@ -176,6 +176,19 @@
     });
   }
 
+  /* Laufende Woche (Entscheidung David): Gutscheine, Einlösungen und Störungen aus dem Log werden nur zur
+     Laufzeit auf die laufende Woche abgebildet (js/woche.js). Der Log selbst bleibt unverändert. */
+  function wochenAbbildung() {
+    var W = typeof window !== "undefined" ? window.FAWoche : null;
+    if (!W) return null;
+    return W.abbildung(state._geteilt || [], periodNow().start_ymd);
+  }
+
+  function inLaufendeWoche(ereignisse) {
+    var W = typeof window !== "undefined" ? window.FAWoche : null;
+    return W ? W.ereignisseAbbilden(ereignisse, wochenAbbildung()) : ereignisse;
+  }
+
   function desktopSimEvents() {
     if (!USE_LOCAL_DESKTOP_SIM) return [];
     return simOhneLogDuplikate(state._geteilt || [], state.demoDesktopSim || []);
@@ -235,7 +248,7 @@
 
     var lokal = await Store.allEreignisse();
     state._geteilt = geteilt;
-    state.ereignisse = mergeEreignisse(state._geteilt, desktopSimEvents(), lokal);
+    state.ereignisse = inLaufendeWoche(mergeEreignisse(state._geteilt, desktopSimEvents(), lokal));
     applyIdentitaetAusLog();
 
     state.melderegister = null;
@@ -400,7 +413,10 @@
       add(e.payload.gutschein);
     });
     if (!found.length) {
-      (state.sharedVouchers || []).forEach(add);
+      var ab = wochenAbbildung();
+      (state.sharedVouchers || []).forEach(function (g) {
+        add(window.FAWoche ? window.FAWoche.gutscheinAbbilden(g, ab) : g);
+      });
     }
     if (!v12Aktiv()) {
       var regulaer = found.filter(function (g) { return gutscheinAnlass(g) !== "stoerung"; });
@@ -457,7 +473,7 @@
     });
     // geteilt already includes shared log + file sim; re-merge with current local store
     // Safer: keep shared+sim snapshots separately.
-    state.ereignisse = mergeEreignisse(state._geteilt || [], desktopSimEvents(), lokal);
+    state.ereignisse = inLaufendeWoche(mergeEreignisse(state._geteilt || [], desktopSimEvents(), lokal));
     applyIdentitaetAusLog();
   }
 

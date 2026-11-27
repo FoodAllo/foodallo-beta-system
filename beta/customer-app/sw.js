@@ -1,11 +1,12 @@
 /* FoodAllo Customer App — lokaler Service Worker, App-Shell und lokale Daten. */
-const CACHE = "foodallo-customer-app-public-9";
+const CACHE = "foodallo-customer-app-public-10";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./css/app.css",
   "./js/voucher.js",
+  "./js/woche.js",
   "./js/store.js",
   "./js/ui.js",
   "./js/code39.js",
