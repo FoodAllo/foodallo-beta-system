@@ -4,6 +4,9 @@
 // Prüft in Chromium (page.pdf + pdftotext) und Firefox (emulateMedia print + Screenshot),
 // dass die gedruckte Seite die Lebensmittelkarte enthält und der Rest ausgeblendet ist.
 const pw = require('playwright'); const fs = require('fs'); const { execFileSync } = require('child_process');
+// Farbprüfung (tests/druck_farbe.py, Python mit Pillow über FA_PYTHON): Karte rein schwarz-weiß, R=G=B mit Toleranz 8
+const py = process.env.FA_PYTHON || 'python3';
+const farbe = datei => JSON.parse(execFileSync(py, [require('path').join(__dirname, 'druck_farbe.py'), datei]).toString());
 const base = (process.argv[2] || '').replace(/\/$/, ''); const out = process.argv[3] || '.'; const label = process.argv[4] || 'druck';
 if (!base) { console.error('Basis-URL fehlt'); process.exit(2); }
 const url = base + (base.startsWith('file:') ? '/beta/desktop/index.html' : '/beta/desktop/');
@@ -60,6 +63,23 @@ async function zurKarte(b, br, format) {
       ok('chrome', `${format}: keine Konsolenfehler`, errs.length === 0, errs.join(' || '));
       await c.close();
     }
+    // Farbprüfung: alle Lebensmittelkarten (auch Zusatz Trinkwasser und Becker) in A4 und A6 als Druck-PDF
+    {
+      const { c, p } = await zurKarte(b, 'chrome', null);
+      await p.emulateMedia({ media: 'screen' });
+      const zeilen = await p.$$eval('#karten-tabelle tr[data-haushalt]', x => x.length);
+      for (let i = 0; i < zeilen; i++) for (const format of ['a4', 'a6']) {
+        await p.locator('#karten-tabelle tr[data-haushalt]').nth(i).click();
+        if (!(await p.$('#kformat'))) continue;
+        await p.selectOption('#kformat', format); await p.waitForSelector('.kartenblatt.' + format);
+        await p.emulateMedia({ media: 'print' });
+        const pdf = `${out}/${label}-farbe-karte-${i}-${format}.pdf`; await p.pdf({ path: pdf, preferCSSPageSize: true, printBackground: true });
+        await p.emulateMedia({ media: 'screen' });
+        const f = farbe(pdf);
+        ok('chrome', `Farbprüfung Karte ${i} ${format}: kein farbiges Pixel (max. Abweichung ${f.max_abweichung})`, f.farbige_pixel === 0, JSON.stringify(f));
+      }
+      await c.close();
+    }
     await b.close();
   }
   // Firefox: Druckansicht (emulateMedia print) + Screenshot
@@ -68,6 +88,8 @@ async function zurKarte(b, br, format) {
     for (const format of ['a4', 'a6']) {
       const { c, p, errs } = await zurKarte(b, 'firefox', format);
       await p.screenshot({ path: `${out}/${label}-firefox-${format}-druckansicht.png`, fullPage: true });
+      const kb = `${out}/${label}-firefox-${format}-karte.png`; await p.locator('.kartenblatt').screenshot({ path: kb });
+      const f = farbe(kb); ok('firefox', `${format}: Farbprüfung Karte, kein farbiges Pixel (max. Abweichung ${f.max_abweichung})`, f.farbige_pixel === 0, JSON.stringify(f));
       ok('firefox', `${format}: keine Konsolenfehler`, errs.length === 0, errs.join(' || '));
       await c.close();
     }

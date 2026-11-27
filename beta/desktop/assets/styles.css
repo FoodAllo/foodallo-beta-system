@@ -1,7 +1,8 @@
 /* FoodAllo Fachverfahren (Beta) – Systemschriften, keine externen Ressourcen */
 :root {
   --text: #1d2733; --muted: #5a6675; --bg: #f2f4f6; --karte: #fff; --rand: #d5dbe2;
-  --akzent: #1f4e79; --akzent-hell: #e6eef6; --marke: #e8963c;
+  --akzent: #1f4e79; --akzent-hell: #e6eef6; --marke: #8cc4f0; /* Grundton Desktop: Blau (Logo bleibt in Originalfarbe) */
+  --akzent-rand: #b9cce0;
   --ok: #2e7d32; --ok-bg: #e8f3e9; --warn: #9a6700; --warn-bg: #fff4d6;
   --krit: #b3261e; --krit-bg: #fbe7e5; --grau-bg: #eceff2;
 }
@@ -23,7 +24,7 @@ a { color: var(--akzent); }
 .anmeldung select, .anmeldung input { width: 100%; }
 .anmeldung button { margin-top: 14px; padding: 9px; font-size: 15px; }
 .anmeldung-fuss { text-align: center; font-size: 12px; opacity: .8; margin-top: 14px; }
-.beta { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #7a4a00; background: #fde7c7; border: 1px solid #efc58a; border-radius: 3px; padding: 0 5px; vertical-align: middle; }
+.beta { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--akzent); background: var(--akzent-hell); border: 1px solid var(--akzent-rand); border-radius: 3px; padding: 0 5px; vertical-align: middle; }
 
 /* Kopf */
 .kopf { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 8px 24px; background: #fff; border-bottom: 3px solid var(--akzent); flex-wrap: wrap; }
@@ -39,7 +40,7 @@ nav.reiter ul { list-style: none; display: flex; margin: 0; padding: 0; flex-wra
 nav.reiter a { display: block; padding: 10px 16px; text-decoration: none; color: #dbe6f1; font-size: 14px; border-bottom: 3px solid transparent; }
 nav.reiter a:hover { color: #fff; }
 nav.reiter a.aktiv { color: #fff; border-bottom-color: var(--marke); font-weight: 600; }
-nav.reiter .zahl { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; background: var(--marke); color: #fff; font-size: 11px; font-weight: 700; text-align: center; }
+nav.reiter .zahl { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; background: #fff; color: var(--akzent); font-size: 11px; font-weight: 700; text-align: center; }
 
 button, select, input, textarea { font: inherit; font-size: 14px; }
 button { border: 1px solid var(--rand); background: #fff; color: var(--text); padding: 6px 12px; border-radius: 4px; cursor: pointer; }
@@ -58,7 +59,7 @@ h3 { font-size: 14px; margin: 12px 0 6px; }
 .karte { background: var(--karte); border: 1px solid var(--rand); border-radius: 6px; padding: 14px 16px; margin-bottom: 14px; }
 .klein { font-size: 12px; color: var(--muted); }
 .hinweis { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
-.meldung { background: var(--akzent-hell); border: 1px solid #b9cce0; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; }
+.meldung { background: var(--akzent-hell); border: 1px solid var(--akzent-rand); padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; }
 .meldung.warn { background: var(--warn-bg); border-color: #e0c56e; color: #5c4200; }
 .meldung.krit { background: var(--krit-bg); border-color: #e7a8a4; color: #7a1c16; }
 .meldung.ok { background: var(--ok-bg); border-color: #a9d2ab; color: #1e5a22; }
@@ -115,6 +116,9 @@ dl.daten dd { margin: 0; }
 
 /* Lebensmittelkarte */
 .kartenblatt { -webkit-print-color-adjust: exact; print-color-adjust: exact; position: relative; background: #fff; border: 1px solid #222; padding: 16px 18px; max-width: 210mm; margin: 0 auto 16px; color: #111; overflow: hidden; }
+/* Karte rein schwarz-weiß: neutrale Grautöne statt der bläulichen Bildschirmtöne */
+.kartenblatt th, .kartenblatt td { border-bottom-color: #d6d6d6; }
+.kartenblatt th { background: #f5f5f5; }
 .kartenblatt.a6 { max-width: 105mm; padding: 8px 10px; font-size: 10px; }
 .wasserzeichen { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; font-size: 110px; font-weight: 800; color: rgba(0, 0, 0, 0.045); transform: rotate(-22deg); letter-spacing: .2em; }
 .kartenblatt.a6 .wasserzeichen { font-size: 48px; }
@@ -164,7 +168,7 @@ dl.daten dd { margin: 0; }
 .ergaenzt { display: inline-block; font-size: 10px; color: #5a6675; border: 1px solid #c5ccd4; border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; font-weight: normal; }
 .kleinzahl { color: var(--muted); font-style: italic; }
 
-.karten-vermerk{display:inline-block;margin-left:8px;padding:1px 8px;border:1.5px solid #1d4f7a;border-radius:4px;font-size:0.55em;vertical-align:middle;letter-spacing:.02em}
+.karten-vermerk{display:inline-block;margin-left:8px;padding:1px 8px;border:1.5px solid #111;border-radius:4px;font-size:0.55em;vertical-align:middle;letter-spacing:.02em}
 .kartenart{font-size:12px;color:#555}
 
 /* Hinweis Demonstration (öffentliche Fassung) */
@@ -174,8 +178,8 @@ dl.daten dd { margin: 0; }
 .karten-lizenz { font-size: 8px; margin: 2px 0; color: #333; }
 
 /* Abgleich Retail App (nur auf diesem Gerät) */
-.abholung { margin-top: 4px; padding: 3px 6px; border-left: 3px solid #2e7d32; background: #f1f8f2; font-size: 13px; }
-tr.retail-kopf td { background: #f1f8f2; }
+.abholung { margin-top: 4px; padding: 3px 6px; border-left: 3px solid var(--akzent); background: var(--akzent-hell); font-size: 13px; }
+tr.retail-kopf td { background: var(--akzent-hell); }
 .karten-stand { font-size: 12px; margin: 4px 0 0; }
 .kartenblatt.a6 .karten-stand { font-size: 8px; margin-top: 2px; }
 .karten-alles { font-weight: 700; margin: 6px 0 0; padding: 3px 6px; border: 1.5px solid #000; display: inline-block; }
