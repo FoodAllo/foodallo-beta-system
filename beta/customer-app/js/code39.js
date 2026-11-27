@@ -70,5 +70,24 @@
       '<rect x="0" y="0" width="' + r.breite + '" height="' + hoehe + '" fill="#fff"/><g fill="#000">' + rects + "</g></svg>";
   }
 
-  return { MUSTER: MUSTER, BREIT: BREIT, RUHEZONE: RUHEZONE, striche: striche, svg: svg };
+  /**
+   * SVG in festen Bildschirmpixeln: jedes schmale Modul genau `modul` CSS-Pixel (ganzzahlig), keine Skalierung,
+   * reines Schwarz auf reinem Weiß, Ruhezone inklusive. opts: modul (Standard 2), hoehe (px), klasse.
+   */
+  function svgPx(text, opts) {
+    opts = opts || {};
+    var r = striche(text), m = Math.max(1, Math.floor(opts.modul || 2)), hoehe = Math.max(1, Math.round(opts.hoehe || 80));
+    var breite = r.breite * m, rects = "";
+    r.striche.forEach(function (s) {
+      rects += '<rect x="' + s.x * m + '" y="0" width="' + s.w * m + '" height="' + hoehe + '"/>';
+    });
+    return '<svg class="' + esc(opts.klasse || "code39") + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strichcode ' + esc(r.inhalt) +
+      '" width="' + breite + '" height="' + hoehe + '" viewBox="0 0 ' + breite + " " + hoehe + '" shape-rendering="crispEdges" data-modul="' + m + '">' +
+      '<rect x="0" y="0" width="' + breite + '" height="' + hoehe + '" fill="#fff"/><g fill="#000">' + rects + "</g></svg>";
+  }
+
+  /** Anzahl Module inklusive Ruhezone (für die Wahl einer ganzzahligen Modulbreite). */
+  function module(text) { return striche(text).breite; }
+
+  return { MUSTER: MUSTER, BREIT: BREIT, RUHEZONE: RUHEZONE, striche: striche, svg: svg, svgPx: svgPx, module: module };
 });

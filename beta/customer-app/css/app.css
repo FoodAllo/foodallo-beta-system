@@ -329,7 +329,17 @@ footer.app-foot {
 .lk-code { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem; text-align: center; margin: 0.8rem 0; }
 .lk-code-label { margin: 0; font-size: 0.8rem; color: var(--muted); }
 .lk-nummer { margin: 0.2rem 0 0.5rem; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; word-break: break-all; }
-.karte-strichcode { display: block; width: 100%; max-width: 40rem; height: 72px; margin: 0.4rem auto 0; background: #fff; }
+.lk-strichcode-platz { display: flex; justify-content: center; margin: 0.4rem 0 0; background: #fff; width: min(calc(100vw - 2rem), 50rem); position: relative; left: 50%; transform: translateX(-50%); }
+.karte-strichcode { display: block; flex: 0 0 auto; background: #fff; max-width: none; }
+.lk-gross-knopf { margin: 0.3rem auto 0.2rem; font-weight: 650; border: 2px solid var(--green); background: #fff; color: var(--green-dark); }
+/* Vollbild-Strichcode zum Scannen: reines Schwarz auf reinem Weiß */
+html.lk-gross-offen, html.lk-gross-offen body { overflow: hidden; }
+.lk-gross { position: fixed; inset: 0; z-index: 1000; background: #fff; color: #000; color-scheme: light; }
+.lk-gross-zu { position: absolute; top: 10px; right: 10px; z-index: 2; font: inherit; font-weight: 700; font-size: 1rem; padding: 0.6rem 1rem; border-radius: 999px; border: 2px solid #000; background: #fff; color: #000; }
+.lk-gross-tipp { position: absolute; top: 14px; left: 14px; margin: 0; font-size: 0.85rem; color: #000; max-width: calc(100% - 9rem); }
+.lk-gross-box { position: absolute; transform-origin: 50% 50%; display: flex; flex-direction: column; align-items: center; background: #fff; }
+.lk-gross-code { display: block; flex: 0 0 auto; }
+.lk-gross-nummer { margin: 8px 0 0; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 22px; line-height: 28px; font-weight: 700; color: #000; letter-spacing: 0.04em; white-space: nowrap; }
 .lk-code .lk-nummer { margin: 0.5rem 0 0.2rem; }
 .lk-h3 { margin: 1rem 0 0.4rem; }
 .lk-tabelle { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
@@ -342,7 +352,7 @@ footer.app-foot {
   .lk-tabelle { font-size: 0.85rem; }
   /* Strichcode auf schmalen Bildschirmen über die volle Bildschirmbreite (lesbar für Scanner) */
   .lk-code { overflow: visible; padding-left: 0; padding-right: 0; }
-  .karte-strichcode { width: calc(100vw - 6px); max-width: none; position: relative; left: 50%; transform: translateX(-50%); height: 80px; }
+  .lk-strichcode-platz { width: 100vw; left: 50%; transform: translateX(-50%); }
   .lk-tabelle th, .lk-tabelle td { padding: 0.4rem 0.15rem; }
   .lk-tabelle th:nth-child(3), .lk-tabelle td:nth-child(3) { display: none; }
   .lk-tabelle.mit-abgeholt th:nth-child(3), .lk-tabelle.mit-abgeholt td:nth-child(3) { display: table-cell; }

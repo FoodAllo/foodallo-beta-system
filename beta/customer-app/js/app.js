@@ -714,6 +714,7 @@
     });
     html += renderStellen(false, { ags_wohnsitz: konfigurierteAgs() });
     $("#voucher-root").innerHTML = html;
+    if (DemoKarte.anpassen) DemoKarte.anpassen($("#voucher-root"));
     window.scrollTo(0, 0);
   }
 
@@ -841,6 +842,15 @@
     if (btnMeier) btnMeier.addEventListener("click", function () { starteBesucherZugang("meier"); });
     var btnMueller = $("#btn-besucher-mueller");
     if (btnMueller) btnMueller.addEventListener("click", function () { starteBesucherZugang("mueller"); });
+    $("#voucher-root").addEventListener("click", function (ev) {
+      var k = ev.target && ev.target.closest ? ev.target.closest("[data-gross-anzeigen]") : null;
+      if (k && DemoKarte && DemoKarte.grossAnzeigen) DemoKarte.grossAnzeigen(k.getAttribute("data-code"), k.getAttribute("data-nummer"), k);
+    });
+    var anpassenTimer = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(anpassenTimer);
+      anpassenTimer = setTimeout(function () { if (DemoKarte && DemoKarte.anpassen) DemoKarte.anpassen($("#voucher-root")); }, 120);
+    });
     var btnBecker = $("#btn-besucher-becker");
     if (btnBecker) btnBecker.addEventListener("click", function () { zeigeDemoKarte(); });
     $("#login-form").addEventListener("submit", function (ev) {

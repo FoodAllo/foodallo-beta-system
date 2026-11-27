@@ -57,5 +57,27 @@ pruefe("SVG enthält Ruhezone und Beschriftung", () => {
   assert.ok(svg.includes('aria-label="Strichcode ' + ERWARTET + '"'));
   assert.ok(svg.includes('<rect x="0" y="0"'));
 });
+pruefe("svgPx: ganzzahlige Module, keine Skalierung, Ruhezone, Schwarz auf Weiß", () => {
+  for (const m of [1, 2, 3, 4]) {
+    const svg = C.svgPx(ERWARTET, { modul: m, hoehe: 120 });
+    const breite = C.module(ERWARTET) * m;
+    assert.ok(svg.includes('width="' + breite + '" height="120" viewBox="0 0 ' + breite + ' 120"'), "Pixelmaße = viewBox (m=" + m + ")");
+    assert.ok(svg.includes('shape-rendering="crispEdges"'));
+    assert.ok(svg.includes('fill="#fff"') && svg.includes('fill="#000"'));
+    const rects = [...svg.matchAll(/<rect x="(\d+)" y="0" width="(\d+)" height="120"\/>/g)].map(r => [Number(r[1]), Number(r[2])]);
+    assert.strictEqual(rects.length, C.striche(ERWARTET).striche.length);
+    rects.forEach(([x, w]) => { assert.strictEqual(x % m, 0); assert.ok(w === m || w === 3 * m); });
+    assert.ok(rects[0][0] >= 10 * m, "Ruhezone links");
+    const ende = rects[rects.length - 1][0] + rects[rects.length - 1][1];
+    assert.ok(breite - ende >= 10 * m, "Ruhezone rechts");
+  }
+});
+pruefe("Groß-Anzeige: Modulbreite ganzzahlig für 390×844 hochkant und 1280 quer", () => {
+  const n = C.module(ERWARTET);
+  assert.strictEqual(D.modulFuer(ERWARTET, 844 - 96) >= 2, true);
+  assert.strictEqual(D.modulFuer(ERWARTET, 1280 - 32) >= 3, true);
+  assert.strictEqual(Number.isInteger(D.modulFuer(ERWARTET, 500)), true);
+  assert.ok(n >= 371 && n <= 371, "371 Module für 20 Zeichen");
+});
 console.log(fehler ? "FAILS " + fehler : "FAILS 0");
 process.exit(fehler ? 1 : 0);
