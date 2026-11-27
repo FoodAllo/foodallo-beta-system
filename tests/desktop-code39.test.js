@@ -3,7 +3,8 @@
 // Benötigt Playwright (Node), pdftoppm und Python mit dem Paket zxing-cpp
 // (Interpreter über Umgebungsvariable FA_PYTHON, sonst python3).
 // Prüft: Tabelle gegen die Norm (alle 43 Zeichen + *), Demonstrationskarte Becker,
-// alle Papierkarten der Desktopversion in A4 und A6 (Screenshot) sowie Stichproben aus page.pdf.
+// alle Papierkarten der Desktopversion in A4 und A6 (Screenshot), A6-PDF aller Karten (Modul ≥ 0,35 mm, Ruhezone,
+// eine Seite, zxing, Simulation 20 cm) sowie A4-Stichproben aus page.pdf.
 const pw = require('playwright'); const fs = require('fs'); const { execFileSync } = require('child_process');
 const base = (process.argv[2] || '').replace(/\/$/, ''); const out = process.argv[3] || '.'; const label = process.argv[4] || 'code39';
 if (!base) { console.error('Basis-URL fehlt'); process.exit(2); }
@@ -12,26 +13,10 @@ const py = process.env.FA_PYTHON || 'python3';
 fs.mkdirSync(out, { recursive: true });
 let fail = 0; const res = [];
 function ok(name, pass, info) { res.push({ name, pass, info: info || '' }); console.log(pass ? 'OK  ' : 'FAIL', name, pass ? '' : (info || '')); if (!pass) fail++; }
-// Strichhöhe im gerenderten PDF (pdftoppm, dpi) messen: Median der senkrechten Schwarzläufe der Striche auf der zxing-Leselinie
-function strichhoehe(bild, dpi) {
-  const py_src = [
-    'import sys,zxingcpp,statistics', 'from PIL import Image',
-    'im=Image.open(sys.argv[1]).convert("L"); dpi=float(sys.argv[2]); w,h=im.size; px=im.load()',
-    'r=[x for x in zxingcpp.read_barcodes(im,formats=zxingcpp.BarcodeFormat.Code39)]',
-    'if not r: print("0 0"); sys.exit()',
-    'q=r[0].position; xs=[q.top_left.x,q.top_right.x,q.bottom_left.x,q.bottom_right.x]; ys=[q.top_left.y,q.top_right.y,q.bottom_left.y,q.bottom_right.y]',
-    'y0=int(sum(ys)/4); runs=[]',
-    'for x in range(max(0,min(xs)),min(w,max(xs)+1)):',
-    '  if px[x,y0]>=128: continue',
-    '  a=y0',
-    '  while a>0 and px[x,a-1]<128: a-=1',
-    '  b=y0',
-    '  while b<h-1 and px[x,b+1]<128: b+=1',
-    '  runs.append(b-a+1)',
-    'm=statistics.median(runs); print("%.2f %d" % (m/dpi*25.4, len(runs)))'].join('\n');
-  const [mm] = execFileSync(py, ['-c', py_src, bild, String(dpi)]).toString().trim().split(' ').map(Number);
-  return mm;
-}
+// Maße und Lesesimulation: tests/code39_messung.py (Modulbreite, Verhältnis, Ruhezone, Strichhöhe entlang der Leselinie)
+const MESS = require('path').join(__dirname, 'code39_messung.py');
+const messen = (bild, dpi) => JSON.parse(execFileSync(py, [MESS, 'messen', bild, String(dpi)]).toString());
+const simulation = (pdf, soll) => JSON.parse(execFileSync(py, [MESS, 'simulation', pdf, soll], { stdio: ['ignore', 'pipe', 'ignore'] }).toString());
 function lies(bild) {
   const r = execFileSync(py, ['-c', 'import sys,zxingcpp\nfrom PIL import Image\nr=zxingcpp.read_barcodes(Image.open(sys.argv[1]),formats=zxingcpp.BarcodeFormat.Code39)\nprint("|".join(x.text for x in r))', bild]).toString().trim();
   return r;
@@ -94,7 +79,7 @@ const BECKER = 'FAPK1472914090000177';
   await p.fill('#kennung', 'sachbearbeitung1'); await p.click('#btn-anmelden');
   await p.click('nav.reiter a[data-view="karten"]'); await p.waitForSelector('#btn-druck');
   const n = await p.$$eval('#karten-tabelle tr[data-haushalt]', x => x.length);
-  let gelesen = 0, geprueft = 0, pdfs = 0;
+  let gelesen = 0, geprueft = 0, pdfs = 0; const simA6 = [];
   for (let i = 0; i < n; i++) {
     for (const fmt of ['a4', 'a6']) {
       await p.locator('#karten-tabelle tr[data-haushalt]').nth(i).click();
@@ -104,20 +89,31 @@ const BECKER = 'FAPK1472914090000177';
       const bild = `${out}/${label}-karte-${i}-${fmt}.png`;
       await p.locator('.barcode-wrap').screenshot({ path: bild });
       const t = lies(bild); geprueft++; if (t === soll) gelesen++; else ok(`Karte ${i} ${fmt}: zxing liest ${soll}`, false, `gelesen: "${t}"`);
-      if (i === 0 || i === n - 1) { // Stichprobe: echtes PDF, pdftoppm 300 dpi
+      if (fmt === 'a6' || i === 0 || i === n - 1) { // echtes PDF: A6 für alle Karten, A4 als Stichprobe
         await p.emulateMedia({ media: 'print' });
         const pdf = `${out}/${label}-karte-${i}-${fmt}.pdf`; await p.pdf({ path: pdf, preferCSSPageSize: true, printBackground: true });
         await p.emulateMedia({ media: 'screen' });
         execFileSync("pdftoppm", ['-r', '300', '-png', '-singlefile', pdf, pdf.replace(/\.pdf$/, "-pdf")], { stdio: "ignore" });
         const tp = lies(pdf.replace(/\.pdf$/, '-pdf.png')); pdfs++;
-        const mm = strichhoehe(pdf.replace(/\.pdf$/, '-pdf.png'), 300), minMm = fmt === 'a4' ? 25 : 13;
-        ok(`PDF Karte ${i} ${fmt}: Strichhöhe ${mm} mm (mindestens ${minMm} mm)`, mm >= minMm, `${mm} mm`);
         const seiten = Number((execFileSync('pdfinfo', [pdf]).toString().match(/Pages:\s+(\d+)/) || [])[1]);
         ok(`PDF Karte ${i} ${fmt}: genau 1 Seite`, seiten === 1, `${seiten} Seiten`);
         ok(`PDF Karte ${i} ${fmt} (300 dpi): zxing liest ${soll}`, tp === soll, `gelesen: "${tp}"`);
+        // Maße entlang der zxing-Leselinie (auch für den gedrehten A6-Strichcode); A6 mit 1200 dpi für die Modulbreite
+        const dpi = fmt === 'a6' ? 1200 : 300;
+        if (dpi !== 300) execFileSync("pdftoppm", ['-r', String(dpi), '-png', '-singlefile', pdf, pdf.replace(/\.pdf$/, "-pdf" + dpi)], { stdio: "ignore" });
+        const m = messen(pdf.replace(/\.pdf$/, dpi === 300 ? '-pdf.png' : '-pdf' + dpi + '.png'), dpi), minMm = fmt === 'a4' ? 25 : 13;
+        ok(`PDF Karte ${i} ${fmt}: Strichhöhe ${m.hoehe_mm} mm (mindestens ${minMm} mm)`, m.hoehe_mm >= minMm, JSON.stringify(m));
+        ok(`PDF Karte ${i} ${fmt}: Ruhezone ${m.ruhe_links_module}/${m.ruhe_rechts_module} Module (mindestens 10)`, m.ruhe_links_module >= 10 && m.ruhe_rechts_module >= 10, JSON.stringify(m));
+        if (fmt === 'a6') {
+          ok(`PDF Karte ${i} a6: Modul ${m.modul_mm} mm (mindestens 0,35 mm), Verhältnis ${m.verhaeltnis}`, m.modul_mm >= 0.35 && m.verhaeltnis >= 2 && m.verhaeltnis <= 3.1, JSON.stringify(m));
+          const sim = simulation(pdf, soll); simA6.push({ karte: i, code: soll, treffer: sim.treffer, versuche: sim.versuche });
+          ok(`PDF Karte ${i} a6: Simulation 20 cm ${sim.treffer}/${sim.versuche} (mindestens 10)`, sim.treffer >= 10, JSON.stringify(sim.einzeln.filter(x => !x.gelesen)));
+          if (soll === BECKER) fs.copyFileSync(pdf, `${out}/${label}-becker-a6.pdf`);
+        }
       }
     }
   }
+  fs.writeFileSync(`${out}/${label}-simulation-a6.json`, JSON.stringify(simA6, null, 1));
   ok(`Alle Papierkarten (Screenshot): ${gelesen}/${geprueft} gelesen`, geprueft > 0 && gelesen === geprueft);
   // Becker als Papierkarte der Desktopversion (assets/demo_becker.js), A4 und A6
   const bRow = p.locator('#karten-tabelle tr[data-haushalt="FA-HH-14729140-900001"]');

@@ -56,6 +56,15 @@
     return '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strichcode ' + escapeHtml(ok) + '" viewBox="0 0 ' + width + ' ' + high + '" width="' + width + '" height="' + high + '" preserveAspectRatio="none">' + bars + "</svg>";
   }
 
+  /* A6: schmales Modul 0,36 mm (Verhältnis 3:1, Ruhezone 10 Module). 371 Module = 133,56 mm passen nur an die lange Seite,
+     daher steht der Strichcode auf A6 um 90° gedreht am rechten Rand (styles.css). */
+  var A6_MODUL_MM = 0.36; /* Soll ≥ 0,35 mm; 0,36 mm mit Reserve für Rundung im Druck */
+  function strichcodeA6(text) {
+    var svg = code39Svg(text, { height: 40, narrow: 1 });
+    var module = Number((svg.match(/viewBox="0 0 ([\d.]+) /) || [])[1]) || 0;
+    return svg.replace("<svg ", '<svg style="width:' + (Math.round(module * A6_MODUL_MM * 100) / 100) + 'mm" data-module="' + module + '" ');
+  }
+
   function pruefeCode(anzeige) {
     /* FA-K-YYYYMMDD-NNNNNN-CC */
     var m = String(anzeige || "").match(/^FA-K-(\d{8})-(\d{6})-(\d{2})$/);
@@ -147,7 +156,7 @@
       "<table class=\"karten-tabelle\"><thead><tr><th>Ware</th><th class=\"num\">Sie dürfen abholen</th><th class=\"num\">Bereits abgeholt</th><th class=\"num\">Es bleibt noch</th></tr></thead><tbody>" + rows + "</tbody></table>" +
       (opts.allesAbgeholt ? "<p class=\"karten-alles\">Für diese Woche ist alles abgeholt.</p>" : "") +
       "<p class=\"karten-stand\">Letzte Abholung: " + escapeHtml(opts.letzteAbholung || "noch keine in dieser Woche") + (opts.druckstand ? "<br><span data-druckstand>Druckstand: " + escapeHtml(opts.druckstand) + "</span>" : "") + "</p>" +
-      '<div class="barcode-wrap">' + code39Svg(k.code_barcode, { height: compact ? 28 : 48, narrow: compact ? 1.4 : 2 }) +
+      '<div class="barcode-wrap">' + (compact ? strichcodeA6(k.code_barcode) : code39Svg(k.code_barcode, { height: 48, narrow: 2 })) +
       '<div class="klein-druck kartennummer">' + escapeHtml(k.code_barcode) + "</div></div>" +
       "<table class=\"abgabe\"><thead><tr><th>Datum</th><th>Ausgabestelle</th><th>Ware und Menge</th><th>Handzeichen</th></tr></thead><tbody>" + abgabeZeilen + "</tbody></table>" +
       (compact || !stellen ? "" : '<p class="karten-hinweis"><strong>Ausgabestellen in der Musterstadt:</strong> ' + stellen + "</p>") +
@@ -161,6 +170,7 @@
 
   global.FOODALLO_KARTEN = {
     code39Svg: code39Svg,
+    A6_MODUL_MM: A6_MODUL_MM,
     pruefeCode: pruefeCode,
     renderKarte: renderKarte,
     escapeHtml: escapeHtml,
