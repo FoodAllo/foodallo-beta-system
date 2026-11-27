@@ -329,7 +329,8 @@ footer.app-foot {
 .lk-code { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem; text-align: center; margin: 0.8rem 0; }
 .lk-code-label { margin: 0; font-size: 0.8rem; color: var(--muted); }
 .lk-nummer { margin: 0.2rem 0 0.5rem; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; word-break: break-all; }
-.karte-strichcode { display: block; width: 100%; max-width: 30rem; height: 56px; margin: 0 auto; }
+.karte-strichcode { display: block; width: 100%; max-width: 40rem; height: 72px; margin: 0.4rem auto 0; background: #fff; }
+.lk-code .lk-nummer { margin: 0.5rem 0 0.2rem; }
 .lk-h3 { margin: 1rem 0 0.4rem; }
 .lk-tabelle { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .lk-tabelle th, .lk-tabelle td { border-bottom: 1px solid var(--line); padding: 0.45rem 0.3rem; text-align: left; vertical-align: top; }
@@ -339,8 +340,14 @@ footer.app-foot {
 @media (max-width: 520px) {
   .lk-meta > div { grid-template-columns: 1fr; gap: 0.05rem; }
   .lk-tabelle { font-size: 0.85rem; }
+  /* Strichcode auf schmalen Bildschirmen über die volle Bildschirmbreite (lesbar für Scanner) */
+  .lk-code { overflow: visible; padding-left: 0; padding-right: 0; }
+  .karte-strichcode { width: calc(100vw - 6px); max-width: none; position: relative; left: 50%; transform: translateX(-50%); height: 80px; }
   .lk-tabelle th, .lk-tabelle td { padding: 0.4rem 0.15rem; }
   .lk-tabelle th:nth-child(3), .lk-tabelle td:nth-child(3) { display: none; }
+  .lk-tabelle.mit-abgeholt th:nth-child(3), .lk-tabelle.mit-abgeholt td:nth-child(3) { display: table-cell; }
+  .lk-tabelle.mit-abgeholt { table-layout: fixed; font-size: 0.8rem; }
+  .lk-tabelle.mit-abgeholt th:first-child { width: 31%; }
   .lk-tabelle .num { white-space: normal; }
   .app-header { padding: 8px 12px; gap: 0.5rem; }
   .header-actions { display: flex; flex: 1 1 auto; min-width: 0; justify-content: flex-end; }

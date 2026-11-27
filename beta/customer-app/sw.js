@@ -1,5 +1,5 @@
 /* FoodAllo Customer App — lokaler Service Worker, App-Shell und lokale Daten. */
-const CACHE = "foodallo-customer-app-public-7";
+const CACHE = "foodallo-customer-app-public-8";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const ASSETS = [
   "./js/voucher.js",
   "./js/store.js",
   "./js/ui.js",
+  "./js/code39.js",
   "./js/demokarte.js",
   "./js/melderegister.js",
   "./desktop/assets/melderegister.js",

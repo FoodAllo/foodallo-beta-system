@@ -46,7 +46,12 @@ Kein `water` (Trinkwasser nur während einer Versorgungsstörung auf eigener Zus
   Für `14729140900001` ergibt das `77`.
 - Berechnung im Code: Kern `FAKern.papierkartenCode("FA-PK-14729140-900001")` (`beta/kern/foodallo_kern.js`)
   liefert `{ code_anzeige, code_barcode }`. Die Customer App nutzt genau diese Funktion
-  (`beta/customer-app/js/demokarte.js`, `papierCode`) und zeichnet den Strichcode mit `code39Svg` (gleiches Verfahren wie `beta/desktop/assets/karten.js`).
+  (`beta/customer-app/js/demokarte.js`, `papierCode`).
+- Strichcode-Zeichnung: `beta/customer-app/js/code39.js` (`FoodAlloCode39.svg(text)`, Tabelle `FoodAlloCode39.MUSTER`),
+  Normtabelle ISO/IEC 16388, schmal:breit 1:3, schmale Zeichenlücke, Start/Stopp `*`, Ruhezone 10 Module je Seite.
+  Eigenständig und 1:1 kopierbar. Prüfung: `node beta/customer-app/tests/code39.test.js` (Tabelle gegen Norm, Rückdekodierung)
+  und `node beta/customer-app/tests/code39-decode.js <basis-url>` (Bildschirmfotos Chrome/Firefox 390/1280 px, zxing-cpp).
+  Die Tabelle `C39` ist byte-gleich mit `beta/desktop/assets/karten.js` (Desktop-Korrektur 3580140).
 - Kern `gutscheinZurPapierkarte` erkennt bereits `papierkarte_id`, `code_anzeige` und `code_barcode`, sobald ein Gutschein mit `papierkarte_id = FA-PK-14729140-900001` im Zustand steht.
 - Hinweis Kamera: `BarcodeDetector` wird in `retail-app/js/app.js` mit `["qr_code", "code_128", "data_matrix", "ean_13"]` gestartet. Für die Karte muss `"code_39"` ergänzt werden. Handscanner (Tastatureingabe) und Eintippen der Kartennummer funktionieren ohne Änderung.
 

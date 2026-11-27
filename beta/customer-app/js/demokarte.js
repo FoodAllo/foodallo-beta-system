@@ -1,7 +1,7 @@
 /**
  * FoodAllo Customer App — Lebensmittelkarte zum Vorzeigen (Demonstration, Familie Becker).
  * Nur Customer App: liest data/demo-karte.json, schreibt nichts in den gemeinsamen Log.
- * Kartennummer und Strichcode wie in der Desktopversion (Kern papierkartenCode, Code 39).
+ * Kartennummer wie in der Desktopversion (Kern papierkartenCode), Strichcode Code 39 über js/code39.js.
  * Gültigkeit: immer die laufende Woche (Montag bis Sonntag), nur für diese Demonstrationsfamilie.
  * Datensatz: ../data/demo-becker.json (gemeinsam mit der Retail App), Rückfall data/demo-karte.json.
  * „Bereits abgeholt“: nur aus lokalen Einlösungen der Retail App im selben Browser
@@ -13,40 +13,16 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var C39 = {
-    "0": "nnnwwnwnn", "1": "wnnnwnnnw", "2": "nwnnwnnnw", "3": "wwnnwnnnn",
-    "4": "nnwnwnnnw", "5": "wnwnwnnnn", "6": "nwwnwnnnn", "7": "nnnwwwnnw",
-    "8": "wnnwwnnnn", "9": "nwnwwnnnn",
-    "A": "wnnnnwnnw", "B": "nwnnnwnnw", "C": "wwnnnwnnn", "D": "nnwnnwnnw",
-    "E": "wnwnnwnnn", "F": "nwwnnwnnn", "G": "nnnnwwnnw", "H": "wnnnwwnnn",
-    "I": "nwnnwwnnn", "J": "nnwnwwnnn", "K": "wnnnnnwnw", "L": "nwnnnnwnw",
-    "M": "wwnnnnwnn", "N": "nnwnnnwnw", "O": "wnwnnnwnn", "P": "nwwnnnwnn",
-    "Q": "nnnnwnwnw", "R": "wnnnwnwnn", "S": "nwnnwnwnn", "T": "nnwnwnwnn",
-    "U": "wnnnnnnww", "V": "nwnnnnnww", "W": "wwnnnnnwn", "X": "nnwnnnnww",
-    "Y": "wnwnnnnwn", "Z": "nwwnnnnwn", "-": "nnnnwnnww", "*": "nwnnwnwnn"
-  };
-
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  /** Code-39-Strichcode als SVG (gleiches Verfahren wie die Desktopversion). */
+  /** Code-39-Strichcode als SVG über js/code39.js (Standardtabelle ISO/IEC 16388). */
   function code39Svg(text) {
-    var raw = String(text || "").toUpperCase(), ok = "";
-    for (var i = 0; i < raw.length; i++) if (C39[raw[i]]) ok += raw[i];
-    var payload = "*" + ok + "*", narrow = 2, high = 56, x = 0, bars = "";
-    for (var c = 0; c < payload.length; c++) {
-      var pat = C39[payload[c]];
-      for (var j = 0; j < 9; j++) {
-        var w = (pat[j] === "w" ? 3 : 1) * narrow;
-        if (j % 2 === 0) bars += '<rect x="' + x + '" y="0" width="' + w + '" height="' + high + '" fill="#000"/>';
-        x += w;
-      }
-      x += narrow;
-    }
-    return '<svg class="karte-strichcode" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strichcode der Kartennummer" viewBox="0 0 ' +
-      x + " " + high + '" preserveAspectRatio="none">' + bars + "</svg>";
+    var C = (typeof window !== "undefined" && window.FoodAlloCode39) ||
+      (typeof require === "function" ? require("./code39.js") : null);
+    return C.svg(text, { klasse: "karte-strichcode", hoehe: 60 });
   }
 
   function papierCode(pkId) {
@@ -138,6 +114,12 @@
       p.rest = Math.round((Number(p.zugeteilt_max) - e) * 1000) / 1000;
     });
     var alles = pos.length && pos.every(function (p) { return p.rest <= 0.0005; });
+    // Tabelle: Einheiten wie Retail App und gedruckte Lebensmittelkarte (kg, Liter, Rollen)
+    var fk = function (v, e) {
+      var n = Number(v || 0).toLocaleString("de-DE", { maximumFractionDigits: 3 });
+      var u = e === "kg" ? "kg" : (e === "L" || e === "l") ? "Liter" : (e === "rolle" || e === "Rollen") ? (Number(v) === 1 ? "Rolle" : "Rollen") : (e || "");
+      return u ? n + "\u00a0" + u : n;
+    };
     var fm = function (v, e) {
       if ((e === "rolle" || e === "Rollen") && Number(v) === 1) return "1\u00a0Rolle";
       return UI ? UI.formatMenge(v, e) : String(v);
@@ -164,21 +146,21 @@
 
     html += '<div class="lk-code">';
     html += '<p class="lk-code-label">Kartennummer</p>';
-    html += '<p class="lk-nummer">' + esc(code.code_anzeige) + "</p>";
     html += code39Svg(code.code_barcode);
+    html += '<p class="lk-nummer">' + esc(code.code_anzeige) + "</p>";
     html += "</div>";
 
     html += '<h3 class="lk-h3">Mengen für diese Woche</h3>';
     if (irgendwas) {
       html += '<p class="hint">„Bereits abgeholt“ zeigt die Abholungen, die in diesem Browser in der Retail App gebucht wurden.</p>';
     }
-    html += '<table class="lk-tabelle"><thead><tr><th scope="col">Artikel</th><th scope="col" class="num">Sie dürfen abholen</th>' +
+    html += '<table class="lk-tabelle' + (irgendwas ? " mit-abgeholt" : "") + '"><thead><tr><th scope="col">Artikel</th><th scope="col" class="num">Sie dürfen abholen</th>' +
       '<th scope="col" class="num">Bereits abgeholt</th><th scope="col" class="num">Es bleibt noch</th></tr></thead><tbody>';
     pos.forEach(function (p) {
-      html += "<tr><th scope=\"row\">" + esc(p.bezeichnung) + "<span class=\"lk-je\">" + esc(fm(p.je_person, p.einheit)) + " je Person</span></th>" +
-        '<td class="num">' + esc(fm(p.zugeteilt_max, p.einheit)) + "</td>" +
-        '<td class="num">' + esc(fm(p.eingeloest, p.einheit)) + "</td>" +
-        '<td class="num"><strong>' + esc(fm(p.rest, p.einheit)) + "</strong></td></tr>";
+      html += "<tr><th scope=\"row\">" + esc(p.bezeichnung) + "<span class=\"lk-je\">" + esc(fk(p.je_person, p.einheit)) + " je Person</span></th>" +
+        '<td class="num">' + esc(fk(p.zugeteilt_max, p.einheit)) + "</td>" +
+        '<td class="num">' + esc(fk(p.eingeloest, p.einheit)) + "</td>" +
+        '<td class="num"><strong>' + esc(fk(p.rest, p.einheit)) + "</strong></td></tr>";
     });
     html += "</tbody></table>";
     html += '<p class="hint">Die Mengen gelten für den ganzen Haushalt und je Woche, zum Beispiel eine Rolle Toilettenpapier je Person. ' +
