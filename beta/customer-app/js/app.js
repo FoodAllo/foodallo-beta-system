@@ -731,6 +731,7 @@
     html += renderStellen(false, { ags_wohnsitz: konfigurierteAgs() });
     $("#voucher-root").innerHTML = html;
     if (DemoKarte.anpassen) DemoKarte.anpassen($("#voucher-root"));
+    if (DemoKarte.beobachten) DemoKarte.beobachten($("#voucher-root"));
     window.scrollTo(0, 0);
   }
 

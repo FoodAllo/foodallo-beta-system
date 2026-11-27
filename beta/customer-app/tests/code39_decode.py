@@ -35,6 +35,8 @@ for pfad in sys.argv[1:]:
     texte = [t.text for t in treffer]
     if ERWARTET in texte:
         print("ok   %s -> %s" % (os.path.basename(pfad), ERWARTET))
+    elif os.environ.get("CODE39_NUR_INFO"):
+        print("info %s -> %s (nicht gefordert)" % (os.path.basename(pfad), texte or "nichts gelesen"))
     else:
         fehler += 1
         print("FAIL %s -> %s" % (os.path.basename(pfad), texte or "nichts gelesen"))

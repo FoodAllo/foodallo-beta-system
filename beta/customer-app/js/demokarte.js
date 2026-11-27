@@ -56,22 +56,28 @@
    * Legt ein Element auf das Gerätepixelraster und hält es innerhalb von [0, Fensterbreite]
    * (Ruhezone darf nicht abgeschnitten werden).
    */
-  function aufGeraetePixel(el) {
+  function aufGeraetePixel(el, rahmen) {
     if (!el || !el.getBoundingClientRect) return;
     // Verschiebung über position:relative (wird vom Layout auf Gerätepixel gelegt; transform würde Firefox nicht einrasten)
     el.style.position = "relative"; el.style.left = "0px"; el.style.top = "0px";
     var d = dichte(), r = el.getBoundingClientRect();
     var vw = document.documentElement.clientWidth || window.innerWidth;
-    var ziel = r.left;
-    if (r.width <= vw) ziel = Math.min(Math.max(ziel, 0), vw - r.width);
-    var zx = Math.round(ziel * d) / d, zy = Math.round(r.top * d) / d;
-    if (zx + r.width > vw + 1e-6) zx = Math.floor((vw - r.width) * d) / d;
-    if (zx < 0 && r.width <= vw) zx = 0;
+    // Grenzen: Rahmen (Platz des Strichcodes) und Bildschirm; der Strichcode samt Ruhezone bleibt darin
+    var lo = 0, hi = vw;
+    if (rahmen && rahmen.getBoundingClientRect) { var q = rahmen.getBoundingClientRect(); lo = Math.max(lo, q.left); hi = Math.min(hi, q.right); }
+    var zx = Math.round(r.left * d) / d, zy = Math.round(r.top * d) / d;
+    if (zx < lo) zx = Math.ceil(lo * d - 1e-6) / d;
+    if (zx + r.width > hi) zx = Math.floor((hi - r.width) * d + 1e-6) / d;
+    if (zx < lo) zx = lo; // passt nicht auf das Raster: Lage im Rahmen geht vor
     var dx = zx - r.left, dy = zy - r.top;
     if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) { el.style.left = dx + "px"; el.style.top = dy + "px"; }
   }
 
-  /** Inline-Strichcode: so groß wie möglich in ganzen Gerätepixeln je Modul, nie breiter als Platz und Bildschirm. */
+  /**
+   * Inline-Strichcode: zuerst die verfügbare Breite des Platzes (Inhaltsbreite, nie mehr als der Bildschirm),
+   * dann die größte ganze Zahl Gerätepixel je Modul, bei der der ganze Code samt Ruhezone hineinpasst; sonst
+   * eingepasst (Einpassen in den Rahmen hat Vorrang). Gilt auch bei DPR < 1 (Seitenzoom unter 100 %).
+   */
   function anpassen(root) {
     if (typeof document === "undefined") return;
     var plaetze = (root || document).querySelectorAll(".lk-strichcode-platz");
@@ -80,13 +86,42 @@
       if (!code) return;
       platz.innerHTML = "";
       var r = platz.getBoundingClientRect(), vw = document.documentElement.clientWidth || window.innerWidth;
-      var verfuegbar = Math.min(r.right, vw) - Math.max(r.left, 0);
-      verfuegbar = Math.max(0, Math.min(verfuegbar, platz.clientWidth || verfuegbar) - 1);
+      var cs = window.getComputedStyle ? window.getComputedStyle(platz) : null;
+      var innen = (platz.clientWidth || r.width) - (cs ? (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) : 0);
+      var verfuegbar = Math.min(innen, r.width, Math.min(r.right, vw) - Math.max(r.left, 0));
+      verfuegbar = Math.max(0, Math.floor((verfuegbar - 1) * 100) / 100);
       var mg = modulGeraet(code, verfuegbar, dichte());
       var hoehe = Math.max(60, Math.min(140, Math.round(mg.laenge * 0.2)));
       platz.innerHTML = C39().svgPx(code, { modul: mg.css, hoehe: hoehe, klasse: "karte-strichcode", geraetepx: mg.n || "eingepasst" });
-      aufGeraetePixel(platz.firstChild);
+      aufGeraetePixel(platz.firstChild, platz);
     });
+  }
+
+  /** Neu berechnen bei Größen-, Zoom- (Auflösung) und Ausrichtungswechsel. */
+  var beobachtet = false;
+  function beobachten(root) {
+    if (beobachtet || typeof window === "undefined") return;
+    beobachtet = true;
+    var timer = null;
+    function neu() {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        anpassen(root || document);
+        if (gross) grossLayout();
+      }, 100);
+    }
+    window.addEventListener("resize", neu);
+    window.addEventListener("orientationchange", neu);
+    (function aufZoom() {
+      if (!window.matchMedia) return;
+      var mq = window.matchMedia("(resolution: " + dichte() + "dppx)");
+      var einmal = function () {
+        if (mq.removeEventListener) mq.removeEventListener("change", einmal); else if (mq.removeListener) mq.removeListener(einmal);
+        neu();
+        aufZoom();
+      };
+      if (mq.addEventListener) mq.addEventListener("change", einmal); else if (mq.addListener) mq.addListener(einmal);
+    })();
   }
 
   var gross = null;
@@ -326,5 +361,5 @@
     return html;
   }
 
-  return { anpassen: anpassen, grossAnzeigen: grossAnzeigen, grossSchliessen: grossSchliessen, modulFuer: modulFuer, modulGeraet: modulGeraet, grossMasse: grossMasse, render: render, positionen: positionen, gutscheinIdFuer: gutscheinIdFuer, lokalEingeloest: lokalEingeloest, papierCode: papierCode, code39Svg: code39Svg };
+  return { anpassen: anpassen, beobachten: beobachten, grossAnzeigen: grossAnzeigen, grossSchliessen: grossSchliessen, modulFuer: modulFuer, modulGeraet: modulGeraet, grossMasse: grossMasse, render: render, positionen: positionen, gutscheinIdFuer: gutscheinIdFuer, lokalEingeloest: lokalEingeloest, papierCode: papierCode, code39Svg: code39Svg };
 });

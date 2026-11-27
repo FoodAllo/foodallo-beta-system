@@ -332,7 +332,8 @@ footer.app-foot {
 .lk-code { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem; text-align: center; margin: 0.8rem 0; }
 .lk-code-label { margin: 0; font-size: 0.8rem; color: var(--muted); }
 .lk-nummer { margin: 0.2rem 0 0.5rem; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; word-break: break-all; }
-.lk-strichcode-platz { display: flex; justify-content: center; margin: 0.4rem 0 0 calc(50% - min(50vw - 1rem, 25rem)); background: #fff; width: min(calc(100vw - 2rem), 50rem); }
+/* Strichcode samt Ruhezone bleibt immer im Rahmen der Karte (kein Herausragen über den Kartenrand) */
+.lk-strichcode-platz { display: flex; justify-content: center; box-sizing: border-box; margin: 0.4rem 0 0; background: #fff; width: 100%; max-width: 100%; min-width: 0; overflow: hidden; }
 .karte-strichcode { display: block; flex: 0 0 auto; background: #fff; max-width: none; }
 .lk-strichcode-platz[data-gross-anzeigen] { cursor: zoom-in; }
 .lk-gross-knopf { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; width: 100%; max-width: 24rem; margin: 0.5rem auto 0.3rem; font-weight: 700; border: 2px solid var(--green-dark); background: var(--green-dark); color: #fff; padding: 0.6rem 0.8rem; }
@@ -358,8 +359,8 @@ html.lk-gross-offen, html.lk-gross-offen body { overflow: hidden; }
   .lk-meta > div { grid-template-columns: 1fr; gap: 0.05rem; }
   .lk-tabelle { font-size: 0.85rem; }
   /* Strichcode auf schmalen Bildschirmen über die volle Bildschirmbreite (lesbar für Scanner) */
-  .lk-code { overflow: visible; padding-left: 0; padding-right: 0; }
-  .lk-strichcode-platz { width: 100vw; max-width: 100vw; margin-left: calc(50% - 50vw); }
+  /* Strichcode-Kasten nutzt den Innenabstand der Karte mit, bleibt aber im Kartenrahmen */
+  .lk-code { padding-left: 0.25rem; padding-right: 0.25rem; margin-left: -0.9rem; margin-right: -0.9rem; }
   .lk-tabelle th, .lk-tabelle td { padding: 0.4rem 0.15rem; }
   .lk-tabelle th:nth-child(3), .lk-tabelle td:nth-child(3) { display: none; }
   .lk-tabelle.mit-abgeholt th:nth-child(3), .lk-tabelle.mit-abgeholt td:nth-child(3) { display: table-cell; }
@@ -373,4 +374,9 @@ html.lk-gross-offen, html.lk-gross-offen body { overflow: hidden; }
 @media (max-width: 380px) {
   .app-header { gap: 0.35rem; }
   .header-actions .btn { padding-left: 0.45rem; padding-right: 0.45rem; }
+}
+/* Sehr schmale Fenster (z. B. 360 px bei Seitenzoom 125 %): Ortsname in der Kopfzeile ausblenden */
+@media (max-width: 330px) {
+  .header-text p { display: none; }
+  .app-header { padding-left: 8px; padding-right: 8px; }
 }

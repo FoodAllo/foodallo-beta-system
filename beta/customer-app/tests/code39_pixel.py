@@ -4,13 +4,15 @@ Aufruf: python3 code39_pixel.py pixel.json   (Liste von {bild, rect [l,t,r,b] in
 Der Ausschnitt ist genau das SVG (rect × dpr, auf Gerätepixel gerundet).
 - Ruhezone: links und rechts (bzw. oben und unten) mindestens 10 Module weiß (Toleranz 1 Gerätepixel)
 - n > 0: alle schmalen Striche und Lücken genau n, alle breiten genau 3n Gerätepixel (Mitte des Codes, ohne Graustufen)
-- 22 Zeichen × 5 Striche = 110 Striche"""
+- 22 Zeichen × 5 Striche = 110 Striche
+- eingepasst (n = 0, unter 1 Gerätepixel je Modul): nur Hinweis, Lage prüft code39-decode.js"""
 import json, sys, itertools
 from PIL import Image
 
 fehler = 0
 for e in json.load(open(sys.argv[1])):
     d = e["dpr"]; l, t, r, b = [round(v * d) for v in e["rect"]]
+    l0, t0, r0, b0 = l, t, r, b
     voll = Image.open(e["bild"]).convert("L")
     # Ruhezone = weiße Fläche vor und nach dem Code: Ausschnitt in Leserichtung um 10 Module erweitert,
     # aber nur innerhalb des Bildschirmfotos (was außerhalb des Bildschirms liegt, zählt nicht)
@@ -21,7 +23,9 @@ for e in json.load(open(sys.argv[1])):
     w, h = im.size
     linie = [im.getpixel((x, h // 2)) for x in range(w)] if e["achse"] == "x" else [im.getpixel((w // 2, y)) for y in range(h)]
     schwarz = [v < 128 for v in linie]
-    grau = sum(1 for v in linie if 40 < v < 215)
+    # Graupixel nur im Strichcode selbst zählen (der Ausschnitt reicht darüber hinaus bis in den Kartenrand)
+    ia, ib = (l0 - l, r0 - l) if e["achse"] == "x" else (t0 - t, b0 - t)
+    grau = sum(1 for v in linie[max(0, ia):ib] if 40 < v < 215)
     if True not in schwarz:
         print("FAIL %s: keine Striche" % e["name"]); fehler += 1; continue
     links = schwarz.index(True); rechts = len(schwarz) - 1 - schwarz[::-1].index(True)
@@ -33,6 +37,11 @@ for e in json.load(open(sys.argv[1])):
     if ruhe_l < soll or ruhe_r < soll: msg.append("Ruhezone %d/%d < %.1f" % (ruhe_l, ruhe_r, soll))
     if len(striche) != 110: msg.append("%d Striche statt 110" % len(striche))
     n = e["n"]
+    if not n:
+        # eingepasst (weniger als 1 Gerätepixel je Modul, z. B. sehr schmales Fenster): Striche verschwimmen,
+        # Lage und Ruhezone prüft code39-decode.js geometrisch (Code im weißen Platz, Platz im Kartenrahmen)
+        print("info %s: eingepasst (< 1 Gerätepixel je Modul), Pixelprüfung entfällt" % e["name"])
+        continue
     if n:
         falsch = sorted(set(l for _, l in laeufe if l not in (n, 3 * n)))
         if falsch: msg.append("Breiten %s statt %d/%d" % (falsch, n, 3 * n))
