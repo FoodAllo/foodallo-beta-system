@@ -11,15 +11,30 @@
   var zxingLaden = null, leser = null, cv = null;
 
   function normalisiere(t) { return String(t == null ? "" : t).replace(/^[\s*]+|[\s*]+$/g, ""); }
-  /* Code 39 hat keine Pflicht-Prüfziffer: Teilstücke („177“, „90000177“) werden sonst als Treffer gemeldet. Strichcodes daher nur
-     annehmen, wenn sie wie ein FoodAllo-Code aussehen; FAPK-Codes zusätzlich mit Prüfziffer ISO 7064 Mod 97-10. QR-Codes unverändert. */
-  function plausibel(t, format) {
-    if (!t) return false;
-    if (format === "qr_code") return true;
-    var m = /^FAPK(\d{14})(\d{2})$/.exec(t);
-    if (m) { var r = 0; for (var i = 0; i < 14; i++) r = (r * 10 + Number(m[1][i])) % 97; return ("0" + (98 - (r * 100) % 97)).slice(-2) === m[2]; }
-    return /^FA-(V|PK)-\d{8}-\d{6}(-\d{2})?$/i.test(t) || /^FA-RXN1~/i.test(t);
+  /* Nur FoodAllo-Codes annehmen (alle Scanwege, alle Erkenner). Code 39 hat keine eigene Prüfziffer: Teilstücke („177“) und
+     Moiré-Fehllesungen am Handybildschirm („F1PK147298 ZYZZ0877“) würden sonst als Treffer gelten.
+     - Lebensmittelkarte: FAPK + 16 Ziffern bzw. FA-PK-AGS-NR-PZ, Prüfziffer ISO 7064 Mod 97-10 über den Kern (FAKern.papierkartenCode)
+     - Gutschein: FA-V-JJJJMMTT-NNNNNN
+     - Rezeptnachweis: FA-RXN1~… (Prüfung danach im Rezeptweg)
+     Leerzeichen, Bindestriche und Kleinschreibung bei Kartencodes werden toleriert; alles andere wird verworfen. */
+  function pzPruefen(ags, nr, pz) {
+    var K = root.FAKern;
+    if (K && typeof K.papierkartenCode === "function") { var c = K.papierkartenCode("FA-PK-" + ags + "-" + nr); return !!c && c.code_barcode === "FAPK" + ags + nr + pz; }
+    var z = ags + nr, r = 0; for (var i = 0; i < z.length; i++) r = (r * 10 + Number(z[i])) % 97;
+    return ("0" + (98 - (r * 100) % 97)).slice(-2) === pz;
   }
+  /* Liefert den kanonischen Code (z. B. FAPK1472914090000177) oder null */
+  function pruefeCode(t) {
+    var s = String(t == null ? "" : t).trim();
+    if (!s) return null;
+    if (/^FA-RXN1~[^\s]+$/.test(s)) return s;
+    var v = /^FA-V-(\d{8})-(\d{6})$/i.exec(s);
+    if (v) return "FA-V-" + v[1] + "-" + v[2];
+    var k = s.toUpperCase().replace(/[\s*-]/g, ""), m = /^FAPK(\d{8})(\d{6})(\d{2})$/.exec(k);
+    if (m && pzPruefen(m[1], m[2], m[3])) return "FAPK" + m[1] + m[2] + m[3];
+    return null;
+  }
+  function plausibel(t) { return pruefeCode(t) !== null; }
 
   function ladeZxing() {
     if (root.ZXing) return Promise.resolve(root.ZXing);
@@ -81,9 +96,7 @@
       var src = new Z.RGBLuminanceSource(lum, bild.width, bild.height);
       var bin = binarisierer === "global" ? new Z.GlobalHistogramBinarizer(src) : new Z.HybridBinarizer(src);
       var res = r.decodeWithState(new Z.BinaryBitmap(bin));
-      if (!res) return null;
-      var t = normalisiere(res.getText());
-      return plausibel(t, res.getBarcodeFormat() === Z.BarcodeFormat.QR_CODE ? "qr_code" : "") ? t : null;
+      return res ? pruefeCode(normalisiere(res.getText())) : null;
     } catch (e) { return null; } finally { try { r.reset(); } catch (e2) {} }
   }
 
@@ -109,32 +122,46 @@
     }).catch(function () { return { d: null, grund: "Browser-Erkennung fehlerhaft" }; });
   }
 
-  /* Laufender Scan auf einem <video>. treffer(text) einmal, status(text) für Hinweise. Rückgabe: stop() */
+  /* Laufender Scan auf einem <video>. treffer(code) genau einmal, und nur mit geprüftem Code, der BESTAETIGUNG-mal hintereinander
+     gleich gelesen wurde (gleich, von welchem Erkenner). Ungeprüftes wird still verworfen, der Scan läuft weiter, ins Eingabefeld
+     kommt nichts davon. Liefert der Browser-Detektor Ungeprüftes, wird zxing sofort zugeschaltet. Rückgabe: stop() */
+  var BESTAETIGUNG = 2;
   function starte(video, treffer, status) {
-    var aktiv = true, nativ = null, nativFehler = 0, beginn = Date.now(), runde = 0, zxBereit = false;
+    var aktiv = true, nativ = null, nativFehler = 0, beginn = Date.now(), runde = 0, zxBereit = false, zxSofort = false;
+    var kandidat = null, gleich = 0, verworfen = 0;
     status = status || function () {};
     var erkennung = "";
     function melde(e) { if (e !== erkennung) { erkennung = e; status("erkennung", e); } }
     nativerDetektor().then(function (r) { nativ = r.d; melde(r.d ? "Browser (Code 39)" : "zxing (" + r.grund + ")"); });
     function zx() { if (zxBereit) return; ladeZxing().then(function () { zxBereit = true; }).catch(function () { status("zxing-fehlt"); }); }
     zx();
-    function fertig(t) { if (!aktiv || !t) return false; aktiv = false; treffer(normalisiere(t)); return true; }
+    /* Rohtext eines Erkenners prüfen und zählen; true, wenn bestätigt und abgegeben */
+    function lies(roh) {
+      if (!aktiv || roh == null || roh === "") return false;
+      var c = pruefeCode(normalisiere(roh));
+      if (!c) { verworfen++; status("verworfen", verworfen); return false; }
+      if (c === kandidat) gleich++; else { kandidat = c; gleich = 1; }
+      if (gleich < BESTAETIGUNG) return false;
+      aktiv = false; treffer(c); return true;
+    }
     function tick() {
       if (!aktiv) return;
       var w = video.videoWidth, h = video.videoHeight;
       if (video.readyState < 2 || !w) return setTimeout(tick, 200);
       var p = nativ ? nativ.detect(video).then(function (c) {
-        for (var k = 0; c && k < c.length; k++) { var t = normalisiere(c[k].rawValue); if (plausibel(t, c[k].format)) return t; }
-        return null; }).catch(function () { nativFehler++; if (nativFehler >= 5) { nativ = null; melde("zxing (Browser-Erkennung fehlerhaft)"); } return null; }) : Promise.resolve(null);
+        var roh = null;
+        for (var k = 0; c && k < c.length; k++) { if (pruefeCode(normalisiere(c[k].rawValue))) return c[k].rawValue; roh = c[k].rawValue; }
+        if (roh != null) zxSofort = true;          // Browser liest etwas Ungeprüftes (z. B. Moiré): zxing sofort mitlaufen lassen
+        return roh; }).catch(function () { nativFehler++; if (nativFehler >= 5) { nativ = null; melde("zxing (Browser-Erkennung fehlerhaft)"); } return null; }) : Promise.resolve(null);
       p.then(function (t) {
-        if (fertig(t)) return;
-        if (zxBereit && (!nativ || Date.now() - beginn > 2000)) { if (nativ) melde("Browser + zxing"); if (fertig(dekodiereQuelle(video, w, h, runde++))) return; }
-        setTimeout(tick, nativ ? 120 : 60);   // Browser-Detektor ca. 8×/s auf dem ganzen Bild; zxing je Runde ein Versuch
+        if (lies(t)) return;
+        if (zxBereit && (!nativ || zxSofort || Date.now() - beginn > 2000)) { if (nativ) melde("Browser + zxing"); var zt = dekodiereQuelle(video, w, h, runde); if (!zt) runde++; if (lies(zt)) return; }   // nach einem Treffer denselben Versuch wiederholen (Bestätigung)
+        setTimeout(tick, nativ ? 100 : 50);
       });
     }
     tick();
     return function stop() { aktiv = false; };
   }
 
-  root.FAScanner = { starte: starte, normalisiere: normalisiere, plausibel: plausibel, ladeZxing: ladeZxing, dekodiereQuelle: dekodiereQuelle, VERSUCHE: VERSUCHE.length };
+  root.FAScanner = { starte: starte, normalisiere: normalisiere, plausibel: plausibel, pruefeCode: pruefeCode, BESTAETIGUNG: BESTAETIGUNG, ladeZxing: ladeZxing, dekodiereQuelle: dekodiereQuelle, VERSUCHE: VERSUCHE.length };
 })(typeof self !== "undefined" ? self : this);

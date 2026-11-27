@@ -1,5 +1,5 @@
 /* FoodAllo Retail App – Service Worker: App-Hülle offline aus dem Cache, Log-Datei immer frisch versuchen. */
-var CACHE = "foodallo-retail-v23";   // v23: Kamerascan mit zxing-Rückfall (Plausibilitätsprüfung, Schrägband), Buchungen-Liste neu gesetzt, Demodaten springen in die laufende Woche; v22: v22: Demo-Anfangsbestand Becker bei Netto (nur lokal); v21: v21: Demonstrationskarte Familie Becker einlösbar, Strichcode Code 39; v20: v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
+var CACHE = "foodallo-retail-v24";   // v24: Scan nur mit Prüfziffer und zweifacher Lesung, Karten auf „Gutschein einlösen“, Update sicher (Netz zuerst, Neuladen), Becker-Demo-Ware an allen Ausgabestellen 0001–0006; v23: Kamerascan mit zxing-Rückfall (Plausibilitätsprüfung, Schrägband), Buchungen-Liste neu gesetzt, Demodaten springen in die laufende Woche; v22: v22: Demo-Anfangsbestand Becker bei Netto (nur lokal); v21: v21: Demonstrationskarte Familie Becker einlösbar, Strichcode Code 39; v20: v20: Lebensmittelkarte statt Papierkarte; v19: Texte an Customer und Desktop angeglichen; v18: OpenStreetMap ausgeschrieben in 0021/0027, ODbL mit Link (v17: anzeigename oder name; v16: ungekürzt via anzeigeName)
 var HUELLE = [
   "./", "./index.html", "./manifest.webmanifest", "./css/app.css", "./js/retail.js", "./js/scanner.js", "./js/app.js", "./js/vendor/zxing-library-0.23.0.min.js",
   "./daten/artikel.json", "../kern/stammdaten-ausgabestellen.json", "./daten/demo-gutscheine.json", "./daten/anfangsbestand.jsonl", "./daten/demo-rezeptnachweise.json", "./daten/demo-personen.json", "./daten/melderegister-zuordnung.json",
@@ -13,7 +13,8 @@ var OPTIONAL = ["../data/demo-becker.json"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
     // Demo-Karte Familie Becker: nur vorab speichern, wenn die Datei vorhanden ist
-    return c.addAll(HUELLE).then(function () { return Promise.all(OPTIONAL.map(function (u) { return c.add(u).catch(function () {}); })); });
+    // cache: "reload" – am HTTP-Cache vorbei, sonst landet nach einem Update noch die alte app.js im neuen Cache
+    return c.addAll(HUELLE.map(function (u) { return new Request(u, { cache: "reload" }); })).then(function () { return Promise.all(OPTIONAL.map(function (u) { return c.add(u).catch(function () {}); })); });
   }).then(function () { return self.skipWaiting(); }));
 });
 
@@ -31,6 +32,17 @@ self.addEventListener("fetch", function (e) {
     // gemeinsamer Log: nur Netz, nie aus dem Cache (sonst veralteter Stand)
     e.respondWith(fetch(e.request, { cache: "no-store" }).catch(function () {
       return new Response("", { status: 503, statusText: "offline" });
+    }));
+    return;
+  }
+  // Programmcode und Seite: Netz zuerst (immer der veröffentlichte Stand), offline aus dem Cache.
+  // Bibliothek, Bilder und Stammdaten: Cache zuerst.
+  if (e.request.mode === "navigate" || /\.(html|js|css|webmanifest)$/.test(url.pathname) && !/\/vendor\//.test(url.pathname) || /\/$/.test(url.pathname)) {
+    e.respondWith(fetch(e.request, { cache: "no-cache" }).then(function (antwort) {
+      if (antwort.ok) { var kopie = antwort.clone(); caches.open(CACHE).then(function (c) { c.put(e.request, kopie); }); }
+      return antwort;
+    }).catch(function () {
+      return caches.match(e.request, { ignoreSearch: true }).then(function (t) { return t || new Response("", { status: 503, statusText: "offline" }); });
     }));
     return;
   }

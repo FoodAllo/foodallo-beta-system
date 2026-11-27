@@ -4,6 +4,7 @@
 (function () {
   "use strict";
   var K = window.FAKern, R = window.FARetail;
+  var APP_VERSION = "v24";   // gleich der Cache-Kennung in sw.js (foodallo-retail-v24), sichtbar in Fußzeile und Einstellungen
   var SPEICHER = "foodallo.retail.ereignisse.v1";
   var EXPORTIERT = "foodallo.retail.exportiert.v1";
   var SCHICHT = "foodallo.retail.schicht.v2";
@@ -214,6 +215,7 @@
       positionen: reihe.map(function (k) { var m = mengen[k]; return { artikel_id: k, bedarf: m, basiskontingent: m, zugeteilt_max: m, eingeloest: 0, rest: m, personen_anzahl: n }; }) };
     return {
       gutschein: g, gutschein_id: g.gutschein_id, periode_id: g.periode_id,
+      ausgabestellen: (d.ausgabestellen && d.ausgabestellen.length ? d.ausgabestellen : [DEMO_AST]).slice(),
       personen: personen.map(function (p) { return { person_id: p.person_id, haushalt_id: d.haushalt_id, verifikation: p.verifikation || { status: "bestaetigt", verfahren: "synthetisch" } }; }),
       namen: personen.map(function (p) { return { person_id: p.person_id, vornamen: p.vornamen || p.vorname || "", familienname: p.familienname || p.nachname || d.familie || "" }; })
     };
@@ -224,7 +226,8 @@
     (liste || []).forEach(function (e) {
       var p = e.payload || {}, b = p.ausgabebuchung;
       var ist = (e.typ === "REDEMPTION_POSTED" && b && DEMO_GUTSCHEIN.test(b.gutschein_id || "")) || (e.typ === "REDEMPTION_REVERSED" && !!t.buchungen[p.buchung_id]) ||
-        (e.typ === "STOCK_RECEIPT_POSTED" && p.wareneingang && String(p.wareneingang.lieferhinweis || "").indexOf(DEMO_BESTAND) === 0);
+        (e.typ === "STOCK_RECEIPT_POSTED" && p.wareneingang && String(p.wareneingang.lieferhinweis || "").indexOf(DEMO_BESTAND) === 0) ||
+        (e.typ === "STOCK_ADJUSTED" && String(p.begruendung || "").indexOf(DEMO_BESTAND) === 0);
       if (ist && b) t.buchungen[b.buchung_id] = true;
       (ist ? t.demo : t.normal).push(e);
     });
@@ -238,21 +241,34 @@
       var b = e.payload.ausgabebuchung, w = e.payload.wareneingang;
       if (b && (!demo || b.gutschein_id !== demo.gutschein_id)) alt[b.buchung_id] = true;
       if (w && (!demo || w.lieferhinweis !== demoBestandHinweis())) alt[e.ereignis_id] = true;
+      if (e.typ === "STOCK_ADJUSTED" && (!demo || e.payload.begruendung !== demoBestandHinweis())) alt[e.ereignis_id] = true;
     });
     return liste.filter(function (e) { var p = e.payload || {}, b = p.ausgabebuchung; return !alt[b ? b.buchung_id : (e.typ === "REDEMPTION_REVERSED" ? p.buchung_id : e.ereignis_id)]; });
   }
   /* Einmal je Woche: Wareneingang in Höhe der Becker-Mengen bei Netto (nur lokal, nicht im Export, im Lieferhinweis als Demo gekennzeichnet) */
+  /* Einmal je Woche an jeder Ausgabestelle der Spezifikation (demo-becker.json: ausgabestellen, FA-R-…-0001 bis -0006):
+     Ware in Höhe der Becker-Mengen. Mit vorhandenem Bestand als Wareneingang, sonst als Anfangsbestand. Nur lokal, nicht im
+     Export, im Lieferhinweis bzw. in der Begründung als Demo gekennzeichnet. So ist die Karte überall einlösbar, wo sie gilt. */
   function demoBestandSicherstellen() {
-    if (!demo || !zustand.ausgabestellen[DEMO_AST]) return;
+    if (!demo) return;
     var hinweis = demoBestandHinweis();
-    if (ereignisse.some(function (e) { return e.typ === "STOCK_RECEIPT_POSTED" && e.payload.wareneingang && e.payload.wareneingang.lieferhinweis === hinweis; })) return;
-    var evs = [];
-    demo.gutschein.positionen.forEach(function (p) {
-      if (!(p.zugeteilt_max > 0) || !zustand.bestand[K.bestandId(DEMO_AST, p.artikel_id)]) return;
-      var w = R.erzeugeWareneingang(zustand, { ausgabestelle_id: DEMO_AST, artikel_id: p.artikel_id, menge: p.zugeteilt_max, lieferhinweis: hinweis });
-      if (w.ok) evs = evs.concat(w.ereignisse);
+    demo.ausgabestellen.forEach(function (ast) {
+      var a = zustand.ausgabestellen[ast];
+      if (!a || a.abgabekanal !== "einzelhandel") return;
+      demo.gutschein.positionen.forEach(function (p) {
+        if (!(p.zugeteilt_max > 0)) return;
+        var schon = ereignisse.some(function (e) {
+          var pl = e.payload || {}, w = pl.wareneingang;
+          return (w && w.lieferhinweis === hinweis && w.ausgabestelle_id === ast && w.artikel_id === p.artikel_id) ||
+            (e.typ === "STOCK_ADJUSTED" && pl.begruendung === hinweis && pl.ausgabestelle_id === ast && pl.artikel_id === p.artikel_id);
+        });
+        if (schon) return;
+        var r = zustand.bestand[K.bestandId(ast, p.artikel_id)]
+          ? R.erzeugeWareneingang(zustand, { ausgabestelle_id: ast, artikel_id: p.artikel_id, menge: p.zugeteilt_max, lieferhinweis: hinweis })
+          : R.erzeugeBestandskorrektur(zustand, { ausgabestelle_id: ast, artikel_id: p.artikel_id, menge_neu: p.zugeteilt_max, anlass: "anfangsbestand", begruendung: hinweis });
+        if (r.ok) uebernimmAlle(r.ereignisse, true);
+      });
     });
-    if (evs.length) uebernimmAlle(evs, true);
   }
   function neuBerechnen() { zustand = K.nachspielen(stamm, seedGutscheine, personenSeed, ereignisse, { v12: true }).zustand; }
 
@@ -399,6 +415,17 @@
     geh("scan");
   }
 
+  function istKartenEingabe(s) {
+    var k = String(s || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+    return /^FAPK\d{14,16}$/.test(k) || /^\d{16}$/.test(k);
+  }
+  /* Laufenden Vorgang auf „Lebensmittelkarte“ umstellen, ohne die Eingabe zu verlieren */
+  function aufKarteUmstellen() {
+    vorgang.modus = "karte";
+    $("scan-titel").textContent = "Lebensmittelkarte";
+    $("scan-anleitung").textContent = "Strichcode der Lebensmittelkarte scannen oder die Kartennummer unten auf der Karte eintippen.";
+    $("scan-label").textContent = "Kartennummer";
+  }
   function gueltigJetzt(g) { var z = zeitraum(g), t = Date.now(); return z && z.von.getTime() <= t && t <= z.bis.getTime(); }
 
   function findeGutschein(eingabe) {
@@ -436,8 +463,11 @@
     var s = String(code || "").trim();
     if (!s) return meldung("scan-meldung", vorgang.modus === "karte" ? M.karteLeer : M.leer);
     if (/^FA-RXN1~/i.test(s)) return meldung("scan-meldung", M.rezeptStattGutschein);
+    // Ein Weg für Karten: FAPK-Strichcode oder Kartennummer FA-PK-… (auch mit Leerzeichen/Bindestrichen) wird auch auf
+    // „Gutschein einlösen“ als Lebensmittelkarte erkannt und dort weitergeführt
+    if (vorgang.modus !== "karte" && istKartenEingabe(s)) aufKarteUmstellen();
     var r = vorgang.modus === "karte" ? findeKarte(s) : findeGutschein(s);
-    if (!r.id && vorgang.modus !== "karte") { var k = findeKarte(s); if (k.id) { r = k; vorgang.modus = "karte"; } }
+    if (!r.id && vorgang.modus !== "karte") { var k = findeKarte(s); if (k.id) { r = k; aufKarteUmstellen(); } }
     if (!r.id) return meldung("scan-meldung", r.m);
     var g = zustand.gutscheine[r.id], z = zeitraum(g), jetzt = Date.now();
     if (g.status === "storniert") return meldung("scan-meldung", M.gesperrt);
@@ -921,10 +951,13 @@
       if (extra.focusMode || extra.zoom) spur.applyConstraints({ advanced: [extra] }).catch(function () {});
       var v = $("kamera-video"); v.srcObject = strom; var pl = v.play(); if (pl && pl.catch) pl.catch(function () {});
       $("kamera-status").textContent = "Suche Strichcode …";
+      // Nur geprüfte und zweimal gleich gelesene Codes kommen hier an (js/scanner.js); Fehllesungen landen nie im Eingabefeld
       kameraStopScan = window.FAScanner.starte(v, function (w) {
-        var z = kameraZiel; kameraStop(); z.input.value = w; z.absenden(w);
+        var z = kameraZiel; if (!z || !window.FAScanner.plausibel(w)) return;
+        kameraStop(); z.input.value = w; z.absenden(w);
       }, function (st, wert) {
         if (st === "zxing-fehlt") $("kamera-status").textContent = "Erkennung nicht verfügbar – bitte Nummer eintippen.";
+        if (st === "verworfen" && wert >= 3) $("kamera-status").textContent = "Strichcode noch nicht sicher gelesen – ruhig halten, etwas Abstand ändern oder „Groß anzeigen“ nutzen.";
         if (st === "erkennung") kameraDiagnose(spur, v, wert, extra);
       });
     }).catch(function () { kameraStop(); meldung(meldeId, M.kameraFehlt); });
@@ -1039,8 +1072,29 @@
     }).catch(function () {
       $("main").innerHTML = "<section class='screen'><div class='meldung fehler'><strong>Die Anwendung konnte nicht starten.</strong><span>Bitte Seite neu laden. Hilft das nicht, die Marktleitung informieren.</span></div></section>";
     });
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+    swAnmelden();
   }
 
+  /* Service Worker: bei jedem Start und bei Rückkehr in die App nach Updates fragen; übernimmt ein neuer Worker die Seite
+     (skipWaiting + clients.claim in sw.js), einmal neu laden – aber nicht mitten in einem Vorgang mit offener Kamera. */
+  function swAnmelden() {
+    if (!("serviceWorker" in navigator)) return;
+    var hatteSteuerung = !!navigator.serviceWorker.controller, neuGeladen = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (!hatteSteuerung || neuGeladen) return;
+      neuGeladen = true;
+      if (kameraStrom) { kameraStop(); }
+      location.reload();
+    });
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (reg) {
+      reg.update().catch(function () {});
+      document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") reg.update().catch(function () {}); });
+    }).catch(function () {});
+  }
+  function versionZeigen() {
+    var t = "Version " + APP_VERSION;
+    document.querySelectorAll("[data-app-version]").forEach(function (el) { el.textContent = t; });
+  }
+  versionZeigen();
   start();
 })();
