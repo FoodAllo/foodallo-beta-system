@@ -224,6 +224,13 @@
     } catch (e) {
       state.demoKarte = null;
     }
+    try {
+      // Digitale Lebensmittelkarte Familie Meier (geprüft): gemeinsamer Datensatz mit der Retail App, Rückfall auf die Kopie im Customer-Paket.
+      var meier = (await loadFirst(["../data/demo-meier.json", "data/demo-meier.json"], "json")).data;
+      state.digitaleKarten = meier && meier.haushalt_id && meier.papierkarte_id ? [meier] : [];
+    } catch (e) {
+      state.digitaleKarten = [];
+    }
 
     try {
       var stellen = await loadFirst(STELLEN_PFAde, "json");
@@ -619,7 +626,9 @@
       return;
     }
 
-    if (haushaltHtml) html += haushaltHtml;
+    // Mit digitaler Lebensmittelkarte stehen die Personen des Haushalts auf der Karte; die Karte steht dann oben wie bei Familie Becker.
+    var hatKarte = !!(digitaleKarteFuer(person) && DemoKarte && gutscheine.some(function (g) { return gutscheinAnlass(g) !== "stoerung"; }));
+    if (haushaltHtml && !hatKarte) html += haushaltHtml;
 
     if (!gutscheine.length) {
       html += UI.renderKeinGutschein();
@@ -643,6 +652,21 @@
       artikelById: artikelById
     };
 
+    // Geprüfte Personen erhalten die Lebensmittelkarte digital aufs Smartphone (Entscheidung David, 27.11.2026): der reguläre
+    // Wochengutschein des Haushalts erscheint als Lebensmittelkarte mit Kartennummer und Strichcode wie bei Familie Becker.
+    // Zusatzgutscheine (Trinkwasser bei Versorgungsstörung) bleiben darunter eigene Gutscheine.
+    var karte = digitaleKarteFuer(person);
+    var mitKarte = false;
+    if (karte && DemoKarte) {
+      var regulaer = gutscheine.filter(function (g) { return gutscheinAnlass(g) !== "stoerung"; });
+      var kg = regulaer[regulaer.length - 1];
+      if (kg) {
+        mitKarte = true;
+        html += renderDigitaleKarte(karte, kg, periode, person);
+        gutscheine = gutscheine.filter(function (g) { return gutscheinAnlass(g) === "stoerung"; });
+      }
+    }
+
     gutscheine.forEach(function (gutschein) {
       if (gutschein.kanal === "papier") {
         html += UI.renderPapierhinweis(gutschein);
@@ -658,6 +682,76 @@
     html += ins.html;
     html += renderStellen(ins.rxOk, person);
     $("#voucher-root").innerHTML = html;
+    if (mitKarte && DemoKarte.anpassen) DemoKarte.anpassen($("#voucher-root"));
+    if (mitKarte && DemoKarte.beobachten) DemoKarte.beobachten($("#voucher-root"));
+  }
+
+  function digitaleKarteFuer(person) {
+    if (!person || !person.verifikation || person.verifikation.status !== "bestaetigt") return null;
+    return (state.digitaleKarten || []).find(function (k) { return k.haushalt_id === person.haushalt_id; }) || null;
+  }
+
+  /* Einlösungen der Retail App aus diesem Browser für den Haushalt in der laufenden Woche (ohne Trinkwasser), Stornos abgezogen.
+     Zuordnung über haushalt_id und das Datum im Gutschein (FA-V-<Montag>-…), weil die Retail App den Wochengutschein des
+     Haushalts je nach Datenstand unter einer anderen laufenden Nummer führt. */
+  function retailLokalFuer(haushaltId, periode) {
+    var summe = {}, evs;
+    try { evs = JSON.parse(localStorage.getItem("foodallo.retail.ereignisse.v1") || "[]"); } catch (e) { evs = []; }
+    if (!Array.isArray(evs)) return summe;
+    var praefix = "FA-V-" + periode.start_ymd + "-", buchungen = {}, storniert = {};
+    evs.forEach(function (ev) {
+      if (!ev || !ev.payload) return;
+      if (ev.typ === "REDEMPTION_REVERSED" && ev.payload.buchung_id) storniert[ev.payload.buchung_id] = true;
+      if (ev.typ !== "REDEMPTION_POSTED") return;
+      var b = ev.payload.ausgabebuchung;
+      if (!b || b.haushalt_id !== haushaltId || b.status === "storniert" || b.artikel_id === "water") return;
+      if (String(b.gutschein_id || "").indexOf(praefix) !== 0) return;
+      buchungen[b.buchung_id || ev.ereignis_id] = b;
+    });
+    Object.keys(buchungen).forEach(function (id) {
+      if (storniert[id]) return;
+      var b = buchungen[id];
+      summe[b.artikel_id] = Math.round(((summe[b.artikel_id] || 0) + Number(b.menge || 0)) * 1000) / 1000;
+    });
+    return summe;
+  }
+
+  function renderDigitaleKarte(karte, gutschein, periode, person) {
+    var art = {};
+    (state.artikel || []).forEach(function (a) { art[a.artikel_id] = a; });
+    var vorlage = {};
+    (karte.positionen || []).forEach(function (p) { vorlage[p.artikel_id] = p; });
+    var pos = (gutschein.positionen || []).filter(function (p) {
+      return p.artikel_id !== "water" && p.artikel_id !== "insulin" && Number(p.zugeteilt_max) > 0;
+    }).map(function (p) {
+      var a = art[p.artikel_id] || {}, v = vorlage[p.artikel_id] || {};
+      return {
+        artikel_id: p.artikel_id,
+        bezeichnung: a.bezeichnung_de || p.artikel_id,
+        einheit: v.einheit || p.einheit || a.einheit,
+        je_person: v.je_person != null ? v.je_person : a.periode_basis_vorschlag,
+        zugeteilt_max: Number(p.zugeteilt_max),
+        eingeloest: Number(p.eingeloest || 0)
+      };
+    });
+    var personen = (karte.personen || []).map(function (p) {
+      var reg = findPerson(p.person_id);
+      return { person_id: p.person_id, vornamen: p.vornamen || (reg && reg.vornamen) || "", familienname: p.familienname || karte.familie };
+    });
+    var demo = Object.assign({}, karte, { personen: personen });
+    return DemoKarte.render({
+      demo: demo,
+      artikel: state.artikel,
+      periode: periode,
+      UI: UI,
+      positionen: pos,
+      lokal: retailLokalFuer(karte.haushalt_id, periode),
+      formHinweis: "Ihre Identität ist geprüft. Deshalb erhalten Sie die Lebensmittelkarte digital auf Ihr Smartphone. " +
+        "Auf Wunsch druckt die Pass- und Meldebehörde die Karte auch aus.",
+      abgeholtHinweis: "„Bereits abgeholt“ zeigt die Abholungen im gemeinsamen Datenbestand und die in diesem Browser in der Retail App gebuchten.",
+      trinkwasserHinweis: "Trinkwasser gibt es nur während einer Versorgungsstörung: 2 Liter je Person und Tag (14 Liter je Person und Woche), auf einem zusätzlichen Gutschein.",
+      schlussHinweis: "Diese Karte gehört zu einer erfundenen Familie und dient nur zur Demonstration."
+    });
   }
 
   function renderStellen(showPharmaciesHighlight, person) {

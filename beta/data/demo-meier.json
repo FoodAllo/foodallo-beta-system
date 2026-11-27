@@ -1,0 +1,134 @@
+{
+  "hinweis": "Gemeinsamer Demonstrationsdatensatz digitale Lebensmittelkarte Familie Meier für Customer App und Retail App. Fiktive Familie. Familie Meier steht im fiktiven Melderegister (FA-HH-14729140-000123, Personen FA-P-14729140-000014 bis -000017, Identität bestätigt) und im Demonstrations-Ereignislog. Die Karte ist die digitale Form des regulären Wochengutscheins des Haushalts. Kartennummer wie in der Desktop App (79c1a3e): reguläre Karte = laufende Nummer des Haushalts (FA-PK-14729140-000123), synthetisch, nicht im Ereignislog. Spezifikation: beta/data/DEMO-MEIER-RETAIL.md",
+  "demo": true,
+  "version": 1,
+  "familie": "Meier",
+  "haushalt_id": "FA-HH-14729140-000123",
+  "papierkarte_id": "FA-PK-14729140-000123",
+  "code_anzeige": "FA-PK-14729140-000123-07",
+  "code_barcode": "FAPK1472914000012307",
+  "barcode_symbologie": "code39",
+  "pruefziffer_verfahren": "ISO 7064 Mod 97-10 über AGS (8) + laufende Nummer (6), wie Kern papierkartenCode",
+  "form": "digital",
+  "form_hinweis": "Geprüfte Personen erhalten die Lebensmittelkarte digital aufs Smartphone (Customer App). Drucken ist für alle Familien in der Desktop App möglich.",
+  "gueltigkeit": "laufende_woche_mo_so_berlin",
+  "gueltigkeit_hinweis": "Gilt immer für die laufende Woche Montag 00:00 bis Sonntag 23:59 in Europe/Berlin, wie customer-app/js/voucher.js periodFromDate.",
+  "periode_id_vorlage": "FA-PER-{MONTAG_YYYYMMDD}",
+  "gutschein_id_vorlage": "FA-V-{MONTAG_YYYYMMDD}-000229",
+  "gutschein_quelle": "VOUCHER_ISSUED FA-V-20261116-000229 (regulaer, kanal app) im Demonstrations-Ereignislog der Customer und Desktop App, per Wochenabbildung FA-V-20261116 -> FA-V-<Montag> in die laufende Woche verschoben",
+  "zusatz_gutschein_id_vorlage": "FA-V-{MONTAG_YYYYMMDD}-000227",
+  "zusatz_gutschein_hinweis": "Trinkwasser wegen Versorgungsstörung (anlass stoerung, 56 Liter für 4 Personen): eigener Zusatzgutschein, nicht auf der Lebensmittelkarte",
+  "zusatz_papierkarte_id": "FA-PK-14729140-000068",
+  "zusatz_code_anzeige": "FA-PK-14729140-000068-75",
+  "zusatz_code_barcode": "FAPK1472914000006875",
+  "zusatz_karte_hinweis": "Gedruckte Zusatzkarte Trinkwasser der Desktop App (nächste freie Nummer nach dem Log). In der Customer App erscheint Trinkwasser als Zusatzgutschein ohne Strichcode.",
+  "kanal": "app",
+  "ags": "14729140",
+  "anschrift": {
+    "strasse": "Musterstraße",
+    "hausnummer": "2",
+    "plz": "12345",
+    "ort": "Musterstadt",
+    "ortsteil": "Musterdorf"
+  },
+  "personen": [
+    {
+      "person_id": "FA-P-14729140-000014",
+      "vornamen": "Marvin",
+      "familienname": "Meier",
+      "altersgruppe": "adult",
+      "rolle_im_haushalt": "Haushaltsvorstand",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000015",
+      "vornamen": "Paul",
+      "familienname": "Meier",
+      "altersgruppe": "child",
+      "rolle_im_haushalt": "Kind unter 18 Jahren",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000016",
+      "vornamen": "Sophie",
+      "familienname": "Meier",
+      "altersgruppe": "adult",
+      "rolle_im_haushalt": "Kind über 18 Jahre",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    },
+    {
+      "person_id": "FA-P-14729140-000017",
+      "vornamen": "Helga",
+      "familienname": "Meier",
+      "altersgruppe": "elderly",
+      "rolle_im_haushalt": "zu betreuende Person",
+      "verifikation": {
+        "status": "bestaetigt",
+        "verfahren": "synthetisch"
+      }
+    }
+  ],
+  "positionen": [
+    {
+      "artikel_id": "wheat_flour",
+      "einheit": "kg",
+      "je_person": 2.0,
+      "bedarf": 8.0,
+      "basiskontingent": 8.0,
+      "zugeteilt_max": 8.0,
+      "eingeloest": 0,
+      "rest": 8.0,
+      "personen_anzahl": 4
+    },
+    {
+      "artikel_id": "rice",
+      "einheit": "kg",
+      "je_person": 1.2,
+      "bedarf": 4.8,
+      "basiskontingent": 4.8,
+      "zugeteilt_max": 4.8,
+      "eingeloest": 0,
+      "rest": 4.8,
+      "personen_anzahl": 4
+    },
+    {
+      "artikel_id": "oil",
+      "einheit": "L",
+      "je_person": 0.35,
+      "bedarf": 1.4,
+      "basiskontingent": 1.4,
+      "zugeteilt_max": 1.4,
+      "eingeloest": 0,
+      "rest": 1.4,
+      "personen_anzahl": 4
+    },
+    {
+      "artikel_id": "toilet_paper",
+      "einheit": "rolle",
+      "je_person": 1,
+      "bedarf": 4,
+      "basiskontingent": 4,
+      "zugeteilt_max": 4,
+      "eingeloest": 0,
+      "rest": 4,
+      "personen_anzahl": 4
+    }
+  ],
+  "ausgabestellen": [
+    "FA-R-14729140-0001",
+    "FA-R-14729140-0002",
+    "FA-R-14729140-0003",
+    "FA-R-14729140-0004",
+    "FA-R-14729140-0005",
+    "FA-R-14729140-0006"
+  ]
+}

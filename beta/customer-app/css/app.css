@@ -336,6 +336,7 @@ footer.app-foot {
 .lk-status { margin: 0.4rem 0; }
 .pill.status-gueltig { background: var(--green); color: #fff; font-size: 0.95rem; padding: 0.15rem 0.75rem; }
 .lk-gueltig { font-weight: 600; margin: 0.4rem 0 0.2rem; }
+.lk-form { margin: 0.5rem 0; padding: 0.5rem 0.7rem; border-left: 4px solid var(--orange); background: var(--orange-soft); border-radius: 4px; }
 .lk-meta { display: grid; gap: 0.35rem; margin: 0.8rem 0; }
 .lk-meta > div { display: grid; grid-template-columns: 11rem 1fr; gap: 0.4rem; }
 .lk-meta dt { color: var(--muted); font-weight: 600; font-size: 0.85rem; }

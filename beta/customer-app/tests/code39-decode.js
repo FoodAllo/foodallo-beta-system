@@ -5,6 +5,7 @@
 //   - Ruhezone ≥ 10 Module auf beiden Seiten, Strichbreiten exakt n bzw. 3n Gerätepixel (code39_pixel.py)
 //   - zxing dekodiert FAPK1472914090000177 aus dem Bildschirmfoto (code39_decode.py)
 // Aufruf: node code39-decode.js <basis-url des Repos> [ausgabeordner] [schnell]
+// KARTE=meier: digitale Lebensmittelkarte Familie Meier nach dem Besucherzugang (FAPK1472914000012307) statt Familie Becker
 // Umgebung: PLAYWRIGHT (Modulpfad, Standard "playwright"), CHROME (Standard /usr/bin/google-chrome), PYTHON (Standard python3)
 "use strict";
 const path = require("path"), fs = require("fs"), { execFileSync } = require("child_process");
@@ -14,6 +15,12 @@ const aus = process.argv[3] || "/tmp/code39-decode";
 const schnell = process.argv[4] === "schnell";
 fs.mkdirSync(aus, { recursive: true });
 let fehler = 0;
+const KARTEN = {
+  becker: { pfad: "/beta/customer-app/#lebensmittelkarte", knopf: null, nummer: "FA-PK-14729140-900001-77", code: "FAPK1472914090000177" },
+  meier: { pfad: "/beta/customer-app/", knopf: "#btn-besucher-meier", nummer: "FA-PK-14729140-000123-07", code: "FAPK1472914000012307" }
+};
+const KARTE = KARTEN[process.env.KARTE || "becker"];
+if (!KARTE) throw new Error("KARTE unbekannt: " + process.env.KARTE);
 function fail(t) { console.log("FAIL " + t); fehler++; }
 
 const FAELLE = [];
@@ -39,7 +46,8 @@ for (const zoom of (schnell ? [0.8] : [0.8, 1, 1.25])) {
       const c = await b.newContext({ locale: "de-DE", viewport: f.vp, deviceScaleFactor: f.dpr, isMobile: false });
       const p = await c.newPage(); const errs = [];
       p.on("pageerror", e => errs.push(String(e)));
-      await p.goto(basis + "/beta/customer-app/#lebensmittelkarte", { waitUntil: "load" });
+      await p.goto(basis + KARTE.pfad, { waitUntil: "load" });
+      if (KARTE.knopf) { await p.waitForSelector(KARTE.knopf, { timeout: 20000 }); await p.click(KARTE.knopf); }
       await p.waitForSelector(".lk-strichcode-platz .karte-strichcode[data-geraetepx]", { timeout: 20000 });
       await p.$eval(".lk-code", e => e.scrollIntoView({ block: "center" }));
       await p.waitForTimeout(250);
@@ -86,7 +94,9 @@ for (const zoom of (schnell ? [0.8] : [0.8, 1, 1.25])) {
       if (f.telefon && !(gr.modul >= 1.5)) fail(`${k} groß: ${gr.modul} CSS-px je Modul < 1,5`);
       if (f.telefon && !(laenge >= 560)) fail(`${k} groß: Länge ${laenge} < 560`);
       if (!(hoehe >= 60)) fail(`${k} groß: Höhe ${hoehe} < 60`);
-      if (gr.nummer !== "FA-PK-14729140-900001-77") fail(`${k} groß: Nummer ${gr.nummer}`);
+      if (gr.nummer !== KARTE.nummer) fail(`${k} groß: Nummer ${gr.nummer}`);
+      const platzCode = await p.$eval(".lk-strichcode-platz", e => e.getAttribute("data-code"));
+      if (platzCode !== KARTE.code) fail(`${k}: Strichcode-Inhalt ${platzCode} ≠ ${KARTE.code}`);
       const grBild = path.join(aus, `code39-${k}-gross.png`);
       await p.screenshot({ path: grBild });
       bilder.push(grBild);
@@ -103,11 +113,12 @@ for (const zoom of (schnell ? [0.8] : [0.8, 1, 1.25])) {
   fs.writeFileSync(path.join(aus, "masse.json"), JSON.stringify(tabelle, null, 1));
   fs.writeFileSync(path.join(aus, "pixel.json"), JSON.stringify(pixel));
   const py = process.env.PYTHON || "python3";
-  try { execFileSync(py, [path.join(__dirname, "code39_pixel.py"), path.join(aus, "pixel.json")], { stdio: "inherit" }); } catch (e) { fehler++; }
-  try { execFileSync(py, [path.join(__dirname, "code39_decode.py"), ...bilder], { stdio: "inherit" }); } catch (e) { fehler++; }
+  const pyEnv = Object.assign({}, process.env, { CODE39_ERWARTET: KARTE.code });
+  try { execFileSync(py, [path.join(__dirname, "code39_pixel.py"), path.join(aus, "pixel.json")], { stdio: "inherit", env: pyEnv }); } catch (e) { fehler++; }
+  try { execFileSync(py, [path.join(__dirname, "code39_decode.py"), ...bilder], { stdio: "inherit", env: pyEnv }); } catch (e) { fehler++; }
   // Inline auf schmalen Telefonbreiten nur zur Information (dafür gibt es „Groß anzeigen“)
   if (bilderInfo.length) {
-    try { execFileSync(py, [path.join(__dirname, "code39_decode.py"), ...bilderInfo], { stdio: "inherit", env: Object.assign({}, process.env, { CODE39_NUR_INFO: "1" }) }); } catch (e) { /* nur Information */ }
+    try { execFileSync(py, [path.join(__dirname, "code39_decode.py"), ...bilderInfo], { stdio: "inherit", env: Object.assign({}, pyEnv, { CODE39_NUR_INFO: "1" }) }); } catch (e) { /* nur Information */ }
   }
   console.log("FAILS " + fehler);
   process.exit(fehler ? 1 : 0);

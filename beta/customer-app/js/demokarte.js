@@ -290,11 +290,15 @@
     var personen = d.personen || [];
     var n = personen.length;
     var code = papierCode(d.papierkarte_id) || { code_anzeige: "", code_barcode: "" };
-    var pos = positionen(opts.artikel, n, d);
-    var abgeholt = lokalEingeloest(d, periode);
+    // opts.positionen: Mengen aus dem Wochengutschein des Haushalts (mit Einlösungen aus dem Ereignislog), opts.lokal: Retail-Einlösungen
+    // aus diesem Browser. Ohne diese Angaben (Familie Becker) gelten die Mengen aus der Demo-Datei und die lokalen Retail-Einlösungen.
+    var ausGutschein = Array.isArray(opts.positionen);
+    var pos = ausGutschein ? opts.positionen.map(function (p) { return Object.assign({}, p); }) : positionen(opts.artikel, n, d);
+    var abgeholt = ausGutschein ? (opts.lokal || {}) : lokalEingeloest(d, periode);
     var irgendwas = false;
     pos.forEach(function (p) {
-      var e = Math.min(Number(abgeholt[p.artikel_id] || 0), Number(p.zugeteilt_max));
+      var basis = ausGutschein ? Number(p.eingeloest || 0) : 0;
+      var e = Math.min(basis + Number(abgeholt[p.artikel_id] || 0), Number(p.zugeteilt_max));
       if (e > 0) irgendwas = true;
       p.eingeloest = e;
       p.rest = Math.round((Number(p.zugeteilt_max) - e) * 1000) / 1000;
@@ -322,12 +326,14 @@
     html += '<p class="lk-gueltig">Gültig diese Woche: Montag, ' + esc(dat(periode.start_iso_date)) +
       " bis Sonntag, " + esc(dat(periode.ende_iso_date)) + ".</p>";
     html += '<p class="hint">In dieser Demonstration gilt die Karte immer für die laufende Woche, von Montag bis Sonntag.</p>';
+    if (opts.formHinweis) html += '<p class="lk-form">' + esc(opts.formHinweis) + "</p>";
 
     html += '<dl class="lk-meta">';
     html += "<div><dt>Haushalt</dt><dd>Familie " + esc(d.familie) + "</dd></div>";
     html += "<div><dt>Anschrift</dt><dd>" + esc(anschriftText(d.anschrift)) + "</dd></div>";
     html += "<div><dt>Personen im Haushalt</dt><dd>" + esc(String(n)) + " (" +
       personen.map(function (p) { return esc((p.vornamen + " " + p.familienname).trim()); }).join(", ") + ")</dd></div>";
+    (opts.metaZusatz || []).forEach(function (m) { html += "<div><dt>" + esc(m.dt) + "</dt><dd>" + esc(m.dd) + "</dd></div>"; });
     html += "</dl>";
 
     html += '<div class="lk-code">';
@@ -342,7 +348,7 @@
 
     html += '<h3 class="lk-h3">Mengen für diese Woche</h3>';
     if (irgendwas) {
-      html += '<p class="hint">„Bereits abgeholt“ zeigt die Abholungen, die in diesem Browser in der Retail App gebucht wurden.</p>';
+      html += '<p class="hint">' + esc(opts.abgeholtHinweis || "„Bereits abgeholt“ zeigt die Abholungen, die in diesem Browser in der Retail App gebucht wurden.") + "</p>";
     }
     html += '<table class="lk-tabelle' + (irgendwas ? " mit-abgeholt" : "") + '"><thead><tr><th scope="col">Artikel</th><th scope="col" class="num">Sie dürfen abholen</th>' +
       '<th scope="col" class="num">Bereits abgeholt</th><th scope="col" class="num">Es bleibt noch</th></tr></thead><tbody>';
@@ -354,9 +360,9 @@
     });
     html += "</tbody></table>";
     html += '<p class="hint">Die Mengen gelten für den ganzen Haushalt und je Woche, zum Beispiel eine Rolle Toilettenpapier je Person. ' +
-      "Trinkwasser gibt es nur während einer Versorgungsstörung: 2 Liter je Person und Tag (14 Liter je Person und Woche), auf einer zusätzlichen Karte.</p>";
+      esc(opts.trinkwasserHinweis || "Trinkwasser gibt es nur während einer Versorgungsstörung: 2 Liter je Person und Tag (14 Liter je Person und Woche), auf einer zusätzlichen Karte.") + "</p>";
     html += "<p>So nutzen Sie die Karte: Zeigen Sie die Karte im Geschäft vor. Das Geschäft scannt den Strichcode oder tippt die Kartennummer ein.</p>";
-    html += '<p class="hint">Diese Karte gehört zu einer erfundenen Familie und dient nur zur Demonstration. Abholungen auf diese Karte bucht die Retail App nur auf dem jeweiligen Gerät, nicht im gemeinsamen Datenbestand.</p>';
+    html += '<p class="hint">' + esc(opts.schlussHinweis || "Diese Karte gehört zu einer erfundenen Familie und dient nur zur Demonstration. Abholungen auf diese Karte bucht die Retail App nur auf dem jeweiligen Gerät, nicht im gemeinsamen Datenbestand.") + "</p>";
     html += "</section>";
     return html;
   }

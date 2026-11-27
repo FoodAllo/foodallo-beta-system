@@ -2,12 +2,12 @@
 """Dekodiert Bildschirmfotos der Becker-Karte mit zxing-cpp und vergleicht die Code-39-Tabelle mit python-barcode.
 Aufruf: python3 code39_decode.py bild1.png [bild2.png ...]
 Voraussetzung (kostenfrei): pip install zxing-cpp python-barcode pillow
-Erwartet in jedem Bild genau den Inhalt FAPK1472914090000177. Rückgabe 0 = alles gelesen."""
+Erwartet in jedem Bild genau den Inhalt FAPK1472914090000177 (Becker) bzw. CODE39_ERWARTET (z. B. Meier FAPK1472914000012307). Rückgabe 0 = alles gelesen."""
 import json, os, subprocess, sys
 import zxingcpp
 from PIL import Image
 
-ERWARTET = "FAPK1472914090000177"
+ERWARTET = os.environ.get("CODE39_ERWARTET") or "FAPK1472914090000177"  # Becker; Meier: FAPK1472914000012307
 HIER = os.path.dirname(os.path.abspath(__file__))
 fehler = 0
 

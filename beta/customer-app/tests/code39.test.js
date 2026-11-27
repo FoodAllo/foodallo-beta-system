@@ -1,5 +1,5 @@
 // Prüft js/code39.js gegen die Code-39-Normtabelle (ISO/IEC 16388, Modulschreibweise 1:3,
-// identisch mit python-barcode barcode.charsets.code39) und dekodiert den Becker-Strichcode zurück.
+// identisch mit python-barcode barcode.charsets.code39) und dekodiert den Becker- und den Meier-Strichcode zurück.
 // Aufruf: node beta/customer-app/tests/code39.test.js   (ohne Abhängigkeiten)
 "use strict";
 const assert = require("assert");
@@ -106,6 +106,79 @@ pruefe("Modulbreite in ganzen Gerätepixeln (n / DPR) und Großanzeige-Maße fü
   }
   const d = D.grossMasse(ERWARTET, 1280, 800, 1);
   assert.ok(d.n === 3 && d.laenge === 1113, "1280: 3 px je Modul");
+});
+
+// ---- Familie Meier: digitale Lebensmittelkarte (geprüfter Haushalt FA-HH-14729140-000123), Becker unverändert
+const fs = require("fs"), path = require("path"), crypto = require("crypto");
+const MEIER = "FAPK1472914000012307";
+function dekodiere(text) {
+  const r = C.striche(text), arr = "0".repeat(r.breite).split("");
+  r.striche.forEach(s => { for (let i = 0; i < s.w; i++) arr[s.x + i] = "1"; });
+  const mod = arr.join(""), inner = mod.slice(C.RUHEZONE, mod.length - C.RUHEZONE);
+  const rueck = {}; for (const [k, v] of Object.entries(NORM)) rueck[v] = k;
+  let pos = 0, out = "";
+  while (pos < inner.length) { const z = rueck[inner.substr(pos, 15)]; assert.ok(z, "Muster an Modul " + pos); out += z; pos += 16; }
+  return out;
+}
+pruefe("Meier: Kern papierkartenCode FA-PK-14729140-000123 (wie Desktop 79c1a3e) -> -07 / " + MEIER, () => {
+  const K = require("../../kern/foodallo_kern.js");
+  const k = K.papierkartenCode("FA-PK-14729140-000123");
+  assert.strictEqual(k.code_anzeige, "FA-PK-14729140-000123-07");
+  assert.strictEqual(k.code_barcode, MEIER);
+  // ISO 7064 Mod 97-10 von Hand
+  let r = 0; for (const c of "14729140000123") r = (r * 10 + Number(c)) % 97;
+  assert.strictEqual(String(98 - (r * 100) % 97).padStart(2, "0"), "07");
+  assert.deepStrictEqual(D.papierCode("FA-PK-14729140-000123"), { code_anzeige: k.code_anzeige, code_barcode: k.code_barcode });
+});
+const K2 = require("../../kern/foodallo_kern.js");
+pruefe("Meier: demo-meier.json (beta/data und Customer-Kopie byte-gleich) passt zu Kern, Haushalt und Log", () => {
+  const a = fs.readFileSync(path.join(__dirname, "../../data/demo-meier.json")), b = fs.readFileSync(path.join(__dirname, "../data/demo-meier.json"));
+  assert.ok(a.equals(b), "Kopien gleich");
+  const m = JSON.parse(a);
+  assert.strictEqual(m.haushalt_id, "FA-HH-14729140-000123");
+  assert.strictEqual(m.papierkarte_id, "FA-PK-14729140-000123");
+  assert.strictEqual(m.zusatz_code_barcode, K2.papierkartenCode(m.zusatz_papierkarte_id).code_barcode);
+  assert.strictEqual(m.code_anzeige, "FA-PK-14729140-000123-07");
+  assert.strictEqual(m.code_barcode, MEIER);
+  assert.strictEqual(m.gutschein_id_vorlage, "FA-V-{MONTAG_YYYYMMDD}-000229");
+  assert.strictEqual(m.zusatz_gutschein_id_vorlage, "FA-V-{MONTAG_YYYYMMDD}-000227");
+  assert.deepStrictEqual(m.personen.map(p => p.person_id), ["FA-P-14729140-000014", "FA-P-14729140-000015", "FA-P-14729140-000016", "FA-P-14729140-000017"]);
+  const log = fs.readFileSync(path.join(__dirname, "../data/ereignislog.jsonl"), "utf8").split("\n").filter(Boolean).map(JSON.parse);
+  const g = log.find(e => e.typ === "VOUCHER_ISSUED" && e.payload.gutschein.gutschein_id === "FA-V-20261116-000229").payload.gutschein;
+  assert.strictEqual(g.haushalt_id, m.haushalt_id);
+  for (const p of m.positionen) assert.strictEqual(g.positionen.find(x => x.artikel_id === p.artikel_id).zugeteilt_max, p.zugeteilt_max, p.artikel_id);
+  const w = log.find(e => e.typ === "VOUCHER_ISSUED" && e.payload.gutschein.gutschein_id === "FA-V-20261116-000227").payload.gutschein;
+  assert.strictEqual(w.haushalt_id, m.haushalt_id);
+  assert.ok(!JSON.stringify(m).includes("OSM"));
+});
+pruefe("Meier: Strichfolge dekodiert zu " + MEIER + ", 371 Module wie Becker", () => {
+  assert.strictEqual(dekodiere(MEIER), "*" + MEIER + "*");
+  assert.strictEqual(C.module(MEIER), 371);
+  assert.strictEqual(C.module(ERWARTET), 371);
+});
+if (typeof global.localStorage === "undefined") global.localStorage = { getItem: () => null };
+const V = require("../js/voucher.js"), UI = require("../js/ui.js");
+const PERIODE = V.periodFromDate(new Date("2026-11-25T12:00:00+01:00"));
+pruefe("Becker: Karte unverändert (HTML-Prüfsumme wie vor der Meier-Änderung)", () => {
+  const h = D.render({ demo: require("../data/demo-karte.json"), artikel: require("../data/artikel.json"), periode: PERIODE, UI });
+  assert.strictEqual(crypto.createHash("sha256").update(h).digest("hex"), "4edeed764987f47111fe08eed09ffa3c9b297eb15b7dd828fb717ed90d22b591");
+  assert.ok(fs.readFileSync(path.join(__dirname, "../../data/demo-becker.json")).equals(fs.readFileSync(path.join(__dirname, "../data/demo-karte.json"))));
+});
+pruefe("Meier: Karte mit Status Gültig, Woche Mo–So, Kartennummer, Strichcode, Groß anzeigen, Mengen aus dem Gutschein", () => {
+  const m = JSON.parse(fs.readFileSync(path.join(__dirname, "../data/demo-meier.json")));
+  const pos = m.positionen.map(p => ({ artikel_id: p.artikel_id, bezeichnung: p.artikel_id, einheit: p.einheit, je_person: p.je_person, zugeteilt_max: p.zugeteilt_max, eingeloest: p.artikel_id === "rice" ? 1.2 : 0 }));
+  const h = D.render({ demo: m, artikel: require("../data/artikel.json"), periode: PERIODE, UI, positionen: pos, lokal: { oil: 0.35 },
+    metaZusatz: [{ dt: "Gutschein dieser Woche", dd: "FA-V-20261123-000229" }], formHinweis: "digital" });
+  assert.ok(h.includes('class="pill status-gueltig">Gültig'));
+  assert.ok(h.includes("Montag, 23.11.2026 bis Sonntag, 29.11.2026"));
+  assert.ok(h.includes('data-code="' + MEIER + '"') && h.includes('data-nummer="FA-PK-14729140-000123-07"'));
+  assert.ok(h.includes('<p class="lk-nummer">FA-PK-14729140-000123-07</p>'));
+  assert.ok(h.includes("Groß anzeigen") && h.includes('aria-label="Strichcode ' + MEIER + '"'));
+  assert.ok(h.includes("FA-V-20261123-000229"));
+  assert.ok(/rice<span.*?1,2\u00a0kg<\/td><td class="num"><strong>3,6\u00a0kg/.test(h), "Reis: 1,2 kg abgeholt, 3,6 kg bleiben");
+  assert.ok(/oil<span.*?0,35\u00a0Liter<\/td><td class="num"><strong>1,05\u00a0Liter/.test(h), "Öl: lokale Retail-Einlösung");
+  assert.ok(h.includes("Teilweise abgeholt"));
+  assert.ok(!/OSM|startklar|kostenlos|ready to use/i.test(h));
 });
 console.log(fehler ? "FAILS " + fehler : "FAILS 0");
 process.exit(fehler ? 1 : 0);
