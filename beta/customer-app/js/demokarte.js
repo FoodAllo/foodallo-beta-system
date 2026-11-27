@@ -29,60 +29,110 @@
 
   /* ---------- Scannerfreundliche Anzeige: ganzzahlige Modulbreite, keine Skalierung ---------- */
 
-  /** Größte ganzzahlige Modulbreite (CSS px), die in `laenge` passt; mindestens 1. */
-  function modulFuer(code, laenge) {
-    return Math.max(1, Math.floor(laenge / C39().module(code)));
+  /** Pixeldichte des Bildschirms (Gerätepixel je CSS-Pixel). */
+  function dichte() {
+    var d = typeof window !== "undefined" && window.devicePixelRatio;
+    return d > 0 ? d : 1;
   }
 
-  /** Verschiebt ein Element um den Bruchteil eines Pixels, damit die Striche auf ganzen Pixeln liegen. */
-  function aufGanzePixel(el) {
+  /**
+   * Modulbreite in ganzen GERÄTEpixeln: größtes n, sodass alle Module (inkl. Ruhezone) in `laenge` CSS-px passen.
+   * Ergebnis { n, css, modulzahl, laenge }: css = n / dpr (z. B. DPR 2: n 3 = 1,5 CSS-px; DPR 3: n 5 ≈ 1,667 CSS-px).
+   * Passt nicht einmal 1 Gerätepixel je Modul, wird auf `laenge` eingepasst (n = 0, Ruhezone bleibt vollständig).
+   */
+  function modulGeraet(code, laenge, dpr) {
+    dpr = dpr > 0 ? dpr : 1;
+    var z = C39().module(code), n = Math.floor((laenge * dpr + 1e-6) / z);
+    var css = n >= 1 ? n / dpr : Math.max(0, laenge) / z;
+    return { n: n >= 1 ? n : 0, css: css, modulzahl: z, laenge: z * css };
+  }
+
+  /** Modulbreite in CSS-px (ganze Gerätepixel bei gegebener Pixeldichte; ohne dpr: ganze CSS-px). */
+  function modulFuer(code, laenge, dpr) {
+    return modulGeraet(code, laenge, dpr || 1).css;
+  }
+
+  /**
+   * Legt ein Element auf das Gerätepixelraster und hält es innerhalb von [0, Fensterbreite]
+   * (Ruhezone darf nicht abgeschnitten werden).
+   */
+  function aufGeraetePixel(el) {
     if (!el || !el.getBoundingClientRect) return;
-    el.style.transform = "";
-    var r = el.getBoundingClientRect(), dx = Math.round(r.left) - r.left, dy = Math.round(r.top) - r.top;
-    if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) el.style.transform = "translate(" + dx + "px," + dy + "px)";
+    // Verschiebung über position:relative (wird vom Layout auf Gerätepixel gelegt; transform würde Firefox nicht einrasten)
+    el.style.position = "relative"; el.style.left = "0px"; el.style.top = "0px";
+    var d = dichte(), r = el.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth || window.innerWidth;
+    var ziel = r.left;
+    if (r.width <= vw) ziel = Math.min(Math.max(ziel, 0), vw - r.width);
+    var zx = Math.round(ziel * d) / d, zy = Math.round(r.top * d) / d;
+    if (zx + r.width > vw + 1e-6) zx = Math.floor((vw - r.width) * d) / d;
+    if (zx < 0 && r.width <= vw) zx = 0;
+    var dx = zx - r.left, dy = zy - r.top;
+    if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) { el.style.left = dx + "px"; el.style.top = dy + "px"; }
   }
 
-  /** Inline-Strichcode so groß wie das Layout erlaubt, mit ganzzahliger Modulbreite. */
+  /** Inline-Strichcode: so groß wie möglich in ganzen Gerätepixeln je Modul, nie breiter als Platz und Bildschirm. */
   function anpassen(root) {
     if (typeof document === "undefined") return;
     var plaetze = (root || document).querySelectorAll(".lk-strichcode-platz");
     Array.prototype.forEach.call(plaetze, function (platz) {
       var code = platz.getAttribute("data-code");
       if (!code) return;
-      var verfuegbar = platz.clientWidth - 8;
-      var m = modulFuer(code, verfuegbar);
-      var laenge = C39().module(code) * m;
-      var hoehe = Math.max(80, Math.min(140, Math.round(laenge * 0.18)));
-      platz.innerHTML = C39().svgPx(code, { modul: m, hoehe: hoehe, klasse: "karte-strichcode" });
-      aufGanzePixel(platz.firstChild);
+      platz.innerHTML = "";
+      var r = platz.getBoundingClientRect(), vw = document.documentElement.clientWidth || window.innerWidth;
+      var verfuegbar = Math.min(r.right, vw) - Math.max(r.left, 0);
+      verfuegbar = Math.max(0, Math.min(verfuegbar, platz.clientWidth || verfuegbar) - 1);
+      var mg = modulGeraet(code, verfuegbar, dichte());
+      var hoehe = Math.max(60, Math.min(140, Math.round(mg.laenge * 0.2)));
+      platz.innerHTML = C39().svgPx(code, { modul: mg.css, hoehe: hoehe, klasse: "karte-strichcode", geraetepx: mg.n || "eingepasst" });
+      aufGeraetePixel(platz.firstChild);
     });
   }
 
   var gross = null;
+  var RAND = 8;          // Abstand zum Bildschirmrand
+  var KNOPF = 44;        // Höhe der Leiste mit dem kleinen „Schließen“-Knopf (Ecke oben rechts)
+  var TEXT = 52;         // Kartennummer + kurzer Hinweis neben bzw. unter dem Code
+
+  /**
+   * Maße der Großanzeige für ein Fenster W×H (CSS px). Hochformat: Code gedreht über die Bildschirmhöhe,
+   * Nummer daneben. Querformat: Code über die Breite, Nummer darunter.
+   */
+  function grossMasse(code, W, H, dpr) {
+    var hoch = H > W;
+    var laengeVerf = hoch ? H - KNOPF - RAND : W - 2 * RAND;
+    var mg = modulGeraet(code, laengeVerf, dpr);
+    var quer = hoch ? W - 2 * RAND : H - KNOPF - RAND;
+    var hoehe = Math.max(60, Math.min(quer - TEXT, Math.round(mg.laenge * 0.35)));
+    return { hoch: hoch, n: mg.n, css: mg.css, laenge: mg.laenge, hoehe: hoehe, modulzahl: mg.modulzahl };
+  }
 
   function grossLayout() {
     if (!gross) return;
-    var W = window.innerWidth, H = window.innerHeight, code = gross.code;
-    var hoch = H > W;
-    var laengeVerf = hoch ? H - 96 : W - 32;          // oben Platz für „Schließen“
-    var m = modulFuer(code, laengeVerf);
-    var laenge = C39().module(code) * m;
-    var quer = hoch ? W - 24 : H - 96;
-    var text = 44;
-    var hoehe = Math.max(60, Math.min(quer - text, Math.round(laenge * 0.3)));
-    var wW = laenge, wH = hoehe + text;
-    if ((wW - wH) % 2) wH += 1;                       // gleiche Parität: nach 90°-Drehung ganze Pixel
+    var W = document.documentElement.clientWidth || window.innerWidth, H = window.innerHeight, d = dichte();
+    var g = grossMasse(gross.code, W, H, d);
     var box = gross.box;
-    box.style.width = wW + "px";
-    box.style.height = wH + "px";
-    box.innerHTML = C39().svgPx(code, { modul: m, hoehe: hoehe, klasse: "lk-gross-code" }) +
-      '<p class="lk-gross-nummer">' + esc(gross.nummer) + "</p>";
-    var cx = Math.round(W / 2), cy = Math.round(64 + (H - 64) / 2);
-    box.style.left = Math.round(cx - wW / 2) + "px";
-    box.style.top = Math.round(cy - wH / 2) + "px";
-    box.style.transform = hoch ? "rotate(90deg)" : "none";
-    gross.el.setAttribute("data-modul", String(m));
-    gross.el.setAttribute("data-ausrichtung", hoch ? "gedreht" : "quer");
+    box.className = "lk-gross-box " + (g.hoch ? "hoch" : "quer");
+    box.innerHTML = C39().svgPx(gross.code, { modul: g.css, hoehe: g.hoehe, klasse: "lk-gross-code", senkrecht: g.hoch, geraetepx: g.n || "eingepasst" }) +
+      '<p class="lk-gross-nummer">' + esc(gross.nummer) + '</p>';
+    var svg = box.firstChild;
+    var sw = g.hoch ? g.hoehe : g.laenge, sh = g.hoch ? g.laenge : g.hoehe;
+    // Code auf ganze Gerätepixel: oben (unter der Knopfleiste) bzw. mittig im freien Bereich
+    var oben = g.hoch ? KNOPF : KNOPF + Math.max(0, (H - KNOPF - RAND - sh - TEXT) / 2);
+    var links = g.hoch ? (W - sw - TEXT) / 2 + TEXT : (W - sw) / 2;
+    if (g.hoch) oben = KNOPF + Math.max(0, (H - KNOPF - RAND - sh) / 2);
+    links = Math.round(links * d) / d; oben = Math.round(oben * d) / d;
+    box.style.left = "0px"; box.style.top = "0px"; box.style.width = W + "px"; box.style.height = H + "px";
+    svg.style.position = "absolute"; svg.style.left = links + "px"; svg.style.top = oben + "px";
+    var nr = box.lastChild;
+    if (g.hoch) {
+      nr.style.left = Math.max(RAND, links - TEXT) + "px"; nr.style.top = oben + "px"; nr.style.height = sh + "px"; nr.style.width = TEXT - 8 + "px";
+    } else {
+      nr.style.left = "0px"; nr.style.width = W + "px"; nr.style.top = (oben + sh + 6) + "px";
+    }
+    gross.el.setAttribute("data-modul", String(g.css));
+    gross.el.setAttribute("data-geraetepx", String(g.n));
+    gross.el.setAttribute("data-ausrichtung", g.hoch ? "gedreht" : "quer");
   }
 
   function grossSchliessen() {
@@ -107,8 +157,8 @@
     el.setAttribute("role", "dialog");
     el.setAttribute("aria-modal", "true");
     el.setAttribute("aria-label", "Strichcode groß, Kartennummer " + nummer);
-    el.innerHTML = '<button type="button" class="lk-gross-zu">Schließen</button>' +
-      '<p class="lk-gross-tipp">Bildschirm hell stellen. Zum Schließen tippen.</p><div class="lk-gross-box"></div>';
+    el.innerHTML = '<button type="button" class="lk-gross-zu" aria-label="Schließen">✕ Schließen</button>' +
+      '<p class="lk-gross-tipp">Bildschirm hell stellen · Zum Schließen tippen</p><div class="lk-gross-box"></div>';
     document.body.appendChild(el);
     document.documentElement.classList.add("lk-gross-offen");
     gross = { el: el, box: el.querySelector(".lk-gross-box"), code: code, nummer: nummer || "", zurueck: ausloeser, sperre: null };
@@ -247,10 +297,12 @@
 
     html += '<div class="lk-code">';
     html += '<p class="lk-code-label">Kartennummer</p>';
-    html += '<div class="lk-strichcode-platz" data-code="' + esc(code.code_barcode) + '">' + code39Svg(code.code_barcode) + "</div>";
-    html += '<p class="lk-nummer">' + esc(code.code_anzeige) + "</p>";
+    html += '<div class="lk-strichcode-platz" data-gross-anzeigen data-code="' + esc(code.code_barcode) + '" data-nummer="' + esc(code.code_anzeige) +
+      '" title="Groß anzeigen">' + code39Svg(code.code_barcode) + "</div>";
     html += '<button type="button" class="btn lk-gross-knopf" data-gross-anzeigen data-code="' + esc(code.code_barcode) +
-      '" data-nummer="' + esc(code.code_anzeige) + '">Groß anzeigen (zum Scannen)</button>';
+      '" data-nummer="' + esc(code.code_anzeige) + '"><span class="lk-gross-knopf-titel">Groß anzeigen</span>' +
+      '<span class="lk-scan-hinweis">Zum Scannen bitte „Groß anzeigen“ antippen</span></button>';
+    html += '<p class="lk-nummer">' + esc(code.code_anzeige) + "</p>";
     html += "</div>";
 
     html += '<h3 class="lk-h3">Mengen für diese Woche</h3>';
@@ -274,5 +326,5 @@
     return html;
   }
 
-  return { anpassen: anpassen, grossAnzeigen: grossAnzeigen, grossSchliessen: grossSchliessen, modulFuer: modulFuer, render: render, positionen: positionen, gutscheinIdFuer: gutscheinIdFuer, lokalEingeloest: lokalEingeloest, papierCode: papierCode, code39Svg: code39Svg };
+  return { anpassen: anpassen, grossAnzeigen: grossAnzeigen, grossSchliessen: grossSchliessen, modulFuer: modulFuer, modulGeraet: modulGeraet, grossMasse: grossMasse, render: render, positionen: positionen, gutscheinIdFuer: gutscheinIdFuer, lokalEingeloest: lokalEingeloest, papierCode: papierCode, code39Svg: code39Svg };
 });

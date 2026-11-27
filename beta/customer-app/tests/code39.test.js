@@ -57,27 +57,55 @@ pruefe("SVG enthält Ruhezone und Beschriftung", () => {
   assert.ok(svg.includes('aria-label="Strichcode ' + ERWARTET + '"'));
   assert.ok(svg.includes('<rect x="0" y="0"'));
 });
-pruefe("svgPx: ganzzahlige Module, keine Skalierung, Ruhezone, Schwarz auf Weiß", () => {
-  for (const m of [1, 2, 3, 4]) {
-    const svg = C.svgPx(ERWARTET, { modul: m, hoehe: 120 });
-    const breite = C.module(ERWARTET) * m;
-    assert.ok(svg.includes('width="' + breite + '" height="120" viewBox="0 0 ' + breite + ' 120"'), "Pixelmaße = viewBox (m=" + m + ")");
-    assert.ok(svg.includes('shape-rendering="crispEdges"'));
-    assert.ok(svg.includes('fill="#fff"') && svg.includes('fill="#000"'));
-    const rects = [...svg.matchAll(/<rect x="(\d+)" y="0" width="(\d+)" height="120"\/>/g)].map(r => [Number(r[1]), Number(r[2])]);
-    assert.strictEqual(rects.length, C.striche(ERWARTET).striche.length);
-    rects.forEach(([x, w]) => { assert.strictEqual(x % m, 0); assert.ok(w === m || w === 3 * m); });
-    assert.ok(rects[0][0] >= 10 * m, "Ruhezone links");
-    const ende = rects[rects.length - 1][0] + rects[rects.length - 1][1];
-    assert.ok(breite - ende >= 10 * m, "Ruhezone rechts");
+pruefe("svgPx: Koordinaten in ganzen Modulen, feste Größe = Module × Modulbreite, Ruhezone, Schwarz auf Weiß", () => {
+  for (const m of [1, 2, 3, 1.5, 5 / 2.625, 2 / 3]) {
+    for (const senk of [false, true]) {
+      const svg = C.svgPx(ERWARTET, { modul: m, hoehe: 120, senkrecht: senk });
+      const z = C.module(ERWARTET), laenge = Math.round(z * m * 10000) / 10000;
+      const w = senk ? 120 : laenge, h = senk ? laenge : 120;
+      assert.ok(svg.includes('width="' + w + '" height="' + h + '"'), "Maße (m=" + m + ", senkrecht=" + senk + ")");
+      assert.ok(svg.includes('viewBox="' + (senk ? "0 0 1 " + z : "0 0 " + z + " 1") + '"'));
+      assert.ok(svg.includes('shape-rendering="crispEdges"') && svg.includes('preserveAspectRatio="none"'));
+      assert.ok(svg.includes('fill="#fff"') && svg.includes('fill="#000"'));
+      const re = senk ? /<rect x="0" y="(\d+)" width="1" height="(\d+)"\/>/g : /<rect x="(\d+)" y="0" width="(\d+)" height="1"\/>/g;
+      const rects = [...svg.matchAll(re)].map(r => [Number(r[1]), Number(r[2])]);
+      assert.strictEqual(rects.length, C.striche(ERWARTET).striche.length);
+      rects.forEach(([x, b]) => assert.ok(b === 1 || b === 3));
+      assert.ok(rects[0][0] >= 10, "Ruhezone vorn");
+      assert.ok(z - (rects[rects.length - 1][0] + rects[rects.length - 1][1]) >= 10, "Ruhezone hinten");
+    }
   }
 });
-pruefe("Groß-Anzeige: Modulbreite ganzzahlig für 390×844 hochkant und 1280 quer", () => {
-  const n = C.module(ERWARTET);
-  assert.strictEqual(D.modulFuer(ERWARTET, 844 - 96) >= 2, true);
-  assert.strictEqual(D.modulFuer(ERWARTET, 1280 - 32) >= 3, true);
-  assert.strictEqual(Number.isInteger(D.modulFuer(ERWARTET, 500)), true);
-  assert.ok(n >= 371 && n <= 371, "371 Module für 20 Zeichen");
+pruefe("Modulbreite in ganzen Gerätepixeln (n / DPR) und Großanzeige-Maße für Telefon-Viewports", () => {
+  const z = C.module(ERWARTET);
+  assert.strictEqual(z, 371, "371 Module für 20 Zeichen");
+  // Beispiele aus der Vorgabe: DPR 2 → 3 Gerätepx = 1,5 CSS-px; DPR 3 → 5 Gerätepx
+  assert.deepStrictEqual([D.modulGeraet(ERWARTET, 3 * 371 / 2, 2).n, D.modulGeraet(ERWARTET, 3 * 371 / 2, 2).css], [3, 1.5]);
+  assert.strictEqual(D.modulGeraet(ERWARTET, 5 * 371 / 3, 3).n, 5);
+  for (const dpr of [1, 2, 2.625, 3]) {
+    for (const laenge of [150, 300, 352, 359, 389, 411, 742, 799, 1264]) {
+      const g = D.modulGeraet(ERWARTET, laenge, dpr);
+      assert.ok(g.laenge <= laenge + 1e-9, "passt in die Breite");
+      if (g.n) {
+        assert.ok(Math.abs(g.css * dpr - g.n) < 1e-9, "ganze Gerätepixel");
+        assert.ok((g.n + 1) * z / dpr > laenge, "größtes n");
+      } else assert.ok(laenge * dpr < z, "eingepasst nur unter 1 Gerätepixel je Modul");
+    }
+  }
+  for (const [w, h] of [[360, 800], [390, 844], [412, 915]]) {
+    for (const dpr of [2, 2.625, 3]) {
+      for (const [W, H] of [[w, h], [h, w]]) {
+        const g = D.grossMasse(ERWARTET, W, H, dpr);
+        assert.ok(g.css >= 1.5, `${W}×${H}@${dpr}: ${g.css} CSS-px je Modul`);
+        assert.ok(g.laenge >= 560, `${W}×${H}@${dpr}: Länge ${g.laenge}`);
+        assert.ok(g.hoehe >= 60 && g.hoehe >= 0.15 * g.laenge, `${W}×${H}@${dpr}: Höhe ${g.hoehe}`);
+        assert.ok(g.laenge <= (g.hoch ? H : W) - 16 && g.hoehe <= (g.hoch ? W : H) - 16, "passt auf den Bildschirm");
+        assert.strictEqual(g.hoch, H > W);
+      }
+    }
+  }
+  const d = D.grossMasse(ERWARTET, 1280, 800, 1);
+  assert.ok(d.n === 3 && d.laenge === 1113, "1280: 3 px je Modul");
 });
 console.log(fehler ? "FAILS " + fehler : "FAILS 0");
 process.exit(fehler ? 1 : 0);

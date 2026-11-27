@@ -70,20 +70,30 @@
       '<rect x="0" y="0" width="' + r.breite + '" height="' + hoehe + '" fill="#fff"/><g fill="#000">' + rects + "</g></svg>";
   }
 
+  function zahl(v) { return String(Math.round(v * 10000) / 10000); }
+
   /**
-   * SVG in festen Bildschirmpixeln: jedes schmale Modul genau `modul` CSS-Pixel (ganzzahlig), keine Skalierung,
-   * reines Schwarz auf reinem Weiß, Ruhezone inklusive. opts: modul (Standard 2), hoehe (px), klasse.
+   * SVG in festen Bildschirmpixeln, keine Skalierung durch das Layout. Koordinaten in Modulen (ganzzahlig),
+   * Breite je Modul = opts.modul CSS-px (z. B. n / devicePixelRatio, damit jedes Modul genau n Gerätepixel hat).
+   * Reines Schwarz auf reinem Weiß, Ruhezone inklusive, crispEdges.
+   * opts: modul (CSS px je Modul, Standard 2), hoehe (CSS px), klasse, senkrecht (Striche waagrecht, Code von oben nach unten),
+   *       geraetepx (nur Angabe für data-geraetepx).
    */
   function svgPx(text, opts) {
     opts = opts || {};
-    var r = striche(text), m = Math.max(1, Math.floor(opts.modul || 2)), hoehe = Math.max(1, Math.round(opts.hoehe || 80));
-    var breite = r.breite * m, rects = "";
+    var r = striche(text), m = opts.modul > 0 ? Number(opts.modul) : 2, hoehe = Math.max(1, Math.round(opts.hoehe || 80));
+    var laenge = r.breite * m, rects = "", senk = !!opts.senkrecht;
     r.striche.forEach(function (s) {
-      rects += '<rect x="' + s.x * m + '" y="0" width="' + s.w * m + '" height="' + hoehe + '"/>';
+      rects += senk ? '<rect x="0" y="' + s.x + '" width="1" height="' + s.w + '"/>'
+        : '<rect x="' + s.x + '" y="0" width="' + s.w + '" height="1"/>';
     });
+    var w = senk ? hoehe : laenge, h = senk ? laenge : hoehe;
+    var vb = senk ? "0 0 1 " + r.breite : "0 0 " + r.breite + " 1";
     return '<svg class="' + esc(opts.klasse || "code39") + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strichcode ' + esc(r.inhalt) +
-      '" width="' + breite + '" height="' + hoehe + '" viewBox="0 0 ' + breite + " " + hoehe + '" shape-rendering="crispEdges" data-modul="' + m + '">' +
-      '<rect x="0" y="0" width="' + breite + '" height="' + hoehe + '" fill="#fff"/><g fill="#000">' + rects + "</g></svg>";
+      '" width="' + zahl(w) + '" height="' + zahl(h) + '" viewBox="' + vb + '" preserveAspectRatio="none" shape-rendering="crispEdges"' +
+      ' style="width:' + zahl(w) + "px;height:" + zahl(h) + 'px" data-modul="' + zahl(m) + '"' +
+      (opts.geraetepx ? ' data-geraetepx="' + opts.geraetepx + '"' : "") + (senk ? ' data-senkrecht="1"' : "") + ">" +
+      '<rect x="0" y="0" width="' + (senk ? 1 : r.breite) + '" height="' + (senk ? r.breite : 1) + '" fill="#fff"/><g fill="#000">' + rects + "</g></svg>";
   }
 
   /** Anzahl Module inklusive Ruhezone (für die Wahl einer ganzzahligen Modulbreite). */
